@@ -59,7 +59,9 @@ markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True)
 
 def facts_to_str(user_data: Dict[str, str]) -> str:
     """Helper function for formatting the gathered user info."""
+    logger.info("Bio of %s: %s", user.first_name, update.message.text)
     facts = [f"{key} - {value}" for key, value in user_data.items()]
+
     return "\n".join(facts).join(["\n", "\n"])
 
 

@@ -221,11 +221,7 @@ def getInfo(body):
     return str_out
 
 
-
-
-
 if __name__ == "__main__":
-
 
     deg = ephem.degrees
 
