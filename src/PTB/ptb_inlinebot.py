@@ -1,3 +1,5 @@
+# logger.info("Bio of %s: %s", user.first_name, update.message.text)
+# 1261633346:AAHC4ctXxjZ4hdATaP_Of0608Ju7lIn5sxE
 #!/usr/bin/env python
 # pylint: disable=unused-argument, wrong-import-position
 # This program is dedicated to the public domain under the CC0 license.
@@ -14,6 +16,12 @@ Basic Echobot example, repeats messages.
 Press Ctrl-C on the command line or send a signal to the process to stop the
 bot.
 """
+
+
+from datetime import datetime
+import src.ephem_routines.ephem_package.moon_day as md
+import src.ephem_routines.ephem_package.sun_rise_sett as sr
+
 
 import logging
 
@@ -40,6 +48,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
+
 # Define a few command handlers. These usually take the two arguments update and
 # context.
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -58,8 +67,32 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
 
 async def echo(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Echo the user message."""
+    await update.message.reply_text(update.message.text)
+
+
+async def moon_phase(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Return moon_day to the user message."""
     user = update.effective_user
-    logger.info("Bio of %s: %s", user.first_name, update.message.text)
+    md_dict, str_head = md.main_moon_phase("Kharkiv", datetime.today())
+    update.message.text = str_head
+    logger.info("moon_day of %s: %s", user.first_name, update.message.text)
+    await update.message.reply_text(update.message.text)
+
+
+async def moon_day(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Return moon_day to the user message."""
+    user = update.effective_user
+    md_dict, str_head = md.main_moon_day("Kharkiv", datetime.today())
+    update.message.text = str_head
+    logger.info("moon_day of %s: %s", user.first_name, update.message.text)
+    await update.message.reply_text(update.message.text)
+
+
+async def sur_rise(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Return moon_day to the user message."""
+    user = update.effective_user
+    update.message.text = sr.main_sun_rise_sett("Mragowo", datetime.today())
+    logger.info("moon_day of %s: %s", user.first_name, update.message.text)
     await update.message.reply_text(update.message.text)
 
 
@@ -71,6 +104,9 @@ def main() -> None:
     # on different commands - answer in Telegram
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CommandHandler("help", help_command))
+    application.add_handler(CommandHandler("mph", moon_phase))
+    application.add_handler(CommandHandler("md", moon_day))
+    application.add_handler(CommandHandler("sr", sur_rise))
 
     # on non command i.e message - echo the message on Telegram
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, echo))

@@ -3,25 +3,25 @@ from datetime import datetime
 import pprint
 
 import ephem
-import geo_preload as geopr
-import geo_place as geo
+# import geo_place as geo
+import src.ephem_routines.ephem_package.geo_place as geo
 
 
-def _set_Observer(coord):
-
-    place = ephem.Observer()    # Kharkov
-    place.pressure = 1010       # millibar
-    place.temp = 25             # deg. Celcius
-    place.horizon = 0
-
-    # place.lat = '50.0'
-    # place.lon = '36.15'
-    place.lat = str(coord[0])
-    place.lon = str(coord[1])
-
-    place.elevation = 3     # meters
-
-    return place
+# def _set_Observer(coord):
+#
+#     place = ephem.Observer()    # Kharkov
+#     place.pressure = 1010       # millibar
+#     place.temp = 25             # deg. Celcius
+#     place.horizon = 0
+#
+#     # place.lat = '50.0'
+#     # place.lon = '36.15'
+#     place.lat = str(coord[0])
+#     place.lon = str(coord[1])
+#
+#     place.elevation = 3     # meters
+#
+#     return place
 
 
 def _form_str_moon_day(cur_day,
@@ -114,7 +114,7 @@ def get_moon_phase_local12place(in_date_loc, place):
     #         time_item_loc = time_item + "_loc"
     #
     #         time_utc = tp_mph[k]
-    #         time_loc = geo.utc_to_loc_time(tz_name, ephem.Date(time_utc).datetime())
+    #         time_loc = geo.utc_to_loc_time(tz_name, ephem_routines.Date(time_utc).datetime())
     #
     #         tp_mph[time_item_loc] = time_loc
     #
@@ -160,7 +160,7 @@ def get_moon_phase(in_date_utc):
     :param in_date_utc:
     :return:
     """
-    # moon = ephem.Moon()
+    # moon = ephem_routines.Moon()
 
     #####################################################################
     calc_date_utc = ephem.Date(in_date_utc)
@@ -235,56 +235,55 @@ def get_moon_phase(in_date_utc):
 
 
 def main_moon_phase(geographical_name, local_unaware_datetime):
-    """
-    Input:
-    Returns
-    """
+
+    str_head = ""
     observer = geo.Observer(geo_name=geographical_name)
-
     observer.get_coords_by_name()
-    print("\ngeo_name=", observer.geo_name, "[lat=", observer.location.latitude, "lon=", observer.location.longitude, "]")
     observer.get_tz_by_coord()
-    print("timezone=", observer.timezone_name)
+    str_head += "geo_name= " + observer.geo_name + "\n[lat=" + str(observer.location.latitude) + " lon=" + str(observer.location.longitude) + "]"
+    str_head += "\ntimezone= " + observer.timezone_name
 
-    print("\n*** unaware -> aware -> utc")
+    str_head += "\n\n*** unaware -> aware -> utc"
     observer.unaware = local_unaware_datetime
     observer.unaware_to_aware_by_tz()  # aware_datetime
     observer.aware_to_utc()  # utc_datetime
-    print("una=", observer.unaware.strftime(geo.dt_format))
-    print("awa=", observer.aware.strftime(geo.dt_format))
-    print("utc=", observer.utc.strftime(geo.dt_format))
+    str_head += "\nuna= " + observer.unaware.strftime(geo.dt_format)
+    str_head += "\nawa= " + observer.aware.strftime(geo.dt_format)
+    str_head += "\nutc= " + observer.utc.strftime(geo.dt_format)
 
-    moonph_dict = get_moon_phase(observer.utc)
-    # pprint.pprint(moonph_dict)
+    str_head += "\n\n*** get_moon_phase() in aware"
+    mph_dict = get_moon_phase(observer.utc)
     ''' {'calc_date_utc': 44892.471979341906,
          'next': 'First Quarter',
          'next_utc': 44894.10868446941,
          'prev': 'New Moon',
          'prev_utc': 44887.45639035291}'''
-    calc_date_utc = observer.dt_utc_to_aware_by_tz((moonph_dict["calc_date_utc"].datetime()))
-    prev_utc = observer.dt_utc_to_aware_by_tz((moonph_dict["prev_utc"].datetime()))
-    next_utc = observer.dt_utc_to_aware_by_tz((moonph_dict["next_utc"].datetime()))
-    print(prev_utc.strftime(geo.dt_format), moonph_dict["prev"])
-    print(calc_date_utc.strftime(geo.dt_format), "calc_date_utc")
-    print(next_utc.strftime(geo.dt_format), moonph_dict["next"])
+    calc_date_utc = observer.dt_utc_to_aware_by_tz((mph_dict["calc_date_utc"].datetime()))
+    prev_utc = observer.dt_utc_to_aware_by_tz((mph_dict["prev_utc"].datetime()))
+    next_utc = observer.dt_utc_to_aware_by_tz((mph_dict["next_utc"].datetime()))
+    str_head += "\n" + prev_utc.strftime(geo.dt_format) + " " + mph_dict["prev"]
+    str_head += "\n" + calc_date_utc.strftime(geo.dt_format) + " calc_date_utc"
+    str_head += "\n" + next_utc.strftime(geo.dt_format) + " " + mph_dict["next"]
+
+    return mph_dict, str_head
 
 
 def main_moon_day(geographical_name, local_unaware_datetime):
 
+    str_head = ""
     observer = geo.Observer(geo_name=geographical_name)
-
     observer.get_coords_by_name()
-    print("\ngeo_name=", observer.geo_name, "[lat=", observer.location.latitude, "lon=", observer.location.longitude, "]")
     observer.get_tz_by_coord()
-    print("timezone=", observer.timezone_name)
+    str_head += "geo_name= " + observer.geo_name + "\n[lat=" + str(observer.location.latitude) + " lon=" + str(observer.location.longitude) + "]"
+    str_head += "\ntimezone= " + observer.timezone_name
 
-    print("\n*** unaware -> aware -> utc")
+    str_head += "\n\n*** unaware -> aware -> utc"
     observer.unaware = local_unaware_datetime
     observer.unaware_to_aware_by_tz()  # aware_datetime
     observer.aware_to_utc()  # utc_datetime
-    print("una=", observer.unaware.strftime(geo.dt_format))
-    print("awa=", observer.aware.strftime(geo.dt_format))
-    print("utc=", observer.utc.strftime(geo.dt_format))
+    str_head += "\nuna= " + observer.unaware.strftime(geo.dt_format)
+    str_head += "\nawa= " + observer.aware.strftime(geo.dt_format)
+    str_head += "\nutc= " + observer.utc.strftime(geo.dt_format)
 
     moon = ephem.Moon()
     observer.place.date = observer.utc
@@ -294,10 +293,9 @@ def main_moon_day(geographical_name, local_unaware_datetime):
     prev_NM = ephem.previous_new_moon(observer.utc)
     next_NM = ephem.next_new_moon(observer.utc)
 
-    str_head = "\n"
-    str_head += "Calculate for UTC:{0:<18}\n".format(str(calc_date))
-    str_head += "prev_NM : {:<18}\n".format(str(prev_NM))
-    str_head += "next_NM : {:<18}\n".format(str(next_NM))
+    str_head += "\n\nCalculate for UTC:{0:<18}".format(str(calc_date))
+    str_head += "\nprev_NM : {:<18}".format(str(prev_NM))
+    str_head += "\nnext_NM : {:<18}".format(str(next_NM))
     str_head += ">>" + "\n"
 
     cur_mday = 1
@@ -305,8 +303,6 @@ def main_moon_day(geographical_name, local_unaware_datetime):
     day_rise = observer.place.previous_rising(moon)
     day_sett = observer.place.previous_setting(moon)
     new_rise = observer.place.next_rising(moon)
-
-    # print "curr_date > new_rise", curr_date, new_rise
 
     md_dict = {}
     md_dict["calc_date"] = calc_date
@@ -353,11 +349,8 @@ def main_moon_day(geographical_name, local_unaware_datetime):
         str_head += str_out + "\n"
         # print str_head
 
-    str_head += "<" * 80
+    str_head += "<" * 76 + "\n"
 
-    # print str_head, "\ncur_mday=", cur_mday
-
-    pprint.pprint(md_dict)
     '''
        { 'calc_date': 44893.072367212015,
          'day_rise': 44892.90620401209,
@@ -367,16 +360,15 @@ def main_moon_day(geographical_name, local_unaware_datetime):
     calc_date = observer.dt_utc_to_aware_by_tz((md_dict["calc_date"].datetime()))
     day_rise = observer.dt_utc_to_aware_by_tz((md_dict["day_rise"].datetime()))
     day_sett = observer.dt_utc_to_aware_by_tz((md_dict["day_sett"].datetime()))
-    print(day_rise.strftime(geo.dt_format), "day_rise")
-    print(calc_date.strftime(geo.dt_format), "calc_date_utc")
-    print(day_sett.strftime(geo.dt_format), "day_sett")
-
-
+    str_head += "\n" + day_rise.strftime(geo.dt_format) + " day_rise"
+    str_head += "\n" + calc_date.strftime(geo.dt_format) + " calc_date_utc"
+    str_head += "\n" + day_sett.strftime(geo.dt_format) + " day_sett"
 
     return md_dict, str_head
 
 
 if __name__ == '__main__':
+
     geo_name = 'Mragowo'
     # geo_name = 'Boston'
     # geo_name = 'Kharkiv'
@@ -386,11 +378,11 @@ if __name__ == '__main__':
     # local_unaware_datetime = datetime.now()
     # ###########################################################################
 
-    main_moon_phase(geo_name, local_unaware_datetime)
-
+    # mph_dict, str_head = main_moon_phase(geo_name, local_unaware_datetime)
     md_dict, str_head = main_moon_day(geo_name, local_unaware_datetime)
+
     # pprint.pprint(md_dict)
-    # print(str_head)
+    print(str_head)
 
 
 

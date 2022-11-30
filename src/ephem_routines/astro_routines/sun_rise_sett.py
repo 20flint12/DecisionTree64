@@ -14,8 +14,8 @@ def get_sun_rise_sett(place=None, in_date_utc=None):
 
     prev_rise = place.previous_rising(sun, use_center=True)
     next_sett = place.next_setting(sun, use_center=True)
-    # next_rise = ephem.localtime(place.next_rising(sun))
-    # prev_sett = ephem.localtime(place.previous_setting(sun))
+    # next_rise = ephem_routines.localtime(place.next_rising(sun))
+    # prev_sett = ephem_routines.localtime(place.previous_setting(sun))
 
     sun_dict_utc = {"day_rise": prev_rise,
                     "day_sett": next_sett}
@@ -33,8 +33,8 @@ def get_sun_rise_sett(place=None, in_date_utc=None):
 def get_sun_on_month(place):
 
     # start_date = datetime.datetime.now() #get current time
-    # start_date = ephem.Date(datetime.date(2015,4,1))
-    # start_date = ephem.Date('2015/4/27 12:00')
+    # start_date = ephem_routines.Date(datetime.date(2015,4,1))
+    # start_date = ephem_routines.Date('2015/4/27 12:00')
 
     start_date_loc = datetime.datetime(2015, 4, 29, 12)
     start_date_loc = datetime.date.today()  # get current time

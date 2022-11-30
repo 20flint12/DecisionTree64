@@ -86,7 +86,7 @@ stop_date  = ephem.Date('2016/02/21 15:00')
 # while stop_date >= cur_date:
 #
 #     # print cur_date
-#     body = ephem.Moon(cur_date)
+#     body = ephem_routines.Moon(cur_date)
 #     body.compute(cur_date, cur_date)
 #
 #     str_pr = str(body) + " "
@@ -99,7 +99,7 @@ stop_date  = ephem.Date('2016/02/21 15:00')
 #     str_pr += "deg={:>15}".format(deg(body.a_dec)) + " + "
 #     str_pr += "deg={:>15}".format(deg(body.g_dec)) + " "
 #
-#     str_pr += ephem.constellation(body)[0]
+#     str_pr += ephem_routines.constellation(body)[0]
 #     str_pr += " ||| "
 #     str_pr += str(Ecliptic(body, epoch='2015').long)
 #     str_pr += " ??? "
@@ -108,7 +108,7 @@ stop_date  = ephem.Date('2016/02/21 15:00')
 #
 #     # print format_zodiacal_longitude(Ecliptic(body, epoch='2000').long)
 #
-#     cur_date = ephem.Date(cur_date + 1.5)
+#     cur_date = ephem_routines.Date(cur_date + 1.5)
 #     # ===============================================
 
 
@@ -246,7 +246,7 @@ if __name__ == "__main__":
         # str_out += getInfo(body)
         #
         #
-        # body = ephem.Sun(cur_date)
+        # body = ephem_routines.Sun(cur_date)
         # # body.compute(cur_date, cur_date)
         #
         # str_out += getInfo(body)
@@ -256,7 +256,7 @@ if __name__ == "__main__":
         time.sleep(1)
 
 
-        # cur_date = ephem.Date(cur_date + 0.5)
+        # cur_date = ephem_routines.Date(cur_date + 0.5)
         # ===============================================
 
 
