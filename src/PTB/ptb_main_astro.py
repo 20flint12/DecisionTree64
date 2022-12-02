@@ -21,6 +21,7 @@ bot.
 from datetime import datetime
 import src.ephem_routines.ephem_package.moon_day as md
 import src.ephem_routines.ephem_package.sun_rise_sett as sr
+import src.ephem_routines.ephem_package.zodiac_phase as zd
 
 
 import logging
@@ -39,7 +40,15 @@ if __version_info__ < (20, 0, 0, "alpha", 1):
         f"visit https://docs.python-telegram-bot.org/en/v{TG_VER}/examples.html"
     )
 from telegram import ForceReply, Update
-from telegram.ext import Application, CommandHandler, ContextTypes, MessageHandler, filters
+from telegram.ext import (
+    Application,
+    CommandHandler,
+    ContextTypes,
+    ConversationHandler,
+    MessageHandler,
+    PicklePersistence,
+    filters,
+)
 
 # Enable logging
 logging.basicConfig(
@@ -67,6 +76,8 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
 
 async def echo(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Echo the user message."""
+    user = update.effective_user
+    logger.info("echo from %s: %s", user.first_name, update.message.text)
     await update.message.reply_text(update.message.text)
 
 
@@ -96,10 +107,60 @@ async def sur_rise(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     await update.message.reply_text(update.message.text)
 
 
+async def zodiac(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Return moon_day to the user message."""
+    user = update.effective_user
+
+    try:
+        planet = str(context.args[0])
+        logger.info("planet: %s", planet)
+
+        ecl_dict, str_head = zd.main_zodiac_body("Mragowo", datetime.today(), planet)
+        update.message.text = str_head
+        logger.info("moon_zodiac of %s: %s", user.first_name, update.message.text)
+
+        await update.message.reply_text(update.message.text)
+
+    except (IndexError, ValueError):
+        await update.effective_message.reply_text("Usage: /zod <GEO_PLACE> Moon/Sun")
+
+
+async def set_timer(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Add a job to the queue."""
+    chat_id = update.effective_message.chat_id
+    try:
+        # args[0] should contain the time for the timer in seconds
+        due = float(context.args[0])
+        logger.info("due: %s", context.args[0])
+        if due < 0:
+            await update.effective_message.reply_text("Sorry we can not go back to future!")
+            return
+
+        # job_removed = remove_job_if_exists(str(chat_id), context)
+        # context.job_queue.run_once(alarm, due, chat_id=chat_id, name=str(chat_id), data=due)
+
+        text = "Timer successfully set!"
+        # if job_removed:
+        #     text += " Old one was removed."
+        await update.effective_message.reply_text(text)
+
+    except (IndexError, ValueError):
+        await update.effective_message.reply_text("Usage: /set <seconds>")
+
+
 def main() -> None:
-    """Start the bot."""
+    """Start the bot.
+     BOT_TOKEN "1796700435:AAG_RgjpPYOedk8iFzgN7DXZ0tYcwU39LvQ"  // InspectorBiblyka_bot*
+     BOT_TOKEN "1261633346:AAHC4ctXxjZ4hdATaP_Of0608Ju7lIn5sxE"  // @FlintSmart_bot*
+     BOT_TOKEN "1042106378:AAFrhuhaLOtcDEU4Jq11u8jgp41Ll_xzG8w"  // @biblika_bot
+     BOT_TOKEN "1207351455:AAH2SXGwOfkHRbzqr7ISJ25nm-N9QgOs3Vo"  // @FlintDebug_bot
+     BOT_TOKEN "1773146223:AAHiWcIJn-V5x_qgqOeKyCa1_dZK47vGwi8"  // FriendDetectorBiblyka_bot
+     BOT_TOKEN "345369460:AAEjHUhRMdT-E44Xbd82YG_I2C5-uCjR8Wg"  // @scsdvwervdbot astro_bot
+     """
     # Create the Application and pass it your bot's token.
-    application = Application.builder().token("1261633346:AAHC4ctXxjZ4hdATaP_Of0608Ju7lIn5sxE").build()
+    persistence = PicklePersistence(filepath="ptb_main_astro.log")
+    application = Application.builder().token("1042106378:AAFrhuhaLOtcDEU4Jq11u8jgp41Ll_xzG8w").persistence(persistence).build()  # @biblika_bot
+    # application = Application.builder().token("345369460:AAEjHUhRMdT-E44Xbd82YG_I2C5-uCjR8Wg").persistence(persistence).build()  # @scsdvwervdbot astro_bot
 
     # on different commands - answer in Telegram
     application.add_handler(CommandHandler("start", start))
@@ -107,6 +168,8 @@ def main() -> None:
     application.add_handler(CommandHandler("mph", moon_phase))
     application.add_handler(CommandHandler("md", moon_day))
     application.add_handler(CommandHandler("sr", sur_rise))
+    application.add_handler(CommandHandler("zod", zodiac))              # /zod <GEO_PLACE>
+    application.add_handler(CommandHandler("set", set_timer))
 
     # on non command i.e message - echo the message on Telegram
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, echo))

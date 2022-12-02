@@ -11,8 +11,8 @@ def get_sun_rise_sett(place=None, in_date_utc=None):
     place.date = in_date_utc
     # ===============================================
 
-    prev_rise = place.previous_rising(sun, use_center=True)
-    next_sett = place.next_setting(sun, use_center=True)
+    prev_rise = place.previous_rising(sun, use_center=False)
+    next_sett = place.next_setting(sun, use_center=False)
     # next_rise = ephem_routines.localtime(place.next_rising(sun))
     # prev_sett = ephem_routines.localtime(place.previous_setting(sun))
 
@@ -117,14 +117,13 @@ def main_sun_rise_sett(geographical_name, local_unaware_datetime):
     str_head += "\nuna=" + observer.unaware.strftime(geo.dt_format)
     str_head += "\nutc=" + observer.utc.strftime(geo.dt_format)
 
-    str_head += "\n\n*** get_sun_rise_sett(observer.utc)"
+    str_head += "\n\n*** get_sun_rise_sett() in aware"
     sun_dict = get_sun_rise_sett(place=observer.place, in_date_utc=observer.utc)
     day_rise = observer.dt_utc_to_aware_by_tz((sun_dict["day_rise"].datetime()))
     day_sett = observer.dt_utc_to_aware_by_tz((sun_dict["day_sett"].datetime()))
     str_head += "\nday_rise=" + day_rise.strftime(geo.dt_format)
     str_head += "\nday_sett=" + day_sett.strftime(geo.dt_format)
     str_head += "\n***"
-    # print(str_head)
 
     return str_head
 

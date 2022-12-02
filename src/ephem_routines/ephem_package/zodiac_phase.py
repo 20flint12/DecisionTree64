@@ -1,16 +1,21 @@
-# coding: utf8
-#!/usr/bin/python
+
+# http://lyna.info/
+
+# http://time.unitarium.com/moon/where.html
+# http://www.satellite-calculations.com/Satellite/suncalc.htm
+# http://www.moonsystem.to/justnowe.htm
+
+# https://www.calsky.com/cs.cgi
 
 
-import datetime
+from datetime import datetime
 import itertools
 import math
 import pprint
-import time
 
 import ephem
-# import mysite.astro_routines.geo_preload as geopr
-from ephem import *
+import src.ephem_routines.ephem_package.geo_place as geo
+
 
 # zodiac = 'AR TA GE CN LE VI LI SC SG CP AQ PI'.split()
 # zodiac = u'Овен Телец Близнецы Рак Лев Дева Весы Скорпион Стрелец Козерог Водолей Рыбы'.split()
@@ -79,9 +84,6 @@ def print_ephemeris_for_year(year):
         print()
 
 
-start_date = ephem.Date('2015/10/21 15:00')
-stop_date  = ephem.Date('2016/02/21 15:00')
-
 # cur_date = start_date
 # while stop_date >= cur_date:
 #
@@ -112,59 +114,60 @@ stop_date  = ephem.Date('2016/02/21 15:00')
 #     # ===============================================
 
 
-def get_zodiac(in_date_utc, body):
+def main_zodiac_body(geographical_name, local_unaware_datetime, in_str_body):
 
-    """
-    :param in_date_utc:
-    :param body:
-    :return: Format longitude in zodiacal form (like '00AR00') and return as a string.
-    """
+    str_head = ""
+    observer = geo.Observer(geo_name=geographical_name)
+    observer.get_coords_by_name()
+    observer.get_tz_by_coord()
+    str_head += "geo_name= " + observer.geo_name + "\n[lat=" + str(observer.location.latitude) + " lon=" + str(
+        observer.location.longitude) + "]"
+    str_head += "\ntimezone= " + observer.timezone_name
 
-    if not body:
-        return
-
-    #####################################################################
-    curr_date = ephem.Date(in_date_utc)
-
-    ecl = ephem.Ecliptic(body, epoch=in_date_utc)
-    # str_out += "\n" + str(ecl.epoch)
-    # str_out += " ecl2 =" + str(deg(ecl.lon)) + " ; " + str(deg(ecl.lat))
-    # str_out += " [{:7.3f}".format(ecl.lon * 180 / 3.14) + ";"
-    # str_out += " {:7.3f}]".format(ecl.lat * 180 / 3.14)
-    # ---------------------------------------------------------------------
-
-    ecl_dict = {}
-    ecl_dict["date_utc"] = curr_date
-    ecl_dict["ecl.lon"] = ecl.lon * 180 / 3.14
-    ecl_dict["ecl.lat"] = ecl.lat * 180 / 3.14
-
-    ecl_dict["zod_lat"] = format_zodiacal_longitude(ecl.long)
-    # =========================================================================
-
-    return ecl_dict
-
-
-def get_zodiac_local12place(in_aware_loc, in_unaware_utc, in_str_body, place):
-    """
-    Input: local unaware time and place, "Moon", "Sun"
-    Returns coord for local time and place
-    """
-    tz_name, coord = geopr.set_tz(place)
-    # print "place=", place, coord, tz_name
+    str_head += "\n\n*** unaware -> aware -> utc"
+    observer.unaware = local_unaware_datetime
+    observer.unaware_to_aware_by_tz()  # aware_datetime
+    observer.aware_to_utc()  # utc_datetime
+    str_head += "\nuna= " + observer.unaware.strftime(geo.dt_format)
+    str_head += "\nawa= " + observer.aware.strftime(geo.dt_format)
+    str_head += "\nutc= " + observer.utc.strftime(geo.dt_format)
 
     body = None
     if in_str_body == "Moon":
-        body = ephem.Moon(in_unaware_utc)
+        body = ephem.Moon(observer.utc)
     elif in_str_body == "Sun":
-        body = ephem.Sun(in_unaware_utc)
+        body = ephem.Sun(observer.utc)
 
-    ecl_dict_ext = get_zodiac(in_unaware_utc, body)
+    if not body: return
+
+    str_head += "\n\nbody= " + in_str_body
+    #####################################################################
+    deg = ephem.degrees
+    ecl = ephem.Ecliptic(body, epoch=observer.utc)
+
+    ecl_dict = {}
+    ecl_dict["aware_loc"] = observer.aware
+    ecl_dict["date_utc"] = observer.utc
+    ecl_dict["ecl.lon"] = ecl.lon * 180 / 3.14159
+    ecl_dict["ecl.lat"] = ecl.lat * 180 / 3.14159
+
+    # Format longitude in zodiacal form (like '00AR00') and return as a string.
+    ecl_dict["zod_lat"] = format_zodiacal_longitude(ecl.long)
+    '''
+    {   'aware_loc': datetime.datetime(2022, 12, 1, 11, 58, 22, 442893, tzinfo=<DstTzInfo 'Europe/Warsaw' CET+1:00:00 STD>),
+        'date_utc': datetime.datetime(2022, 12, 1, 10, 58, 22, 442893, tzinfo=<UTC>),
+        'ecl.lat': -0.00015073491534261797,
+        'ecl.lon': 249.22919614625383,
+        'zod_lat': 'Стр09'}'''
     # =========================================================================
 
-    ecl_dict_ext.update({"date_utc": in_unaware_utc})
-    ecl_dict_ext.update({"aware_loc": in_aware_loc})
+    # str_head += "\n" + str(ecl.epoch)
+    str_head += "\necl2= " + str(deg(ecl.lon)) + "; " + str(deg(ecl.lat))
+    str_head += "\n[{:7.3f}".format(ecl.lon * 180 / 3.14159) + " "
+    str_head += "{:7.3f}]".format(ecl.lat * 180 / 3.14159)
+    str_head += "\n" + str(ecl_dict["zod_lat"])
 
-    return ecl_dict_ext
+    return ecl_dict, str_head
 
 
 def getInfo(body):
@@ -173,8 +176,6 @@ def getInfo(body):
     str_out += str(body)
     str_out += " " + ephem.constellation(body)[0]
     # -----------------------------------------------------
-
-
     ###########################################################################
     str_out += "\n"
     str_out += " body.ra =" + str(deg(body.ra)) + ";" + str(deg(body.dec))
@@ -223,54 +224,54 @@ def getInfo(body):
 
 if __name__ == "__main__":
 
-    deg = ephem.degrees
+    geo_name = 'Mragowo'
+    # geo_name = 'Boston'
+    # geo_name = 'Kharkiv'
+
+    # local_unaware_datetime = datetime.strptime("1976-07-13 02:37:21", geo.dt_format_rev)  # "%Y-%m-%d %H:%M:%S"
+    local_unaware_datetime = datetime.today()
+    # local_unaware_datetime = datetime.now()
+    # ###########################################################################
+
+    ecl_dict, str_head = main_zodiac_body(geo_name, local_unaware_datetime, "Sun")
+    # pprint.pprint(ecl_dict)
+    print(str_head)
+
+
+    # ---------------------------------------------------------------------
+    start_date = ephem.Date('2015/10/21 15:00')
+    stop_date = ephem.Date('2016/02/21 15:00')
 
     cur_date = start_date
-    cur_date = ephem.Date(datetime.datetime.now())
+    cur_date = ephem.Date(datetime.now())
     # while stop_date >= cur_date:
-    while True:
 
-        cur_date = datetime.datetime.now()
-        # print cur_date
+    cur_date = datetime.now()
+    # print cur_date
 
-        body = ephem.Moon(cur_date)
-        # ---------------------------------------------------------------------
-
-        pprint.pprint(get_zodiac(cur_date, body))
-
-        place = "Kiev"
-        pprint.pprint(get_zodiac_local12place(cur_date, body, place))
+    # body = ephem.Moon(cur_date)
+    # ---------------------------------------------------------------------
 
 
-        # str_out = ""
-        # str_out += getInfo(body)
-        #
-        #
-        # body = ephem_routines.Sun(cur_date)
-        # # body.compute(cur_date, cur_date)
-        #
-        # str_out += getInfo(body)
-        #
-        # print str_out
-
-        time.sleep(1)
 
 
-        # cur_date = ephem_routines.Date(cur_date + 0.5)
-        # ===============================================
+    # str_out = ""
+    # str_out += getInfo(body)
+    #
+    #
+    # body = ephem_routines.Sun(cur_date)
+    # # body.compute(cur_date, cur_date)
+    #
+    # str_out += getInfo(body)
+    #
+    # print str_out
 
 
-print("=============== END ====================")
+
+    # cur_date = ephem_routines.Date(cur_date + 0.5)
+    # ===============================================
 
 
-# http://lyna.info/
-
-
-# http://time.unitarium.com/moon/where.html
-# http://www.satellite-calculations.com/Satellite/suncalc.htm
-# http://www.moonsystem.to/justnowe.htm
-
-# https://www.calsky.com/cs.cgi
 
 
 

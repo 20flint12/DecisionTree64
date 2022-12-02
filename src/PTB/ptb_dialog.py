@@ -35,6 +35,7 @@ from telegram.ext import (
     CommandHandler,
     ContextTypes,
     ConversationHandler,
+    PicklePersistence,
     MessageHandler,
     filters,
 )
@@ -154,8 +155,9 @@ def main() -> None:
     // #define BOT_TOKEN "1207351455:AAH2SXGwOfkHRbzqr7ISJ25nm-N9QgOs3Vo"  // @FlintDebug_bot
     #define BOT_TOKEN "1773146223:AAHiWcIJn-V5x_qgqOeKyCa1_dZK47vGwi8"  // FriendDetectorBiblyka_bot
     """
+    persistence = PicklePersistence(filepath="ptb_dialog.log")
     # Create the Application and pass it your bot's token.
-    application = Application.builder().token("1796700435:AAG_RgjpPYOedk8iFzgN7DXZ0tYcwU39LvQ").build()
+    application = Application.builder().token("1042106378:AAFrhuhaLOtcDEU4Jq11u8jgp41Ll_xzG8w").persistence(persistence).build() # @biblika_bot
 
     # Add conversation handler with the states GENDER, PHOTO, LOCATION and BIO
     conv_handler = ConversationHandler(

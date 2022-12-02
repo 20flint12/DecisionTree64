@@ -23,7 +23,7 @@ class Observer:
     Nautical twilight uses the value –12 degrees.
     Astronomical twilight uses the value –18 degrees.
     '''
-    place.horizon = '-6'
+    place.horizon = '0'
     place.elevation = 3       # meters
 
     location = None
