@@ -22,6 +22,7 @@ from datetime import datetime
 import src.ephem_routines.ephem_package.moon_day as md
 import src.ephem_routines.ephem_package.sun_rise_sett as sr
 import src.ephem_routines.ephem_package.zodiac_phase as zd
+import src.weather_package.main_openweathermap as wt
 
 
 import logging
@@ -125,6 +126,24 @@ async def zodiac(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         await update.effective_message.reply_text("Usage: /zod <GEO_PLACE> Moon/Sun")
 
 
+async def weather(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Return current weather to the user message."""
+    user = update.effective_user
+
+    try:
+        city = str(context.args[0])
+        logger.info("city: %s", city)
+
+        wth_dict, str_head = wt.main_weather_now(city, datetime.today())
+        update.message.text = str_head
+        logger.info("weather of %s: %s", user.first_name, update.message.text)
+
+        await update.message.reply_text(update.message.text)
+
+    except (IndexError, ValueError):
+        await update.effective_message.reply_text("Usage: /wt <CITY>")
+
+
 async def set_timer(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Add a job to the queue."""
     chat_id = update.effective_message.chat_id
@@ -170,6 +189,7 @@ def main() -> None:
     application.add_handler(CommandHandler("sr", sur_rise))
     application.add_handler(CommandHandler("zod", zodiac))              # /zod <GEO_PLACE>
     application.add_handler(CommandHandler("set", set_timer))
+    application.add_handler(CommandHandler("wt", weather))
 
     # on non command i.e message - echo the message on Telegram
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, echo))

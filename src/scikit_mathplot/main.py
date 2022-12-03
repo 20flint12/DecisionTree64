@@ -1,3 +1,6 @@
+# https://www.w3schools.com/python/python_ml_decision_tree.asp
+# https://scikit-learn.org/stable/auto_examples/ensemble/plot_adaboost_twoclass.html#sphx-glr-auto-examples-ensemble-plot-adaboost-twoclass-py
+
 import pandas
 from sklearn import tree
 from sklearn.tree import DecisionTreeClassifier
