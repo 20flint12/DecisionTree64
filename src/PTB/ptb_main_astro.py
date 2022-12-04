@@ -58,9 +58,6 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
-
-# Define a few command handlers. These usually take the two arguments update and
-# context.
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Send a message when the command /start is issued."""
     user = update.effective_user
@@ -72,7 +69,16 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
 async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Send a message when the command /help is issued."""
-    await update.message.reply_text("Help!")
+    help_text = "Available comands:" \
+                "\n/echo - just echo command" \
+                "\n/mph - calculates current moon phase for Kharkiv" \
+                "\n/md - calculates moon day at current time and current place" \
+                "\n/sr - sunrise and sunset for Mragowo" \
+                "\n/zod Moon - calculates zodiac of Moon" \
+                "\n/zod Sun - calculates zodiac of Sun" \
+                "\n/wt <CITY> - current weather in the CITY" \
+                "\n\ndeveloped by Serhii Surmylo (Ukraine)"
+    await update.message.reply_text(help_text)
 
 
 async def echo(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -178,8 +184,8 @@ def main() -> None:
      """
     # Create the Application and pass it your bot's token.
     persistence = PicklePersistence(filepath="ptb_main_astro.log")
-    application = Application.builder().token("1042106378:AAFrhuhaLOtcDEU4Jq11u8jgp41Ll_xzG8w").persistence(persistence).build()  # @biblika_bot
-    # application = Application.builder().token("345369460:AAEjHUhRMdT-E44Xbd82YG_I2C5-uCjR8Wg").persistence(persistence).build()  # @scsdvwervdbot astro_bot
+    # application = Application.builder().token("1042106378:AAFrhuhaLOtcDEU4Jq11u8jgp41Ll_xzG8w").persistence(persistence).build()  # @biblika_bot
+    application = Application.builder().token("345369460:AAEjHUhRMdT-E44Xbd82YG_I2C5-uCjR8Wg").persistence(persistence).build()  # @scsdvwervdbot astro_bot
 
     # on different commands - answer in Telegram
     application.add_handler(CommandHandler("start", start))
