@@ -5,7 +5,6 @@
 # pip install awscli
 # pip install boto3
 
-
 try:
     import os
     import sys
@@ -62,17 +61,17 @@ class MyDb(object):
 obj = MyDb()
 print(obj.describe_table())
 data = obj.get
-resp = obj.put(sensor_id='2', temperature='99', humidity='99')
+resp = obj.put(sensor_id='2', temperature='99', humidity='98')
 
 
-# db = boto3.resource('dynamodb')
-# table = db.Table('employees')
-#
-# table.put_item(
-#     Item={
-#         'emp_id': "3",
-#         'name': "Erfvb",
-#         'age': 24
-#     }
-# )
+db = boto3.resource('dynamodb')
+table = db.Table('employees')
+
+table.put_item(
+    Item={
+        'emp_id': "3",
+        'name': "Erfvb",
+        'age': 24
+    }
+)
 
