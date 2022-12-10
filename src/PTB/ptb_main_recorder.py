@@ -6,6 +6,11 @@
 # https://docs.python-telegram-bot.org/en/v20.0a6/telegram.ext.jobqueue.html
 
 
+from datetime import datetime
+
+import src.boto3_package.mainDB_recorder as mr
+
+
 """
 Simple Bot to send timed Telegram messages.
 
@@ -125,8 +130,10 @@ async def unset_once_timer(update: Update, context: ContextTypes.DEFAULT_TYPE) -
 
 async def callback_repeating(context: ContextTypes.DEFAULT_TYPE):
     job = context.job
-    text = context.job.name + ' @ ' + str(job.next_t) + "\n" + str(context.job_queue.jobs())
+    text = context.job.name + ' @ ' + str(job.next_t)[:19] + "\n" + str(context.job_queue.jobs())[25:]
     # logger.info(text)
+    init_id, out_str = mr.main_put_record()
+    text += out_str
     await context.bot.send_message(chat_id=job.chat_id, text=text)
 
 
@@ -144,10 +151,10 @@ async def set_repeat_timer(update: Update, context: ContextTypes.DEFAULT_TYPE) -
 
         job_removed = remove_job_if_exists(name, context)
         if job_removed:
-            text += " Old one was removed."
+            text += " Old one was removed.\n"
 
         job = context.job_queue.run_repeating(callback_repeating, interval=due, name=name, chat_id=chat_id, first=10)
-        text += "Repeating timer successfully set!\n" + str(job.name)
+        text += str(job.name) + " timer successfully set."
         await update.effective_message.reply_text(text)
 
     except (IndexError, ValueError):
@@ -155,46 +162,70 @@ async def set_repeat_timer(update: Update, context: ContextTypes.DEFAULT_TYPE) -
 
 
 async def pause_repeat_timer(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Remove the job if the user changed their mind."""
+    """Pause the job if the user changed their mind."""
     chat_id = update.message.chat_id
     context_job_name = "rep_"+str(chat_id)
     current_jobs = context.job_queue.get_jobs_by_name(context_job_name)
 
-    text = "*** " + str(context.job_queue) + "\n" + str(current_jobs)
-
+    text = ""
     if not current_jobs:
-        text += " no job"
+        text += "no job"
+
+        logger.info("%s", text)
+        await update.message.reply_text(text)
+
     for job in current_jobs:
         job.enabled = False  # Temporarily disable this job
-        text += "\n" + job.name + " OFF"
+        text += job.name + " timer paused."
 
-    logger.info("pause_repeat_timer %s \n", text)
-    await update.message.reply_text(text)
+        logger.info("%s", text)
+
+        # text += str(context.job_queue)
+        text += "\n" + str(current_jobs)[25:]
+
+        await update.message.reply_text(text)
 
 
 async def run_repeat_timer(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Remove the job if the user changed their mind."""
+    """Ran the job if the user changed their mind."""
     chat_id = update.message.chat_id
     context_job_name = "rep_" + str(chat_id)
     current_jobs = context.job_queue.get_jobs_by_name(context_job_name)
 
-    text = "*** " + str(context.job_queue) + "\n" + str(current_jobs)
-
+    text = ""
     if not current_jobs:
-        text += " no job"
-    for job in current_jobs:
-        job.enabled = True
-        text += "\n" + job.name + " ON"
+        text += "no job"
 
-    logger.info("run_repeat_timer %s \n", text)
-    await update.message.reply_text(text)
+        logger.info("%s", text)
+        await update.message.reply_text(text)
+
+    for job in current_jobs:
+        job.enabled = True  # Enable this job
+        text += job.name + " timer ran."
+
+        logger.info("%s", text)
+
+        # text += str(context.job_queue)
+        text += "\n" + str(current_jobs)[25:]
+
+        await update.message.reply_text(text)
 
 
 async def unset_repeat_timer(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Remove the job if the user changed their mind."""
     chat_id = update.message.chat_id
-    job_removed = remove_job_if_exists("rep_"+str(chat_id), context)
-    text = "Timer successfully cancelled!" if job_removed else "You have no active timer."
+    context_job_name = "rep_" + str(chat_id)
+    job_removed = remove_job_if_exists(context_job_name, context)
+
+    text = ""
+
+    if job_removed:
+        text += context_job_name + " removed."
+    else:
+        text += "You have no active repeating timer."
+
+    # text += "Timer successfully cancelled!" if job_removed else "You have no active timer."
+
     await update.message.reply_text(text)
 
 

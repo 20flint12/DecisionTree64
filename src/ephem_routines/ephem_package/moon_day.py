@@ -6,6 +6,9 @@ import ephem
 # import geo_place as geo
 import src.ephem_routines.ephem_package.geo_place as geo
 
+# from src.ephem_routines.ephem_package import geo_place as geo
+# from . import geo_place as geo
+
 
 # def _set_Observer(coord):
 #

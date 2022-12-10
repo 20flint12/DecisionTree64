@@ -1,1 +1,6 @@
 c$hwP080O8TI6D@RNol@R!af6U.1O7?f
+
+c:\Users\Plinfa-DEV\PycharmProjects\DecisionTree64\venv310\Scripts\activate.bat
+python ptb_main_recorder.py
+c:\Users\Plinfa-DEV\PycharmProjects\DecisionTree64\venv310\Scripts\deactivate.bat
+

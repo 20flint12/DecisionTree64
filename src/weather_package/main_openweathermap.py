@@ -47,15 +47,16 @@ def main_weather_now(geographical_name, local_unaware_datetime):
     if x["cod"] != "404":
 
         y = x["main"]
-        current_temperature = y["temp"]
-        current_pressure = y["pressure"]
-        current_humidity = y["humidity"]
+        # current_temperature = y["temp"] - 273.15
+        # current_pressure =
+        # current_humidity = y["humidity"]
 
         z = x["weather"]
         weather_description = z[0]["description"]
-
-        wth_dict["temperature"] = current_temperature - 273.15
-        wth_dict["pressure"] = current_pressure / 1.33322387415
+        # answer = str(round(answer, 2))
+        wth_dict["temperature"] = round(y["temp"] - 273.15, 1)
+        wth_dict["pressure"] = round(y["pressure"] / 1.33322387415, 1)
+        wth_dict["humidity"] = y["humidity"]
 
         str_head += "\n\n*** weatherdata"
         # print(" Temperature (in kelvin unit) = " +
@@ -69,6 +70,7 @@ def main_weather_now(geographical_name, local_unaware_datetime):
 
         str_head += "\ntemperature= " + str(wth_dict["temperature"])
         str_head += "\npressure= " + str(wth_dict["pressure"])
+        str_head += "\nhumidity= " + str(wth_dict["humidity"])
 
     else:
         print(" City Not Found ")
