@@ -1,6 +1,22 @@
-c$hwP080O8TI6D@RNol@R!af6U.1O7?f
-
 c:\Users\Plinfa-DEV\PycharmProjects\DecisionTree64\venv310\Scripts\activate.bat
-python ptb_main_recorder.py
+-------------------------------------------------------------------------------
+
+python -m src.PTB.ptb_main_recorder
+
+-python c:\Users\Plinfa-DEV\PycharmProjects\DecisionTree64\src\scikit_mathplot\main.py
+-python c:\Users\Plinfa-DEV\PycharmProjects\DecisionTree64\src\ephem_routines\ephem_package\geo_place.py
+-python c:\Users\Plinfa-DEV\PycharmProjects\DecisionTree64\src\ephem_routines\ephem_package\moon_day.py
+
+cd c:\Users\Plinfa-DEV\PycharmProjects\DecisionTree64
+python -m src.PTB.ptb_main_recorder
+python -m src.ephem_routines.ephem_package.moon_day
+
+
+pip list --local
+pip freeze --local
+pip list
+
+---------------------------------------------------------------------------------
 c:\Users\Plinfa-DEV\PycharmProjects\DecisionTree64\venv310\Scripts\deactivate.bat
 
+	
