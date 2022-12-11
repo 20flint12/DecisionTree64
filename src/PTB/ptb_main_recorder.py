@@ -4,7 +4,7 @@
 
 # https://github.com/python-telegram-bot/python-telegram-bot/wiki/Extensions-%E2%80%93-JobQueue
 # https://docs.python-telegram-bot.org/en/v20.0a6/telegram.ext.jobqueue.html
-
+# https://github.com//python-telegram-bot/python-telegram-bot/wiki/Storing-bot%2C-user-and-chat-related-data
 
 from datetime import datetime
 
@@ -130,9 +130,9 @@ async def unset_once_timer(update: Update, context: ContextTypes.DEFAULT_TYPE) -
 
 async def callback_repeating(context: ContextTypes.DEFAULT_TYPE):
     job = context.job
-    text = context.job.name + ' @ ' + str(job.next_t)[:19] + "\n" + str(context.job_queue.jobs())[25:]
+    text = job.name + ' @ ' + str(job.next_t)[:19] + "\n" + str(context.job_queue.jobs())[25:]
     # logger.info(text)
-    init_id, out_str = mr.main_put_record()
+    init_id, out_str = mr.main_put_record(_chat_job=job.name)
     text += out_str
     await context.bot.send_message(chat_id=job.chat_id, text=text)
 
@@ -140,7 +140,7 @@ async def callback_repeating(context: ContextTypes.DEFAULT_TYPE):
 async def set_repeat_timer(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Add a job to the queue."""
     chat_id = update.effective_message.chat_id
-    name = "rep_" + str(chat_id)
+    job_name = str(chat_id) + "#REP"
     text = ""
     try:
         # args[0] should contain the time for the timer in seconds
@@ -149,11 +149,11 @@ async def set_repeat_timer(update: Update, context: ContextTypes.DEFAULT_TYPE) -
             await update.effective_message.reply_text("Sorry we can not go back to future!")
             return
 
-        job_removed = remove_job_if_exists(name, context)
+        job_removed = remove_job_if_exists(job_name, context)
         if job_removed:
             text += " Old one was removed.\n"
 
-        job = context.job_queue.run_repeating(callback_repeating, interval=due, name=name, chat_id=chat_id, first=10)
+        job = context.job_queue.run_repeating(callback_repeating, interval=due, name=job_name, chat_id=chat_id, first=10)
         text += str(job.name) + " timer successfully set."
         await update.effective_message.reply_text(text)
 
@@ -164,7 +164,7 @@ async def set_repeat_timer(update: Update, context: ContextTypes.DEFAULT_TYPE) -
 async def pause_repeat_timer(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Pause the job if the user changed their mind."""
     chat_id = update.message.chat_id
-    context_job_name = "rep_"+str(chat_id)
+    context_job_name = str(chat_id) + "#REP"
     current_jobs = context.job_queue.get_jobs_by_name(context_job_name)
 
     text = ""
@@ -189,7 +189,7 @@ async def pause_repeat_timer(update: Update, context: ContextTypes.DEFAULT_TYPE)
 async def run_repeat_timer(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Ran the job if the user changed their mind."""
     chat_id = update.message.chat_id
-    context_job_name = "rep_" + str(chat_id)
+    context_job_name = str(chat_id) + "#REP"
     current_jobs = context.job_queue.get_jobs_by_name(context_job_name)
 
     text = ""
@@ -214,7 +214,7 @@ async def run_repeat_timer(update: Update, context: ContextTypes.DEFAULT_TYPE) -
 async def unset_repeat_timer(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Remove the job if the user changed their mind."""
     chat_id = update.message.chat_id
-    context_job_name = "rep_" + str(chat_id)
+    context_job_name = str(chat_id) + "#REP"
     job_removed = remove_job_if_exists(context_job_name, context)
 
     text = ""

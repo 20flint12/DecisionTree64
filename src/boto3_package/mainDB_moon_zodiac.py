@@ -20,7 +20,7 @@ class MyDb(object):
 
     def __init__(self, table_name='DHT'):
         self.Table_Name = table_name
-        self.db = boto3.resource('dynamodb')
+        self.db = boto3.resource('dynamodb', region_name='eu-west-1')
         self.table = self.db.Table(table_name)
         self.client = boto3.client('dynamodb')
 

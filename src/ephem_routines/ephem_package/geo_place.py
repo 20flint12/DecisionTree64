@@ -7,7 +7,7 @@ import pytz
 import ephem
 
 dt_format = "%d/%m/%Y %H:%M:%S %z"
-dt_format_rev = "%Y-%m-%d %H:%M:%S"
+dt_format_rev = "%Y-%m-%d %H:%M:%S"     # fits for dynamoDB "main_record" table
 # dt_format = "%Y-%m-%d %H:%M:%S %z"
 # 28/11/2022 10:53:58 +0200
 

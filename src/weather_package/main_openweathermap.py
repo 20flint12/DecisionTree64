@@ -54,9 +54,9 @@ def main_weather_now(geographical_name, local_unaware_datetime):
         z = x["weather"]
         weather_description = z[0]["description"]
         # answer = str(round(answer, 2))
-        wth_dict["temperature"] = round(y["temp"] - 273.15, 1)
-        wth_dict["pressure"] = round(y["pressure"] / 1.33322387415, 1)
-        wth_dict["humidity"] = y["humidity"]
+        wth_dict["T"] = round(y["temp"] - 273.15, 1)
+        wth_dict["P"] = round(y["pressure"] / 1.33322387415, 1)
+        wth_dict["H"] = y["humidity"]
 
         str_head += "\n\n*** weatherdata"
         # print(" Temperature (in kelvin unit) = " +
@@ -68,9 +68,9 @@ def main_weather_now(geographical_name, local_unaware_datetime):
         #       "\n description = " +
         #       str(weather_description))
 
-        str_head += "\ntemperature= " + str(wth_dict["temperature"])
-        str_head += "\npressure= " + str(wth_dict["pressure"])
-        str_head += "\nhumidity= " + str(wth_dict["humidity"])
+        str_head += "\nT= " + str(wth_dict["T"])
+        str_head += "\nP= " + str(wth_dict["P"])
+        str_head += "\nH= " + str(wth_dict["H"])
 
     else:
         print(" City Not Found ")

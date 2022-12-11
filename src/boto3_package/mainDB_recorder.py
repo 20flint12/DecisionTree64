@@ -1,11 +1,12 @@
 
 import pandas as pd
 from datetime import datetime as dt
+from pprint import pprint
 import src.ephem_routines.ephem_package.moon_day as md
 import src.ephem_routines.ephem_package.sun_rise_sett as sr
 import src.ephem_routines.ephem_package.zodiac_phase as zd
 import src.weather_package.main_openweathermap as wt
-
+import src.ephem_routines.ephem_package.geo_place as geo
 
 
 try:
@@ -23,16 +24,16 @@ class MyDb(object):
 
     def __init__(self, table_name='DHT'):
         self.Table_Name = table_name
-        self.db = boto3.resource('dynamodb')
+        self.db = boto3.resource('dynamodb', region_name='eu-west-1')
         self.table = self.db.Table(table_name)
         self.client = boto3.client('dynamodb')
 
     # @property
-    def get(self, pk=1, sr=1):
+    def get(self, _pk=1, _sr=1):
         response = self.table.get_item(
             Key={
-                'rec_id': pk,
-                'time_sr': sr
+                "CHAT": _pk,    # CHAT with suffix (#REP, #ONCE, ...)
+                "UTC": _sr      # UTC  yyyy-MM-dd HH:mm:ss,Z
             }
         )
         return response
@@ -40,20 +41,20 @@ class MyDb(object):
     def put(self, data_dict):
         response = self.table.put_item(
             Item={
-                'rec_id': data_dict["rec_id"],
-                'time_sr': data_dict["time_sr"],
-                # *** Weather data
-                'temperature': int(data_dict["temperature"]),
-                'pressure': int(data_dict["pressure"]),
-                'humidity': int(data_dict["humidity"])
+                "CHAT": data_dict["CHAT"],
+                "UTC": data_dict["UTC"],
+                # Attributes
+                "location": str(data_dict["location"]),
+                "weather": str(data_dict["weather"]),
+                "zodiac": str(data_dict["zodiac"])
             }
         )
         return response
 
-    def delete(self, pk=1):
+    def delete(self, _pk=1):
         self.table.delete_item(
             Key={
-                'rec_id': pk
+                "CHAT": _pk
             }
         )
 
@@ -86,14 +87,12 @@ class MyDb(object):
         params = {
             'TableName': self.Table_Name,
             'KeySchema': [
-                {'AttributeName': 'rec_id', 'KeyType': 'HASH'},
-                {'AttributeName': 'time_sr', 'KeyType': 'RANGE'}
-                # {'AttributeName': 'temperature', 'KeyType': 'RANGE'}
+                {'AttributeName': 'CHAT', 'KeyType': 'HASH'},
+                {'AttributeName': 'UTC', 'KeyType': 'RANGE'}
             ],
             'AttributeDefinitions': [
-                {'AttributeName': 'rec_id', 'AttributeType': 'N'},
-                {'AttributeName': 'time_sr', 'AttributeType': 'N'}
-                # {'AttributeName': 'temperature', 'AttributeType': 'N'}
+                {'AttributeName': 'CHAT', 'AttributeType': 'S'},
+                {'AttributeName': 'UTC', 'AttributeType': 'S'}
             ],
             'ProvisionedThroughput': {
                 'ReadCapacityUnits': 12,
@@ -106,113 +105,153 @@ class MyDb(object):
 
         return self.table, str_info
 
-    def table_query(self, rec_id=1):
+    def table_query(self, _pk="", _between_low="", _between_high=""):
 
         from boto3.dynamodb.conditions import Key, Attr
 
         response = self.table.query(
-            KeyConditionExpression=Key('rec_id').eq(rec_id)
+            KeyConditionExpression=Key('CHAT').eq(_pk) & Key('UTC').between(_between_low, _between_high)
         )
         items = response['Items']
         return items
 
+    # def table_query_by_prop(self, _pk="", _between_low="", _between_high=""):
+    #
+    #     from boto3.dynamodb.conditions import Key, Attr
+    #
+    #     response = self.table.query(
+    #         KeyConditionExpression=Key('CHAT').eq(_pk) & Key('UTC').between("", "") & Key('UTC').lt(_lt)
+    #     )
+    #     items = response['Items']
+    #     return items
 
-def main_create_record():
 
-    out_str = ""
+def main_create_table_record():
+
+    text = ""
 
     res_table = obj.describe_table()
-    out_str += "\n" + str(res_table) + "\n"
+    text += "\n" + str(res_table) + "\n"
 
     if res_table == "ResourceNotFoundException":
         pass
-        out_str += "\n\n*** Create table"
+        text += "\n\n*** Create table"
         table, str_info = obj.create_table()
-        out_str += "\n" + str_info
+        text += "\n" + str_info
 
-    # *** Populate table from csv
-    # df = pd.read_csv('moon_zodiac.csv')
-    # print(df.info())
+    data_dict = {"CHAT": "4342423425#ONCE", "UTC": "2022-12-15 12:34:22,434", "location": {}, "weather": {}, "zodiac": {}}
 
-    # for i in range(0, len(df)):
-    #     moon_zodiac_dict = df.loc[i].to_dict()
-    #     # print(moon_zodiac_dict)
-    #
-    #     resp = obj.put(moon_zodiac_dict)
-    #     out_str += str(resp) + "\n"
-
-    data_dict = {"rec_id": 1, "time_sr": 1}
     resp = obj.put(data_dict)
-    out_str += str(resp) + "\n"
+    text += str(resp) + "\n"
 
-    return out_str
+    return resp, text
 
 
-def main_put_record():
-    global init_id
+def main_put_record(_chat_job="12345678#REP1"):
 
-    out_str = ""
-    dts = int(dt.now().timestamp())
+    global observer
 
-    if init_id == 0:
-        table_dict = obj.describe_table()
-        # init_id = int(table_dict["Table"]["ItemCount"])
-        # init_id = int(table_dict["Table"]["TableSizeBytes"] / 2)
-        init_id = dts - 670000000   # clear some digits
+    text = ""
+    # dts = int(dt.utcnow().timestamp())
+    utc_str = dt.utcnow().strftime(geo.dt_format_rev)
 
-    else:
-        init_id += 1
-    # print(init_id)
+    # if init_id == 0:
+    #     table_dict = obj.describe_table()
+    #     # init_id = int(table_dict["Table"]["ItemCount"])
+    #     # init_id = int(table_dict["Table"]["TableSizeBytes"] / 2)
+    #     init_id = dts - 670000000   # clear some digits
+    #
+    # else:
+    #     init_id += 1
+    # # print(init_id)
 
-    data_dict = {"rec_id": init_id, "time_sr": dts}
+    # Partition and Sorting keys
+    data_dict = {"CHAT": _chat_job, "UTC": utc_str}
+
+    # Location and timezone
+    observer.get_coords_by_name()
+    observer.get_tz_by_coord()
+    data_dict["location"] = {"geo": observer.geo_name,
+                             "lat": round(observer.location.latitude, 2),
+                             "lon": round(observer.location.longitude, 2),
+                             "tz": observer.timezone_name
+                             }
 
     # Weather data
-    wth_dict, str_head = wt.main_weather_now("Mragowo", dt.today())
-    data_dict["temperature"] = wth_dict["temperature"]
-    data_dict["pressure"] = wth_dict["pressure"]
-    data_dict["humidity"] = wth_dict["humidity"]
+    wth_dict, str_head = wt.main_weather_now(observer.geo_name, dt.today())
+    data_dict["weather"] = wth_dict
+
+    # Zodiac data
+    data_dict["zodiac"] = {}
 
     resp = obj.put(data_dict)
 
-    out_str += "\n" + str(resp["ResponseMetadata"]["RequestId"])[:12] + "... "
-    out_str += "" + str(resp["ResponseMetadata"]["HTTPStatusCode"]) + "/" + str(resp["ResponseMetadata"]["RetryAttempts"])
+    text += "\n" + str(resp["ResponseMetadata"]["RequestId"])[:12] + "... "
+    text += "" + str(resp["ResponseMetadata"]["HTTPStatusCode"]) + "/" + str(resp["ResponseMetadata"]["RetryAttempts"])
 
-    out_str += "\n" + str(init_id) + " "
+    # text += "\n" + str(init_id) + " "
 
-    return init_id, out_str
+    return data_dict, text
 
 
-def main_get_record(rec_id=1):
+def main_get_record(_chat_job="12345678#REP"):
 
-    out_str = ""
-
-    # res_item = obj.get(2, 2)
-    list_of_items = obj.table_query(rec_id=rec_id)
+    text = ""
+    list_of_items = obj.table_query(_pk=_chat_job, )
     # print(res_item1["Item"])
-    out_str += "\n" + str(list_of_items) + "\n"
+    text += "\n" + str(list_of_items) + "\n"
 
-    return list_of_items[0], out_str
+    return list_of_items[0], text
+
+
+def main_query_range(_chat_job="442763659#REP", _between_low="2022-12-11 21:11:17", _between_high="2022-12-11 21:13:17"):
+
+    text = ""
+    list_of_items = obj.table_query(_pk=_chat_job, _between_low=_between_low, _between_high=_between_high)
+
+    if len(list_of_items) > 0:
+
+        text += "\n" + str(list_of_items) + "\n"
+        return list_of_items, text
+
+    else:
+
+        text += "\nempty list"
+        return [], text
+
+
+def main_query_filter(list_of_items, attr="weather", field="T"):
+    value_list = []
+
+    for item in list_of_items:
+        # print(item["weather"])
+        # weather_dict = json.loads(str(item["weather"]))
+        weather_dict = ast.literal_eval(item[attr])
+        value = weather_dict[field]
+        # print(value)
+        value_list.append(value)
+
+    return value_list
+
 
 
 obj = MyDb(table_name='main_records')
-init_id = 0
+observer = geo.Observer(geo_name="Kharkiv")
 
 if __name__ == '__main__':
+    import json
+    import ast
+    # text = main_create_table_record()
+    # print(text)
 
-    # res_str = main_create_record()
-    # item_dict, res_str = main_get_item_moon_zodiac(3)
-    init_id, out_str = main_put_record()
-    # print(item_dict)
-    print(out_str)
 
-    init_id, out_str = main_put_record()
-    # print(item_dict)
-    print(out_str)
+    # init_id, text = main_put_record()
+    # # print(item_dict)
+    # print(text)
 
-    init_id, out_str = main_put_record()
-    # print(item_dict)
-    print(out_str)
 
-    init_id, out_str = main_put_record()
-    # print(item_dict)
-    print(out_str)
+    list_of_items, text = main_query_range("442763659#REP", "2022-12-11 21:11:17", "2022-12-11 21:12:17")
+    # pprint(list_of_items)
+    # print(text)
+    data_list = main_query_filter(list_of_items, attr="weather", field="H")
+    print(data_list)
