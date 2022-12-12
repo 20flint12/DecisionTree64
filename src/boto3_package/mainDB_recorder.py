@@ -2,11 +2,13 @@
 import pandas as pd
 from datetime import datetime as dt
 from pprint import pprint
+
+import src.ephem_routines.ephem_package.geo_place as geo
 import src.ephem_routines.ephem_package.moon_day as md
 import src.ephem_routines.ephem_package.sun_rise_sett as sr
 import src.ephem_routines.ephem_package.zodiac_phase as zd
 import src.weather_package.main_openweathermap as wt
-import src.ephem_routines.ephem_package.geo_place as geo
+import src.mathplot_package.mathplot_DB_attr as mt
 
 
 try:
@@ -194,14 +196,14 @@ def main_put_record(_chat_job="12345678#REP1"):
     return data_dict, text
 
 
-def main_get_record(_chat_job="12345678#REP"):
-
-    text = ""
-    list_of_items = obj.table_query(_pk=_chat_job, )
-    # print(res_item1["Item"])
-    text += "\n" + str(list_of_items) + "\n"
-
-    return list_of_items[0], text
+# def main_get_record(_chat_job="12345678#REP"):
+#
+#     text = ""
+#     list_of_items = obj.table_query(_pk=_chat_job, )
+#     # print(res_item1["Item"])
+#     text += "\n" + str(list_of_items) + "\n"
+#
+#     return list_of_items[0], text
 
 
 def main_query_range(_chat_job="442763659#REP", _between_low="2022-12-11 21:11:17", _between_high="2022-12-11 21:13:17"):
@@ -221,6 +223,10 @@ def main_query_range(_chat_job="442763659#REP", _between_low="2022-12-11 21:11:1
 
 
 def main_query_filter(list_of_items, attr="weather", field="T"):
+
+    import json
+    import ast
+
     value_list = []
 
     for item in list_of_items:
@@ -239,8 +245,7 @@ obj = MyDb(table_name='main_records')
 observer = geo.Observer(geo_name="Kharkiv")
 
 if __name__ == '__main__':
-    import json
-    import ast
+
     # text = main_create_table_record()
     # print(text)
 
@@ -250,8 +255,10 @@ if __name__ == '__main__':
     # print(text)
 
 
-    list_of_items, text = main_query_range("442763659#REP", "2022-12-11 21:11:17", "2022-12-11 21:12:17")
+    list_of_items, text = main_query_range("442763659#REP", "2022-12-11 21:11:17", "2022-12-13 07:00:17")
     # pprint(list_of_items)
     # print(text)
-    data_list = main_query_filter(list_of_items, attr="weather", field="H")
+    data_list = main_query_filter(list_of_items, attr="weather", field="P")
     print(data_list)
+
+    mt.plot_list(data_list, file_name="user_photo2.jpg")

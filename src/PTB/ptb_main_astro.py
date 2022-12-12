@@ -1,9 +1,11 @@
 # https://github.com/python-telegram-bot/python-telegram-bot/wiki/Extensions-%E2%80%93-JobQueue
 # logger.info("Bio of %s: %s", user.first_name, update.message.text)
 # 1261633346:AAHC4ctXxjZ4hdATaP_Of0608Ju7lIn5sxE
-#!/usr/bin/env python
-# pylint: disable=unused-argument, wrong-import-position
-# This program is dedicated to the public domain under the CC0 license.
+
+# https://github.com/python-telegram-bot/python-telegram-bot/wiki/Extensions-%E2%80%93-JobQueue
+# https://docs.python-telegram-bot.org/en/v20.0a6/telegram.ext.jobqueue.html
+# https://github.com//python-telegram-bot/python-telegram-bot/wiki/Storing-bot%2C-user-and-chat-related-data
+
 
 """
 Simple Bot to reply to Telegram messages.

@@ -7,9 +7,10 @@
 # https://github.com//python-telegram-bot/python-telegram-bot/wiki/Storing-bot%2C-user-and-chat-related-data
 
 from datetime import datetime
+from pprint import pprint
 
 import src.boto3_package.mainDB_recorder as mr
-
+import src.mathplot_package.mathplot_DB_attr as mp
 
 """
 Simple Bot to send timed Telegram messages.
@@ -229,6 +230,25 @@ async def unset_repeat_timer(update: Update, context: ContextTypes.DEFAULT_TYPE)
     await update.message.reply_text(text)
 
 
+async def reply_photo(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+
+    chat_id = update.message.chat_id
+    job_name = str(chat_id) + "#REP"            # 442763659#REP
+    photo_name = str(chat_id) + "_photo.png"    # 442763659_photo.jpg
+    # print(job_name)
+
+    list_of_items, text = mr.main_query_range(job_name, "2022-12-11 21:11:17", "2022-12-13 07:00:17")
+    # pprint(list_of_items)
+    data_list = mr.main_query_filter(list_of_items, attr="weather", field="P")
+    # print(data_list)
+
+    mp.plot_list(data_list, file_name=photo_name)
+
+    text = "reply_photo"
+    logger.info("%s", text)
+    await update.message.reply_photo(photo=open(photo_name, 'rb'))
+
+
 def main() -> None:
     """Start the bot.
      BOT_TOKEN "1796700435:AAG_RgjpPYOedk8iFzgN7DXZ0tYcwU39LvQ"  // InspectorBiblyka_bot            prod remote record
@@ -251,6 +271,9 @@ def main() -> None:
     application.add_handler(CommandHandler("pause", pause_repeat_timer))
     application.add_handler(CommandHandler("run", run_repeat_timer))
     application.add_handler(CommandHandler("urep", unset_repeat_timer))
+
+    application.add_handler(CommandHandler("photo", reply_photo))
+
 
     # job_queue.run_once, job_queue.run_repeating, job_queue.run_daily and job_queue.run_monthly
 
