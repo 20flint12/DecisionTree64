@@ -4,3 +4,7 @@
 
 ptb_main_astro.log
 ptb_main_recorder.log
+
+/src/__pycache__/
+/src/ephem_routines/__pycache__/
+/src/ephem_routines/ephem_package/__pycache__/

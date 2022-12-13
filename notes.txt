@@ -1,5 +1,9 @@
+python -m venv c:\Users\Administrator\Documents\DecisionTree64\venv310
+
+
 c:\Users\Plinfa-DEV\PycharmProjects\DecisionTree64\venv310\Scripts\activate.bat
 c:\Users\Administrator\PycharmProjects\DecisionTree64\venv310\Scripts\activate.bat
+c:\Users\Administrator\Documents\DecisionTree64\venv310\Scripts\activate.bat
 -------------------------------------------------------------------------------
 
 python -m src.PTB.ptb_main_recorder
@@ -15,6 +19,8 @@ python -m src.ephem_routines.ephem_package.moon_day
 cd c:\Users\Administrator\PycharmProjects\DecisionTree64\
 python -m src.PTB.ptb_main_astro
 
+pip install --upgrade pip
+
 pip list
 pip list --local
 pip freeze --local
@@ -24,5 +30,6 @@ pip install -r ./requirenments.txt
 ---------------------------------------------------------------------------------
 c:\Users\Plinfa-DEV\PycharmProjects\DecisionTree64\venv310\Scripts\deactivate.bat
 c:\Users\Administrator\PycharmProjects\DecisionTree64\venv310\Scripts\deactivate.bat
+c:\Users\Administrator\Documents\DecisionTree64\venv310\Scripts\deactivate.bat
 
-	
+
