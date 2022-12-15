@@ -2,8 +2,10 @@
 /venv310/
 /venv311_64/
 
-ptb_main_astro.log
-ptb_main_recorder.log
+/PTB/ptb_main_astro.log
+/PTB/ptb_main_recorder.log
+
+/PTB/.pytest_cache
 
 /src/__pycache__/
 /src/ephem_routines/__pycache__/

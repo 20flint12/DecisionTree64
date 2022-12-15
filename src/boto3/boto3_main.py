@@ -1,4 +1,4 @@
-# eu - west - 1     Ireland
+# eu-west-1     Ireland
 # 1AKIARXWKMEAH2CRR6ND3
 # 2QqKSoaps4vq1tw+RciF9/CtyTf5qBLYuxGR+uZXU
 

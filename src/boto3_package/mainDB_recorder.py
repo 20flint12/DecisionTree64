@@ -222,14 +222,14 @@ def main_query_range(_chat_job="442763659#REP", _between_low="2022-12-11 21:11:1
         return [], text
 
 
-def main_query_filter(list_of_items, attr="weather", field="T"):
+def main_query_filter(lists_of_items, attr="weather", field="T"):
 
     import json
     import ast
 
     value_list = []
 
-    for item in list_of_items:
+    for item in lists_of_items:
         # print(item["weather"])
         # weather_dict = json.loads(str(item["weather"]))
         weather_dict = ast.literal_eval(item[attr])
@@ -255,7 +255,7 @@ if __name__ == '__main__':
     # print(text)
 
 
-    list_of_items, text = main_query_range("442763659#REP", "2022-12-11 21:11:17", "2022-12-13 07:00:17")
+    list_of_items, text = main_query_range("442763659#REP", "2022-12-11 21:11:17", "2023-12-13 07:00:17")
     # pprint(list_of_items)
     # print(text)
     data_list = main_query_filter(list_of_items, attr="weather", field="P")

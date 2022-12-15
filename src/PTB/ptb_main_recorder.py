@@ -12,6 +12,10 @@ from pprint import pprint
 import src.boto3_package.mainDB_recorder as mr
 import src.mathplot_package.mathplot_DB_attr as mp
 
+import socket
+hostname = socket.gethostname() # DELL-DEV
+print(hostname)
+
 """
 Simple Bot to send timed Telegram messages.
 
@@ -237,9 +241,9 @@ async def reply_photo(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
     photo_name = str(chat_id) + "_photo.png"    # 442763659_photo.jpg
     # print(job_name)
 
-    list_of_items, text = mr.main_query_range(job_name, "2022-12-11 21:11:17", "2022-12-13 07:00:17")
+    list_of_items, text = mr.main_query_range(job_name, "2022-12-11 21:11:17", "2023-12-13 07:00:17")
     # pprint(list_of_items)
-    data_list = mr.main_query_filter(list_of_items, attr="weather", field="P")
+    data_list = mr.main_query_filter(list_of_items, attr="weather", field="T")
     # print(data_list)
 
     mp.plot_list(data_list, file_name=photo_name)
@@ -259,9 +263,14 @@ def main() -> None:
      BOT_TOKEN "345369460:AAEjHUhRMdT-E44Xbd82YG_I2C5-uCjR8Wg"  // @scsdvwervdbot astro_bot         prod remote astro
      """
     # Create the Application and pass it your bot's token.
-    persistence = PicklePersistence(filepath="ptb_main_recorder.log")
-    application = Application.builder().token("1261633346:AAHC4ctXxjZ4hdATaP_Of0608Ju7lIn5sxE").persistence(persistence).build()  # @FlintSmart_bot
-    # application = Application.builder().token("1796700435:AAG_RgjpPYOedk8iFzgN7DXZ0tYcwU39LvQ").persistence(persistence).build()  # InspectorBiblyka_bot
+    persistence = PicklePersistence(filepath="ptb_main_recorder")
+
+    if hostname == "DELL-DEV":
+        # @FlintSmart_bot
+        application = Application.builder().token("1261633346:AAHC4ctXxjZ4hdATaP_Of0608Ju7lIn5sxE").persistence(persistence).build()
+    else:
+        # InspectorBiblyka_bot
+        application = Application.builder().token("1796700435:AAG_RgjpPYOedk8iFzgN7DXZ0tYcwU39LvQ").persistence(persistence).build()
 
     # on different commands - answer in Telegram
     application.add_handler(CommandHandler(["start", "help"], start))

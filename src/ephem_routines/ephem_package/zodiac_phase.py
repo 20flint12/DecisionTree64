@@ -114,6 +114,29 @@ def print_ephemeris_for_year(year):
 #     # ===============================================
 
 
+def get_zodiac_Sun_Moon(observer, utc_datetime):
+
+    body_moon = ephem.Moon(utc_datetime)
+    body_sun = ephem.Sun(utc_datetime)
+
+    #####################################################################
+    deg = ephem.degrees
+    ecl_sun = ephem.Ecliptic(body_sun)  # , epoch=utc_datetime
+    ecl_moon = ephem.Ecliptic(body_moon)
+
+    ecl_dict = {}
+    ecl_dict["utc"] = utc_datetime
+    ecl_dict["sun_lon"] = ecl_sun.lon * 180 / 3.14159
+    ecl_dict["sun_lat"] = ecl_sun.lat * 180 / 3.14159
+    ecl_dict["moon_lon"] = ecl_moon.lon * 180 / 3.14159
+    ecl_dict["moon_lat"] = ecl_moon.lat * 180 / 3.14159
+
+    ecl_dict["sun_dist"] = body_sun.earth_distance
+    ecl_dict["moon_dist"] = body_moon.earth_distance
+
+    return ecl_dict
+
+
 def main_zodiac_body(geographical_name, local_unaware_datetime, in_str_body):
 
     str_head = ""
