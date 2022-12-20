@@ -61,6 +61,7 @@ sudo apt-get install python3-pip
 
 virtualenv --python python3 venv310
 source venv310/bin/activate
+python -m src.PTB.ptb_main_astro
 python -m src.PTB.ptb_main_recorder
 
 git fetch
