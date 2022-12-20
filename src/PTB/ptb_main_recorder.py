@@ -254,17 +254,17 @@ async def reply_photo(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
 
 
 def main() -> None:
-    """Start the bot.
-     """
-    # Create the Application and pass it your bot's token.
-    persistence = PicklePersistence(filepath="ptb_main_recorder")
-
+    """
+    Start the bot.
+    """
     if hostname == "DELL-DEV":
-        # @FlintSmart_bot
-        application = Application.builder().token("1261633346:AAHC4ctXxjZ4hdATaP_Of0608Ju7lIn5sxE").persistence(persistence).build()
+        token = "1261633346:AAHC4ctXxjZ4hdATaP_Of0608Ju7lIn5sxE"  # @FlintSmart_bot
+        persist_filepath = "ptb_main_recorder_dev"
     else:
-        # InspectorBiblyka_bot
-        application = Application.builder().token("1796700435:AAG_RgjpPYOedk8iFzgN7DXZ0tYcwU39LvQ").persistence(persistence).build()
+        token = "1796700435:AAG_RgjpPYOedk8iFzgN7DXZ0tYcwU39LvQ"  # @InspectorBiblyka_bot
+        persist_filepath = "ptb_main_recorder_prod"
+    persistence = PicklePersistence(filepath=persist_filepath)
+    application = Application.builder().token(token).persistence(persistence).build()
 
     # on different commands - answer in Telegram
     application.add_handler(CommandHandler(["start", "help"], start))

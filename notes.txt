@@ -1,6 +1,20 @@
+request, geo_name, unaware_datetime -> chat#job
+
+	geo_name -> coord, timezone (Observer)
+
+		unaware_datetime, timezone -> datetime_utc
+
+		  geo_name/coord,(datetime_utc) -> weather
+						   datetime_utc -> zodiac
+						   datetime_utc -> moon_phases
+		   geo_name/coord, datetime_utc -> moonday
+				 		   datetime_utc -> day_phases
+------------------------------------------------------
+
+
+
 python -m venv c:\Users\Administrator\Documents\DecisionTree64\venv310
-
-
++
 c:\Users\Plinfa-DEV\PycharmProjects\DecisionTree64\venv310\Scripts\activate.bat
 c:\Users\Administrator\PycharmProjects\DecisionTree64\venv310\Scripts\activate.bat
 c:\Users\Administrator\Documents\DecisionTree64\venv310\Scripts\activate.bat
@@ -51,10 +65,12 @@ python -m src.PTB.ptb_main_recorder
 
 git fetch
 git switch develop
+git pull origin develop
 
 tmux new -s mywindow
 tmux a -t mywindow
-
+tmux new -s recorder
+tmux a -t recorder
 
 
  BOT_TOKEN "1796700435:AAG_RgjpPYOedk8iFzgN7DXZ0tYcwU39LvQ"  // InspectorBiblyka_bot            prod remote record

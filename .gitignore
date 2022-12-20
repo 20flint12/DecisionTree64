@@ -20,4 +20,10 @@ __pycache__/
 key_win64-20flint12-London.pem
 win-20flint12-London.rdp
 
+/src/PTB/ptb_main_astro_dev
+/src/PTB/ptb_main_astro_prod
+
+/src/PTB/ptb_main_recorder_dev
+/src/PTB/ptb_main_recorder_prod
+
 
