@@ -21,7 +21,8 @@ bot.
 """
 
 
-from datetime import datetime
+from datetime import datetime, time
+import pytz
 import src.ephem_routines.ephem_package.moon_day as md
 import src.ephem_routines.ephem_package.sun_rise_sett as sr
 import src.ephem_routines.ephem_package.zodiac_phase as zd
@@ -180,7 +181,7 @@ def remove_job_if_exists(name: str, context: ContextTypes.DEFAULT_TYPE) -> bool:
     return True
 
 
-async def set_timer(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+async def set_daily_timer(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Add a job to the queue."""
     chat_id = update.effective_message.chat_id
     try:
@@ -192,7 +193,12 @@ async def set_timer(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
             return
 
         job_removed = remove_job_if_exists(str(chat_id), context)
-        context.job_queue.run_once(alarm, due, chat_id=chat_id, name=str(chat_id), data=due)
+        # context.job_queue.run_daily(alarm, "10:10:10", chat_id=chat_id, name=str(chat_id), data=due)
+        context.job_queue.run_daily(alarm,
+                                    time=time(hour=6, minute=27, tzinfo=pytz.timezone('Asia/Kolkata')),
+                                    days=(0, 1, 2, 3, 4, 5, 6),
+                                    chat_id=chat_id,
+                                    name=str(chat_id))
 
         text = "Timer successfully set!"
         if job_removed:
@@ -223,7 +229,7 @@ def main() -> None:
     application.add_handler(CommandHandler("md", moon_day))
     application.add_handler(CommandHandler("sr", sur_rise))
     application.add_handler(CommandHandler("zod", zodiac))          # /zod <GEO_PLACE>
-    application.add_handler(CommandHandler("set", set_timer))
+    application.add_handler(CommandHandler("set", set_daily_timer))
     application.add_handler(CommandHandler("wt", weather))
 
     application.add_handler(opc.observer_conversation_handler)      # /obs
