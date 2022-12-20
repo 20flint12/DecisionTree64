@@ -28,7 +28,7 @@ import src.ephem_routines.ephem_package.sun_rise_sett as sr
 import src.ephem_routines.ephem_package.zodiac_phase as zd
 import src.weather_package.main_openweathermap as wt
 
-import src.PTB.ptb_observer_persist_conversation as opc
+import src.PTB._ptb_observer_persist_conversation as opc
 
 
 import socket
@@ -88,6 +88,7 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
                 "\n/zod Moon - calculates zodiac of Moon" \
                 "\n/zod Sun - calculates zodiac of Sun" \
                 "\n/wt <CITY> - current weather in the CITY" \
+                "\n/obs - specify Observer and time" \
                 "\n\ndeveloped by Serhii Surmylo (Ukraine)"
     await update.message.reply_text(help_text)
 
@@ -102,7 +103,14 @@ async def echo(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 async def moon_phase(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Return moon_day to the user message."""
     user = update.effective_user
-    md_dict, str_head = md.main_moon_phase("Kharkiv", datetime.today())
+
+    if len(context.args) > 0:
+        city = str(context.args[0])
+    else:
+        city = context.user_data["geo place"]
+    logger.info("moon day for city: %s", city)
+
+    md_dict, str_head = md.main_moon_phase(city, datetime.today())
     update.message.text = str_head
     logger.info("moon_day of %s: %s", user.first_name, update.message.text)
     await update.message.reply_text(update.message.text)
@@ -111,7 +119,14 @@ async def moon_phase(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None
 async def moon_day(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Return moon_day to the user message."""
     user = update.effective_user
-    md_dict, str_head = md.main_moon_day("Kharkiv", datetime.today())
+
+    if len(context.args) > 0:
+        city = str(context.args[0])
+    else:
+        city = context.user_data["geo place"]
+    logger.info("moon day for city: %s", city)
+
+    md_dict, str_head = md.main_moon_day(city, datetime.today())
     update.message.text = str_head
     logger.info("moon_day of %s: %s", user.first_name, update.message.text)
     await update.message.reply_text(update.message.text)
@@ -120,7 +135,15 @@ async def moon_day(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 async def sur_rise(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Return moon_day to the user message."""
     user = update.effective_user
-    update.message.text = sr.main_sun_rise_sett("Mragowo", datetime.today())
+
+    if len(context.args) > 0:
+        city = str(context.args[0])
+    else:
+        # {'geo place': 'london', 'datetime': 'tomorrow', 'choice': 'additional'}
+        city = context.user_data["geo place"]
+    logger.info("sun rise for city: %s", city)
+
+    update.message.text = sr.main_sun_rise_sett(city, datetime.today())
     logger.info("moon_day of %s: %s", user.first_name, update.message.text)
     await update.message.reply_text(update.message.text)
 
@@ -194,11 +217,11 @@ async def set_daily_timer(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
 
         job_removed = remove_job_if_exists(str(chat_id), context)
         # context.job_queue.run_daily(alarm, "10:10:10", chat_id=chat_id, name=str(chat_id), data=due)
+        # context.job_queue.run_daily(alarm, days=(0, 1, 2, 3, 4, 5, 6), time=time(hour=10, minute=00, second=00))
         context.job_queue.run_daily(alarm,
                                     time=time(hour=6, minute=27, tzinfo=pytz.timezone('Asia/Kolkata')),
                                     days=(0, 1, 2, 3, 4, 5, 6),
-                                    chat_id=chat_id,
-                                    name=str(chat_id))
+                                    chat_id=chat_id, name=str(chat_id))
 
         text = "Timer successfully set!"
         if job_removed:
