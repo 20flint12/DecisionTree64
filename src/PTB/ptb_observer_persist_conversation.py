@@ -13,23 +13,9 @@ Send /start to initiate the conversation.
 Press Ctrl-C on the command line or send a signal to the process to stop the
 bot.
 """
-
 import logging
 from typing import Dict
 
-from telegram import __version__ as TG_VER
-
-try:
-    from telegram import __version_info__
-except ImportError:
-    __version_info__ = (0, 0, 0, 0, 0)  # type: ignore[assignment]
-
-if __version_info__ < (20, 0, 0, "alpha", 1):
-    raise RuntimeError(
-        f"This example is not compatible with your current PTB version {TG_VER}. To view the "
-        f"{TG_VER} version of this example, "
-        f"visit https://docs.python-telegram-bot.org/en/v{TG_VER}/examples.html"
-    )
 from telegram import ReplyKeyboardMarkup, ReplyKeyboardRemove, Update
 from telegram.ext import (
     Application,
@@ -50,8 +36,8 @@ logger = logging.getLogger(__name__)
 CHOOSING, TYPING_REPLY, TYPING_CHOICE = range(3)
 
 reply_keyboard = [
-    ["Age", "Favourite colour"],
-    ["Number of siblings", "Something else..."],
+    ["Geo place", "Datetime"],
+    ["Additional", "Description"],
     ["Done"],
 ]
 markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True)
@@ -59,19 +45,16 @@ markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True)
 
 def facts_to_str(user_data: Dict[str, str]) -> str:
     """Helper function for formatting the gathered user info."""
-    logger.info("Bio of %s: %s", user.first_name, update.message.text)
     facts = [f"{key} - {value}" for key, value in user_data.items()]
-
     return "\n".join(facts).join(["\n", "\n"])
 
 
-async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+async def observer(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """Start the conversation, display any stored data and ask user for input."""
-    reply_text = "Hi! My name is Doctor Botter."
+    reply_text = "Hi! Enter here geological place and unaware time there"
     if context.user_data:
         reply_text += (
-            f" You already told me your {', '.join(context.user_data.keys())}. Why don't you "
-            f"tell me something more about yourself? Or change anything I already know."
+            f" You already told me your {', '.join(context.user_data.keys())}. Why don't you tell more?"
         )
     else:
         reply_text += (
@@ -85,6 +68,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
 
 async def regular_choice(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """Ask the user for info about the selected predefined choice."""
+    user = update.effective_user
     text = update.message.text.lower()
     context.user_data["choice"] = text
     if context.user_data.get(text):
@@ -93,6 +77,7 @@ async def regular_choice(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         )
     else:
         reply_text = f"Your {text}? Yes, I would love to hear about that!"
+    logger.info("%s: text=%s context.user_data=%s", user.first_name, text, context.user_data)
     await update.message.reply_text(reply_text)
 
     return TYPING_REPLY
@@ -143,54 +128,70 @@ async def done(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     return ConversationHandler.END
 
 
-def main() -> None:
-    """Run the bot.
-        // #define BOT_TOKEN "1796700435:AAG_RgjpPYOedk8iFzgN7DXZ0tYcwU39LvQ"  // InspectorBiblyka_bot
-        // #define BOT_TOKEN "1261633346:AAHC4ctXxjZ4hdATaP_Of0608Ju7lIn5sxE"  // @FlintSmart_bot
-        // #define BOT_TOKEN "1042106378:AAFrhuhaLOtcDEU4Jq11u8jgp41Ll_xzG8w"  // @biblika_bot
-        // #define BOT_TOKEN "1207351455:AAH2SXGwOfkHRbzqr7ISJ25nm-N9QgOs3Vo"  // @FlintDebug_bot
-        #define BOT_TOKEN "1773146223:AAHiWcIJn-V5x_qgqOeKyCa1_dZK47vGwi8"      // FriendDetectorBiblyka_bot
-    """
-
-    # Create the Application and pass it your bot's token.
-    persistence = PicklePersistence(filepath="ptb_conversationbot.log")
-    # application = Application.builder().token("1261633346:AAHC4ctXxjZ4hdATaP_Of0608Ju7lIn5sxE").persistence(persistence).build()
-    application = Application.builder().token("1042106378:AAFrhuhaLOtcDEU4Jq11u8jgp41Ll_xzG8w").persistence(persistence).build() # @biblika_bot
-    # Add conversation handler with the states CHOOSING, TYPING_CHOICE and TYPING_REPLY
-    conv_handler = ConversationHandler(
-        entry_points=[CommandHandler("start", start)],
-        states={
-            CHOOSING: [
-                MessageHandler(
-                    filters.Regex("^(Age|Favourite colour|Number of siblings)$"), regular_choice
-                ),
-                MessageHandler(filters.Regex("^Something else...$"), custom_choice),
-            ],
-            TYPING_CHOICE: [
-                MessageHandler(
-                    filters.TEXT & ~(filters.COMMAND | filters.Regex("^Done$")), regular_choice
-                )
-            ],
-            TYPING_REPLY: [
-                MessageHandler(
-                    filters.TEXT & ~(filters.COMMAND | filters.Regex("^Done$")),
-                    received_information,
-                )
-            ],
-        },
-        fallbacks=[MessageHandler(filters.Regex("^Done$"), done)],
-        name="my_conversation",
-        persistent=True,
-    )
-
-    application.add_handler(conv_handler)
-
-    show_data_handler = CommandHandler("show_data", show_data)
-    application.add_handler(show_data_handler)
-
-    # Run the bot until the user presses Ctrl-C
-    application.run_polling()
+# def main_conversation_handler() -> None:
+#     """Run the bot."""
+#     # Create the Application and pass it your bot's token.
+#     # persistence = PicklePersistence(filepath="conversationbot")
+#     # application = Application.builder().token("TOKEN").persistence(persistence).build()
+#
+#     # Add conversation handler with the states CHOOSING, TYPING_CHOICE and TYPING_REPLY
+#     observer_conv_handler = ConversationHandler(
+#         entry_points=[CommandHandler("obs", observer)],
+#         states={
+#             CHOOSING: [
+#                 MessageHandler(
+#                     filters.Regex("^(Age|Favourite colour|Number of siblings)$"), regular_choice
+#                 ),
+#                 MessageHandler(filters.Regex("^Something else...$"), custom_choice),
+#             ],
+#             TYPING_CHOICE: [
+#                 MessageHandler(
+#                     filters.TEXT & ~(filters.COMMAND | filters.Regex("^Done$")), regular_choice
+#                 )
+#             ],
+#             TYPING_REPLY: [
+#                 MessageHandler(
+#                     filters.TEXT & ~(filters.COMMAND | filters.Regex("^Done$")),
+#                     received_information,
+#                 )
+#             ],
+#         },
+#         fallbacks=[MessageHandler(filters.Regex("^Done$"), done)],
+#         name="my_conversation",
+#         persistent=True,
+#     )
+#     application.add_handler(observer_conv_handler)
+#
+#     show_data_handler = CommandHandler("show_data", show_data)
+#     application.add_handler(show_data_handler)
+#
+#     # Run the bot until the user presses Ctrl-C
+#     application.run_polling()
 
 
-if __name__ == "__main__":
-    main()
+# if __name__ == "__main__":
+#     main_conversation_handler()
+
+
+observer_conversation_handler = ConversationHandler(
+    entry_points=[CommandHandler("obs", observer)],
+    states={
+        CHOOSING: [
+            # Geo place", "Datetime" "Additional", "Description
+            MessageHandler(filters.Regex("^(Geo place|Datetime|Additional)$"), regular_choice),
+            MessageHandler(filters.Regex("^Description$"), custom_choice),
+        ],
+        TYPING_CHOICE: [
+            MessageHandler(filters.TEXT & ~(filters.COMMAND | filters.Regex("^Done$")), regular_choice)
+        ],
+        TYPING_REPLY: [
+            MessageHandler(filters.TEXT & ~(filters.COMMAND | filters.Regex("^Done$")), received_information)
+        ],
+    },
+    fallbacks=[MessageHandler(filters.Regex("^Done$"), done)],
+    name="my_conversation",
+    persistent=True,
+)
+
+show_data_handler = CommandHandler("show_data", show_data)
+

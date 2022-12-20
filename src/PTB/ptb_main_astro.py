@@ -27,6 +27,12 @@ import src.ephem_routines.ephem_package.sun_rise_sett as sr
 import src.ephem_routines.ephem_package.zodiac_phase as zd
 import src.weather_package.main_openweathermap as wt
 
+import src.PTB.ptb_observer_persist_conversation as opc
+
+
+import socket
+hostname = socket.gethostname()     # DELL-DEV
+print(hostname)
 
 import logging
 
@@ -43,7 +49,7 @@ if __version_info__ < (20, 0, 0, "alpha", 1):
         f"{TG_VER} version of this example, "
         f"visit https://docs.python-telegram-bot.org/en/v{TG_VER}/examples.html"
     )
-from telegram import ForceReply, Update
+from telegram import ReplyKeyboardMarkup, ReplyKeyboardRemove, ForceReply, Update
 from telegram.ext import (
     Application,
     CommandHandler,
@@ -53,6 +59,7 @@ from telegram.ext import (
     PicklePersistence,
     filters,
 )
+
 
 # Enable logging
 logging.basicConfig(
@@ -139,10 +146,14 @@ async def weather(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Return current weather to the user message."""
     user = update.effective_user
 
-    try:
+    if len(context.args) > 0:
         city = str(context.args[0])
-        logger.info("city: %s", city)
+    else:
+        # {'geo place': 'london', 'datetime': 'tomorrow', 'choice': 'additional'}
+        city = context.user_data["geo place"]
+    logger.info("weather for city: %s", city)
 
+    try:
         wth_dict, str_head = wt.main_weather_now(city, datetime.today())
         update.message.text = str_head
         logger.info("weather of %s: %s", user.first_name, update.message.text)
@@ -193,18 +204,17 @@ async def set_timer(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
 
 def main() -> None:
-    """Start the bot.
-     BOT_TOKEN "1796700435:AAG_RgjpPYOedk8iFzgN7DXZ0tYcwU39LvQ"  // InspectorBiblyka_bot*
-     BOT_TOKEN "1261633346:AAHC4ctXxjZ4hdATaP_Of0608Ju7lIn5sxE"  // @FlintSmart_bot*
-     BOT_TOKEN "1042106378:AAFrhuhaLOtcDEU4Jq11u8jgp41Ll_xzG8w"  // @biblika_bot
-     BOT_TOKEN "1207351455:AAH2SXGwOfkHRbzqr7ISJ25nm-N9QgOs3Vo"  // @FlintDebug_bot
-     BOT_TOKEN "1773146223:AAHiWcIJn-V5x_qgqOeKyCa1_dZK47vGwi8"  // FriendDetectorBiblyka_bot
-     BOT_TOKEN "345369460:AAEjHUhRMdT-E44Xbd82YG_I2C5-uCjR8Wg"  // @scsdvwervdbot astro_bot
-     """
-    # Create the Application and pass it your bot's token.
-    persistence = PicklePersistence(filepath="ptb_main_astro.log")
-    application = Application.builder().token("1042106378:AAFrhuhaLOtcDEU4Jq11u8jgp41Ll_xzG8w").persistence(persistence).build()  # @biblika_bot
-    # application = Application.builder().token("345369460:AAEjHUhRMdT-E44Xbd82YG_I2C5-uCjR8Wg").persistence(persistence).build()  # @scsdvwervdbot astro_bot
+    """
+    Start the bot.
+    """
+    if hostname == "DELL-DEV":
+        token = "1042106378:AAFrhuhaLOtcDEU4Jq11u8jgp41Ll_xzG8w"    # @biblika_bot
+        persist_filepath = "ptb_main_astro_dev"
+    else:
+        token = "345369460:AAEjHUhRMdT-E44Xbd82YG_I2C5-uCjR8Wg"     # @scsdvwervdbot astro_bot
+        persist_filepath = "ptb_main_astro_prod"
+    persistence = PicklePersistence(filepath=persist_filepath)
+    application = Application.builder().token(token).persistence(persistence).build()
 
     # on different commands - answer in Telegram
     application.add_handler(CommandHandler("start", start))
@@ -212,9 +222,12 @@ def main() -> None:
     application.add_handler(CommandHandler("mph", moon_phase))
     application.add_handler(CommandHandler("md", moon_day))
     application.add_handler(CommandHandler("sr", sur_rise))
-    application.add_handler(CommandHandler("zod", zodiac))              # /zod <GEO_PLACE>
+    application.add_handler(CommandHandler("zod", zodiac))          # /zod <GEO_PLACE>
     application.add_handler(CommandHandler("set", set_timer))
     application.add_handler(CommandHandler("wt", weather))
+
+    application.add_handler(opc.observer_conversation_handler)      # /obs
+    application.add_handler(opc.show_data_handler)
 
     # on non command i.e message - echo the message on Telegram
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, echo))

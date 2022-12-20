@@ -67,6 +67,13 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     return GENDER
 
 
+async def echo(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Echo the user message."""
+    user = update.effective_user
+    logger.info("echo from %s: %s", user.first_name, update.message.text)
+    await update.message.reply_text(update.message.text)
+
+
 async def gender(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """Stores the selected gender and asks for a photo."""
     user = update.message.from_user
@@ -180,6 +187,8 @@ def main() -> None:
     application.add_handler(conv_handler)
 
     application.add_handler(CommandHandler("photo", reply_photo))
+
+    application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, echo))
 
     # Run the bot until the user presses Ctrl-C
     application.run_polling()

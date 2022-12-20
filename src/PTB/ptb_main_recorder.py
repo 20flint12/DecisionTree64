@@ -13,7 +13,7 @@ import src.boto3_package.mainDB_recorder as mr
 import src.mathplot_package.mathplot_DB_attr as mp
 
 import socket
-hostname = socket.gethostname() # DELL-DEV
+hostname = socket.gethostname()     # DELL-DEV
 print(hostname)
 
 """
@@ -255,12 +255,6 @@ async def reply_photo(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
 
 def main() -> None:
     """Start the bot.
-     BOT_TOKEN "1796700435:AAG_RgjpPYOedk8iFzgN7DXZ0tYcwU39LvQ"  // InspectorBiblyka_bot            prod remote record
-     BOT_TOKEN "1261633346:AAHC4ctXxjZ4hdATaP_Of0608Ju7lIn5sxE"  // @FlintSmart_bot                 dev local record
-     BOT_TOKEN "1042106378:AAFrhuhaLOtcDEU4Jq11u8jgp41Ll_xzG8w"  // @biblika_bot                    dev local astro
-     BOT_TOKEN "1207351455:AAH2SXGwOfkHRbzqr7ISJ25nm-N9QgOs3Vo"  // @FlintDebug_bot
-     BOT_TOKEN "1773146223:AAHiWcIJn-V5x_qgqOeKyCa1_dZK47vGwi8"  // FriendDetectorBiblyka_bot
-     BOT_TOKEN "345369460:AAEjHUhRMdT-E44Xbd82YG_I2C5-uCjR8Wg"  // @scsdvwervdbot astro_bot         prod remote astro
      """
     # Create the Application and pass it your bot's token.
     persistence = PicklePersistence(filepath="ptb_main_recorder")

@@ -33,3 +33,35 @@ c:\Users\Administrator\PycharmProjects\DecisionTree64\venv310\Scripts\deactivate
 c:\Users\Administrator\Documents\DecisionTree64\venv310\Scripts\deactivate.bat
 
 
+
+
+*** linux *** *** linux ****** linux *** *** linux *** *** linux *** *** linux ***
+pwd   ls   ls -la .   ls -l   chmod drwxrwxrwx
+
+git clone https://github.com/20flint12/DecisionTree64.git
+python3 -m venv /DecisionTree64/env310
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+sudo apt-get install virtualenv
+sudo apt-get install python3-pip
+
+virtualenv --python python3 venv310
+source venv310/bin/activate
+python -m src.PTB.ptb_main_recorder
+
+git fetch
+git switch develop
+
+tmux new -s mywindow
+tmux a -t mywindow
+
+
+
+ BOT_TOKEN "1796700435:AAG_RgjpPYOedk8iFzgN7DXZ0tYcwU39LvQ"  // InspectorBiblyka_bot            prod remote record
+ BOT_TOKEN "1261633346:AAHC4ctXxjZ4hdATaP_Of0608Ju7lIn5sxE"  // @FlintSmart_bot                 dev local record
+ BOT_TOKEN "1042106378:AAFrhuhaLOtcDEU4Jq11u8jgp41Ll_xzG8w"  // @biblika_bot                    dev local astro
+ BOT_TOKEN "1207351455:AAH2SXGwOfkHRbzqr7ISJ25nm-N9QgOs3Vo"  // @FlintDebug_bot
+ BOT_TOKEN "1773146223:AAHiWcIJn-V5x_qgqOeKyCa1_dZK47vGwi8"  // FriendDetectorBiblyka_bot
+ BOT_TOKEN "345369460:AAEjHUhRMdT-E44Xbd82YG_I2C5-uCjR8Wg"  // @scsdvwervdbot astro_bot         prod remote astro
+
+
