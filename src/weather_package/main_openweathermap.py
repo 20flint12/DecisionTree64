@@ -8,21 +8,11 @@ import src.ephem_routines.ephem_package.geo_place as geo
 
 def main_weather_now(geographical_name, local_unaware_datetime):
 
-    str_head = ""
-    observer = geo.Observer(geo_name=geographical_name)
-    observer.get_coords_by_name()
-    observer.get_tz_by_coord()
-    str_head += "geo_name= " + observer.geo_name + "\n[lat=" + str(observer.location.latitude) + " lon=" + str(
-        observer.location.longitude) + "]"
-    str_head += "\ntimezone= " + observer.timezone_name
-
-    str_head += "\n\n*** unaware -> aware -> utc"
-    observer.unaware = local_unaware_datetime
-    observer.unaware_to_aware_by_tz()  # aware_datetime
-    observer.aware_to_utc()  # utc_datetime
-    str_head += "\nuna= " + observer.unaware.strftime(geo.dt_format)
-    str_head += "\nawa= " + observer.aware.strftime(geo.dt_format)
-    str_head += "\nutc= " + observer.utc.strftime(geo.dt_format)
+    result_text = ""
+    observer_obj, observer_text = geo.main_observer(geo_name=geographical_name, unaware_datetime=local_unaware_datetime)
+    result_text += observer_text[0]
+    result_text += observer_text[1]
+    # result_text += observer_text[2]
 
     # *********************************************
     # api.openweathermap.org/data/2.5/weather?q=London,uk&APPID=683d1608f3ac1dc0916acbed01d0d2e5
@@ -43,7 +33,7 @@ def main_weather_now(geographical_name, local_unaware_datetime):
     "sys":{"type":1,"id":1709,"country":"PL","sunrise":1670049148,"sunset":1670077015},"timezone":3600,"id":764312,"name":"Mr\xc4\x85gowo",
     "cod":200}
     '''
-    wth_dict = {}
+    result_dict = {}
     if x["cod"] != "404":
 
         y = x["main"]
@@ -54,11 +44,11 @@ def main_weather_now(geographical_name, local_unaware_datetime):
         z = x["weather"]
         weather_description = z[0]["description"]
         # answer = str(round(answer, 2))
-        wth_dict["T"] = round(y["temp"] - 273.15, 1)
-        wth_dict["P"] = round(y["pressure"] / 1.33322387415, 1)
-        wth_dict["H"] = y["humidity"]
+        result_dict["T"] = round(y["temp"] - 273.15, 1)
+        result_dict["P"] = round(y["pressure"] / 1.33322387415, 1)
+        result_dict["H"] = y["humidity"]
 
-        str_head += "\n\n*** weatherdata"
+        result_text += "\n\n*** weatherdata"
         # print(" Temperature (in kelvin unit) = " +
         #       str(current_temperature) +
         #       "\n atmospheric pressure (in hPa unit) = " +
@@ -68,15 +58,15 @@ def main_weather_now(geographical_name, local_unaware_datetime):
         #       "\n description = " +
         #       str(weather_description))
 
-        str_head += "\nT= " + str(wth_dict["T"])
-        str_head += "\nP= " + str(wth_dict["P"])
-        str_head += "\nH= " + str(wth_dict["H"])
+        result_text += "\nT= " + str(result_dict["T"])
+        result_text += "\nP= " + str(result_dict["P"])
+        result_text += "\nH= " + str(result_dict["H"])
 
     else:
         print(" City Not Found ")
-        str_head += "\nCity Not Found"
+        result_text += "\nCity Not Found"
 
-    return wth_dict, str_head
+    return result_dict, result_text
 
 
 if __name__ == '__main__':

@@ -2,6 +2,10 @@
 # pylint: disable=unused-argument, wrong-import-position
 # This program is dedicated to the public domain under the CC0 license.
 
+
+import src.ephem_routines.ephem_package.geo_place as geo
+
+
 """
 First, a few callback functions are defined. Then, those functions are passed to
 the Application and registered at their respective places.
@@ -36,7 +40,7 @@ logger = logging.getLogger(__name__)
 CHOOSING, TYPING_REPLY, TYPING_CHOICE = range(3)
 
 reply_keyboard = [
-    ["Geo place", "Datetime"],
+    ["Geo place", "Moment"],
     ["Additional", "Description"],
     ["Done"],
 ]
@@ -77,6 +81,7 @@ async def regular_choice(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         )
     else:
         reply_text = f"Your {text}? Yes, I would love to hear about that!"
+
     logger.info("%s: text=%s context.user_data=%s", user.first_name, text, context.user_data)
     await update.message.reply_text(reply_text)
 
@@ -84,7 +89,20 @@ async def regular_choice(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
 
 
 async def custom_choice(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    """Ask the user for a description of a custom category."""
+    """Create a new observer object and save to context"""
+    user = update.effective_user
+
+    try:
+        context.user_data["object"]
+    except NameError:
+        print("var_exists = False")
+    else:
+        print("var_exists = True")
+
+    observer_obj = geo.Observer(geo_name="London")
+    context.user_data["object"] = observer_obj
+
+    logger.info("%s: context.user_data=%s", user.first_name, context.user_data)
     await update.message.reply_text(
         'Alright, please send me the category first, for example "Most impressive skill"'
     )
@@ -96,7 +114,7 @@ async def received_information(update: Update, context: ContextTypes.DEFAULT_TYP
     """Store info provided by user and ask for the next category."""
     text = update.message.text
     category = context.user_data["choice"]
-    context.user_data[category] = text.lower()
+    context.user_data[category] = text.upper()
     del context.user_data["choice"]
 
     await update.message.reply_text(
@@ -177,8 +195,8 @@ observer_conversation_handler = ConversationHandler(
     entry_points=[CommandHandler("obs", observer)],
     states={
         CHOOSING: [
-            # Geo place", "Datetime" "Additional", "Description
-            MessageHandler(filters.Regex("^(Geo place|Datetime|Additional)$"), regular_choice),
+            # Geo place", "Moment" "Additional", "Description
+            MessageHandler(filters.Regex("^(Geo place|Moment|Additional)$"), regular_choice),
             MessageHandler(filters.Regex("^Description$"), custom_choice),
         ],
         TYPING_CHOICE: [

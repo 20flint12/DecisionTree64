@@ -137,60 +137,52 @@ def get_zodiac_Sun_Moon(observer, utc_datetime):
     return ecl_dict
 
 
-def main_zodiac_body(geographical_name, local_unaware_datetime, in_str_body):
+def main_zodiac_sun_moon(geographical_name, local_unaware_datetime):
+    """
+    :param UTC_datetime:
+    :return:
+        {'moon_lat': -2.33097500404082,
+         'moon_lon': 249.4578276816824,
+         'moon_zod': 'Стр09',
+         'sun_lat': -0.00010429400758934978,
+         'sun_lon': 270.0509101194461,
+         'sun_zod': 'Коз00'}
+    """
+    result_text = ""
+    observer_obj, observer_text = geo.main_observer(geo_name=geographical_name, unaware_datetime=local_unaware_datetime)
+    result_text += observer_text[0]
+    result_text += observer_text[1]
+    # result_text += observer_text[2]
 
-    str_head = ""
-    observer = geo.Observer(geo_name=geographical_name)
-    observer.get_coords_by_name()
-    observer.get_tz_by_coord()
-    str_head += "geo_name= " + observer.geo_name + "\n[lat=" + str(observer.location.latitude) + " lon=" + str(
-        observer.location.longitude) + "]"
-    str_head += "\ntimezone= " + observer.timezone_name
+    # result_text += "\nutc= " + observer.utc.strftime(geo.dt_format)
 
-    str_head += "\n\n*** unaware -> aware -> utc"
-    observer.unaware = local_unaware_datetime
-    observer.unaware_to_aware_by_tz()  # aware_datetime
-    observer.aware_to_utc()  # utc_datetime
-    str_head += "\nuna= " + observer.unaware.strftime(geo.dt_format)
-    str_head += "\nawa= " + observer.aware.strftime(geo.dt_format)
-    str_head += "\nutc= " + observer.utc.strftime(geo.dt_format)
-
-    body = None
-    if in_str_body == "Moon":
-        body = ephem.Moon(observer.utc)
-    elif in_str_body == "Sun":
-        body = ephem.Sun(observer.utc)
-
-    if not body: return
-
-    str_head += "\n\nbody= " + in_str_body
     #####################################################################
     deg = ephem.degrees
-    ecl = ephem.Ecliptic(body, epoch=observer.utc)
+    body = ephem.Sun(observer_obj.utc)
+    ecl_sun = ephem.Ecliptic(body, epoch=observer_obj.utc)
+    body = ephem.Moon(observer_obj.utc)
+    ecl_moon = ephem.Ecliptic(body, epoch=observer_obj.utc)
 
-    ecl_dict = {}
-    ecl_dict["aware_loc"] = observer.aware
-    ecl_dict["date_utc"] = observer.utc
-    ecl_dict["ecl.lon"] = ecl.lon * 180 / 3.14159
-    ecl_dict["ecl.lat"] = ecl.lat * 180 / 3.14159
+    result_dict = {}
+    result_dict["sun_lon"] = ecl_sun.lon * 180 / 3.14159
+    result_dict["sun_lat"] = ecl_sun.lat * 180 / 3.14159
+    result_dict["moon_lon"] = ecl_moon.lon * 180 / 3.14159
+    result_dict["moon_lat"] = ecl_moon.lat * 180 / 3.14159
 
     # Format longitude in zodiacal form (like '00AR00') and return as a string.
-    ecl_dict["zod_lat"] = format_zodiacal_longitude(ecl.long)
-    '''
-    {   'aware_loc': datetime.datetime(2022, 12, 1, 11, 58, 22, 442893, tzinfo=<DstTzInfo 'Europe/Warsaw' CET+1:00:00 STD>),
-        'date_utc': datetime.datetime(2022, 12, 1, 10, 58, 22, 442893, tzinfo=<UTC>),
-        'ecl.lat': -0.00015073491534261797,
-        'ecl.lon': 249.22919614625383,
-        'zod_lat': 'Стр09'}'''
+    result_dict["sun_zod"] = format_zodiacal_longitude(ecl_sun.long)
+    result_dict["moon_zod"] = format_zodiacal_longitude(ecl_moon.long)
     # =========================================================================
 
-    # str_head += "\n" + str(ecl.epoch)
-    str_head += "\necl2= " + str(deg(ecl.lon)) + "; " + str(deg(ecl.lat))
-    str_head += "\n[{:7.3f}".format(ecl.lon * 180 / 3.14159) + " "
-    str_head += "{:7.3f}]".format(ecl.lat * 180 / 3.14159)
-    str_head += "\n" + str(ecl_dict["zod_lat"])
+    result_text += "\n\nSun  " + str(result_dict["sun_zod"])
+    # result_text += "\n(" + str(deg(ecl_sun.lon)) + ", " + str(deg(ecl_sun.lat)) + ")"
+    result_text += " [{:7.3f},".format(result_dict["sun_lon"]) + " {:7.3f}]".format(result_dict["sun_lon"])
 
-    return ecl_dict, str_head
+    result_text += "\nMoon " + str(result_dict["moon_zod"])
+    # result_text += "\n(" + str(deg(ecl_moon.lon)) + ", " + str(deg(ecl_moon.lat)) + ")"
+    result_text += " [{:7.3f},".format(result_dict["moon_lon"]) + " {:7.3f}]".format(result_dict["moon_lon"])
+
+    return result_dict, result_text
 
 
 def getInfo(body):
@@ -256,10 +248,9 @@ if __name__ == "__main__":
     # local_unaware_datetime = datetime.now()
     # ###########################################################################
 
-    ecl_dict, str_head = main_zodiac_body(geo_name, local_unaware_datetime, "Sun")
-    # pprint.pprint(ecl_dict)
-    print(str_head)
-
+    zodiac_dict, zodiac_text = main_zodiac_sun_moon(geo_name, local_unaware_datetime)
+    # pprint.pprint(zodiac_dict)
+    print(zodiac_text)
 
     # ---------------------------------------------------------------------
     start_date = ephem.Date('2015/10/21 15:00')

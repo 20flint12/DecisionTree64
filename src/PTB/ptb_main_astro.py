@@ -81,15 +81,14 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Send a message when the command /help is issued."""
     help_text = "Available comands:" \
-                "\n/echo - just echo command" \
-                "\n/mph - calculates current moon phase for Kharkiv" \
-                "\n/md - calculates moon day at current time and current place" \
-                "\n/sr - sunrise and sunset for Mragowo" \
-                "\n/zod Moon - calculates zodiac of Moon" \
-                "\n/zod Sun - calculates zodiac of Sun" \
-                "\n/wt <CITY> - current weather in the CITY" \
-                "\n/obs - specify Observer and time" \
-                "\n\ndeveloped by Serhii Surmylo (Ukraine)"
+                "\n/mph <CITY> - calculates moon phase for geoplace" \
+                "\n/zod <CITY> - calculates zodiac of Sun and Moon" \
+                "\n/md <CITY> - calculates moon day for geoplace" \
+                "\n/sr <CITY> - sunrise and sunset for geoplace" \
+                "\n/wt <CITY> - current weather for geoplace" \
+                "\n/obs - specify Observer and moment time" \
+                "\n" \
+                "\ndeveloped by Serhii Surmylo (Ukraine)"
     await update.message.reply_text(help_text)
 
 
@@ -108,10 +107,11 @@ async def moon_phase(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None
         city = str(context.args[0])
     else:
         city = context.user_data["geo place"]
-    logger.info("moon day for city: %s", city)
+    moment = context.user_data["moment"]
+    logger.info("moon day for city: %s at %s", city, moment)
 
-    md_dict, str_head = md.main_moon_phase(city, datetime.today())
-    update.message.text = str_head
+    mph_dict, mph_text = md.main_moon_phase(city, datetime.today())
+    update.message.text = mph_text
     logger.info("moon_day of %s: %s", user.first_name, update.message.text)
     await update.message.reply_text(update.message.text)
 
@@ -124,27 +124,29 @@ async def moon_day(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         city = str(context.args[0])
     else:
         city = context.user_data["geo place"]
-    logger.info("moon day for city: %s", city)
+    moment = context.user_data["moment"]
+    logger.info("moon day for city:  %s at %s", city, moment)
 
-    md_dict, str_head = md.main_moon_day(city, datetime.today())
-    update.message.text = str_head
+    md_dict, md_text = md.main_moon_day(city, datetime.today())
+    update.message.text = md_text[0] + md_text[2]
     logger.info("moon_day of %s: %s", user.first_name, update.message.text)
     await update.message.reply_text(update.message.text)
 
 
-async def sur_rise(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+async def sun_rise(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Return moon_day to the user message."""
     user = update.effective_user
 
     if len(context.args) > 0:
         city = str(context.args[0])
     else:
-        # {'geo place': 'london', 'datetime': 'tomorrow', 'choice': 'additional'}
         city = context.user_data["geo place"]
-    logger.info("sun rise for city: %s", city)
+    moment = context.user_data["moment"]
+    logger.info("sun rise for city: %s at %s", city, moment)
 
-    update.message.text = sr.main_sun_rise_sett(city, datetime.today())
-    logger.info("moon_day of %s: %s", user.first_name, update.message.text)
+    sun_dict, sun_text = sr.main_sun_rise_sett(city, datetime.today())     # at noon
+    update.message.text = sun_text
+    logger.info("sun rise of %s: %s", user.first_name, update.message.text)
     await update.message.reply_text(update.message.text)
 
 
@@ -152,14 +154,16 @@ async def zodiac(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Return moon_day to the user message."""
     user = update.effective_user
 
+    if len(context.args) > 0:
+        city = str(context.args[0])
+    else:
+        city = context.user_data["geo place"]
+    moment = context.user_data["moment"]
+    logger.info("zodiac at %s", moment)
     try:
-        planet = str(context.args[0])
-        logger.info("planet: %s", planet)
-
-        ecl_dict, str_head = zd.main_zodiac_body("Mragowo", datetime.today(), planet)
-        update.message.text = str_head
+        zodiac_dict, zodiac_text = zd.main_zodiac_sun_moon(city, datetime.today())
+        update.message.text = zodiac_text
         logger.info("moon_zodiac of %s: %s", user.first_name, update.message.text)
-
         await update.message.reply_text(update.message.text)
 
     except (IndexError, ValueError):
@@ -175,11 +179,12 @@ async def weather(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     else:
         # {'geo place': 'london', 'datetime': 'tomorrow', 'choice': 'additional'}
         city = context.user_data["geo place"]
-    logger.info("weather for city: %s", city)
+    moment = context.user_data["moment"]
+    logger.info("weather for city %s at %s", city, moment)
 
     try:
-        wth_dict, str_head = wt.main_weather_now(city, datetime.today())
-        update.message.text = str_head
+        wt_dict, wt_text = wt.main_weather_now(city, datetime.today())
+        update.message.text = wt_text
         logger.info("weather of %s: %s", user.first_name, update.message.text)
 
         await update.message.reply_text(update.message.text)
@@ -250,7 +255,7 @@ def main() -> None:
     application.add_handler(CommandHandler("help", help_command))
     application.add_handler(CommandHandler("mph", moon_phase))
     application.add_handler(CommandHandler("md", moon_day))
-    application.add_handler(CommandHandler("sr", sur_rise))
+    application.add_handler(CommandHandler("sr", sun_rise))
     application.add_handler(CommandHandler("zod", zodiac))          # /zod <GEO_PLACE>
     application.add_handler(CommandHandler("set", set_daily_timer))
     application.add_handler(CommandHandler("wt", weather))

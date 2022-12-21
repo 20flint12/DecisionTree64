@@ -6,8 +6,8 @@ from datetime import datetime
 import pytz
 import ephem
 
-dt_format = "%d/%m/%Y %H:%M:%S %z"
-dt_format_rev = "%Y-%m-%d %H:%M:%S"     # fits for dynamoDB "main_record" table
+dt_format = "%d/%m/%Y %H:%M:%S %Z %z"
+dt_format_rev = "%Y-%m-%d %H:%M:%S"     # fits for dynamoDB "main_record" table # SS[.ffffff]
 # dt_format = "%Y-%m-%d %H:%M:%S %z"
 # 28/11/2022 10:53:58 +0200
 
@@ -34,6 +34,7 @@ class Observer:
     aware = datetime.strptime("2011-06-21 02:37:21", dt_format_rev)
     aware12 = datetime.strptime("1999-09-09 09:09:09", dt_format_rev)
     utc = datetime.strptime("2000-01-01 00:00:01", dt_format_rev)
+    utc12 = datetime.strptime("2000-01-01 00:00:01", dt_format_rev)
 
     def __init__(self, latitude=0, longitude=0, geo_name="Kharkiv"):
         self.latitude = latitude
@@ -90,12 +91,12 @@ class Observer:
         # print("self.aware_datetime=", self.aware_datetime)
         return out_aware
 
-    def aware12_to_utc(self):
+    def unaware12_to_utc(self):
         # Calculate utc date on local noon for selected place #####################
         self.unaware12 = datetime(self.unaware.year, self.unaware.month, self.unaware.day, 12, 0, 0)
         cur_timezone = pytz.timezone(self.timezone_name)
         self.aware12 = cur_timezone.localize(self.unaware12)
-        self.utc = self.aware12.astimezone(pytz.timezone('UTC'))
+        self.utc12 = self.aware12.astimezone(pytz.timezone('UTC'))
         # -------------------------------------------------------------------------
         # print("self.aware_noon=", self.aware12.strftime(dt_format))
         # print("self.utc_datetime=", self.utc, "utcoffset=", self.utc.utcoffset())
@@ -207,38 +208,85 @@ def aware_loc_unaware_utc_for_local12place(in_unaware_loc, place):  # rework!!!
     return aware_loc, unaware_utc
 
 
+def main_observer(geo_name="Boston", unaware_datetime=datetime.today()):
+
+    result_text = ["", "", ""]
+    result_observer = Observer(geo_name=geo_name)
+    result_observer.get_coords_by_name()
+    result_observer.get_tz_by_coord()
+
+    result_observer.unaware = unaware_datetime      # unaware_datetime
+    result_observer.unaware_to_aware_by_tz()        # aware_datetime
+    result_observer.aware_to_utc()                  # utc_datetime
+
+    result_observer.unaware12_to_utc()              # utc_datetime
+
+
+    result_text[0] += "\nName: " + geo_name
+    result_text[0] += " [{:7.3f},".format(result_observer.location.latitude) + \
+                   " {:7.3f}]".format(result_observer.location.longitude)
+    result_text[0] += "\ntz: " + result_observer.timezone_name + " (" + str(result_observer.aware.utcoffset()) + ")"
+    result_text[0] += "\ndst: " + str(result_observer.aware.dst())
+
+    # result_text += "\n*** unaware -> aware -> utc"
+    result_text[1] += "\n" + result_observer.unaware.strftime(dt_format)
+    result_text[1] += "\n" + result_observer.aware.strftime(dt_format)
+    result_text[1] += "\n" + result_observer.utc.strftime(dt_format)
+
+    result_text[2] += "\n" + result_observer.unaware12.strftime(dt_format)
+    result_text[2] += "\n" + result_observer.utc12.strftime(dt_format)
+
+    return result_observer, result_text
+
+
 if __name__ == '__main__':
 
     # geo_name = 'Boston'
-    geo_name = 'Kharkiv'
+    geo_name = 'London'
+    # geo_name = 'Kharkiv'
     # ###########################################################################
 
-    observer = Observer(geo_name=geo_name)
-    observer.get_coords_by_name()
-    print("geo_name=", observer.geo_name, "[lat=", observer.location.latitude, "lon=", observer.location.longitude, "]")
-    observer.get_tz_by_coord()
-    print("timezone=", observer.timezone_name)
-    # print(observer.place, "\n")
+    # observer = Observer(geo_name=geo_name)
+    # observer.get_coords_by_name()
+    # print("geo_name=", observer.geo_name, "[lat=", observer.location.latitude, "lon=", observer.location.longitude, "]")
+    # observer.get_tz_by_coord()
+    # print("timezone=", observer.timezone_name)
+    # # print(observer.place, "\n")
+    #
+    # print("\n*** unaware -> aware -> utc")
+    # # observer.unaware = datetime.strptime("2011-06-21 02:37:21", "%Y-%m-%d %H:%M:%S")
+    # observer.unaware = datetime.now()                       # unaware_datetime
+    # observer.unaware_to_aware_by_tz()                       # aware_datetime
+    # observer.aware_to_utc()                                 # utc_datetime
+    # print("una=", observer.unaware.strftime(dt_format), observer.aware.utcoffset())
+    # print("awa=", observer.aware.strftime(dt_format), observer.aware.utcoffset())
+    # print("utc=", observer.utc.strftime(dt_format), observer.aware.utcoffset())
 
-    print("\n*** unaware -> aware -> utc")
-    # observer.unaware = datetime.strptime("2011-06-21 02:37:21", "%Y-%m-%d %H:%M:%S")
-    observer.unaware = datetime.now()                       # unaware_datetime
-    observer.unaware_to_aware_by_tz()                       # aware_datetime
-    observer.aware_to_utc()                                 # utc_datetime
-    print("una=", observer.unaware.strftime(dt_format), observer.aware.utcoffset())
-    print("awa=", observer.aware.strftime(dt_format), observer.aware.utcoffset())
-    print("utc=", observer.utc.strftime(dt_format), observer.aware.utcoffset())
+    unaware_dt = datetime.strptime("2011-05-21 08:37:21", "%Y-%m-%d %H:%M:%S")
+    # unaware_dt = datetime.today()
+    observer_obj, observer_text = main_observer(geo_name=geo_name, unaware_datetime=unaware_dt)
+    # print(observer_obj)
+    print(observer_text[0])
+    print(observer_text[1])
+    print(observer_text[2])
 
-    print("\n*** utc -> aware")
-    observer.utc = datetime.strptime("2011-06-21 02:37:21", "%Y-%m-%d %H:%M:%S")
-    observer.utc_to_aware_by_tz()                           # aware_datetime
-    print("utc=", observer.utc.strftime(dt_format), observer.aware.utcoffset())
-    print("awa=", observer.aware.strftime(dt_format))
+    dict = {}
+    dict["obj_name"] = observer_obj
 
-    print("\n*** unaware -> unaware12 -> aware12 -> utc")
-    observer.unaware = datetime.strptime("1976-01-13 04:22:01", "%Y-%m-%d %H:%M:%S")
-    observer.aware12_to_utc()                               # utc_datetime
-    print("una=", observer.unaware.strftime(dt_format))
-    print("u12=", observer.unaware12.strftime(dt_format))
-    print("a12=", observer.aware12.strftime(dt_format))
-    print("utc=", observer.utc.strftime(dt_format))
+    print(type(observer_obj))
+    print(type(dict["obj_name"]))
+
+
+    # print("\n*** utc -> aware")
+    # observer.utc = datetime.strptime("2011-06-21 02:37:21", "%Y-%m-%d %H:%M:%S")
+    # observer.utc_to_aware_by_tz()                           # aware_datetime
+    # print("utc=", observer.utc.strftime(dt_format), observer.aware.utcoffset())
+    # print("awa=", observer.aware.strftime(dt_format))
+    #
+    # print("\n*** unaware -> unaware12 -> aware12 -> utc")
+    # observer.unaware = datetime.strptime("1976-01-13 04:22:01", "%Y-%m-%d %H:%M:%S")
+    # observer.aware12_to_utc()                               # utc_datetime
+    # print("una=", observer.unaware.strftime(dt_format))
+    # print("u12=", observer.unaware12.strftime(dt_format))
+    # print("a12=", observer.aware12.strftime(dt_format))
+    # print("utc=", observer.utc.strftime(dt_format))

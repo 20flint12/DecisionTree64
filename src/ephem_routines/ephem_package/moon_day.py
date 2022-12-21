@@ -239,96 +239,78 @@ def get_moon_phase(in_date_utc):
 
 def main_moon_phase(geographical_name, local_unaware_datetime):
 
-    str_head = ""
-    observer = geo.Observer(geo_name=geographical_name)
-    observer.get_coords_by_name()
-    observer.get_tz_by_coord()
-    str_head += "geo_name= " + observer.geo_name + "\n[lat=" + str(observer.location.latitude) + " lon=" + str(observer.location.longitude) + "]"
-    str_head += "\ntimezone= " + observer.timezone_name
+    result_text = ""
+    observer_obj, observer_text = geo.main_observer(geo_name=geographical_name, unaware_datetime=local_unaware_datetime)
+    result_text += observer_text[0]
+    result_text += observer_text[1]
+    # result_text += observer_text[2]
 
-    str_head += "\n\n*** unaware -> aware -> utc"
-    observer.unaware = local_unaware_datetime
-    observer.unaware_to_aware_by_tz()  # aware_datetime
-    observer.aware_to_utc()  # utc_datetime
-    str_head += "\nuna= " + observer.unaware.strftime(geo.dt_format)
-    str_head += "\nawa= " + observer.aware.strftime(geo.dt_format)
-    str_head += "\nutc= " + observer.utc.strftime(geo.dt_format)
-
-    str_head += "\n\n*** get_moon_phase() in aware"
-    mph_dict = get_moon_phase(observer.utc)
+    result_text += "\n"
+    result_dict = get_moon_phase(observer_obj.utc)
     ''' {'calc_date_utc': 44892.471979341906,
          'next': 'First Quarter',
          'next_utc': 44894.10868446941,
          'prev': 'New Moon',
          'prev_utc': 44887.45639035291}'''
-    calc_date_utc = observer.dt_utc_to_aware_by_tz((mph_dict["calc_date_utc"].datetime()))
-    prev_utc = observer.dt_utc_to_aware_by_tz((mph_dict["prev_utc"].datetime()))
-    next_utc = observer.dt_utc_to_aware_by_tz((mph_dict["next_utc"].datetime()))
-    str_head += "\n" + prev_utc.strftime(geo.dt_format) + " " + mph_dict["prev"]
-    str_head += "\n" + calc_date_utc.strftime(geo.dt_format) + " calc_date_utc"
-    str_head += "\n" + next_utc.strftime(geo.dt_format) + " " + mph_dict["next"]
+    calc_date_utc = observer_obj.dt_utc_to_aware_by_tz((result_dict["calc_date_utc"].datetime()))
+    prev_utc = observer_obj.dt_utc_to_aware_by_tz((result_dict["prev_utc"].datetime()))
+    next_utc = observer_obj.dt_utc_to_aware_by_tz((result_dict["next_utc"].datetime()))
+    result_text += "\n" + prev_utc.strftime(geo.dt_format) + " " + result_dict["prev"]
+    result_text += "\n" + calc_date_utc.strftime(geo.dt_format) + " calc_date_utc"
+    result_text += "\n" + next_utc.strftime(geo.dt_format) + " " + result_dict["next"]
 
-    return mph_dict, str_head
+    return result_dict, result_text
 
 
 def main_moon_day(geographical_name, local_unaware_datetime):
 
-    str_head = ""
-    observer = geo.Observer(geo_name=geographical_name)
-    observer.get_coords_by_name()
-    observer.get_tz_by_coord()
-    str_head += "geo_name= " + observer.geo_name + "\n[lat=" + str(observer.location.latitude) + " lon=" + str(observer.location.longitude) + "]"
-    str_head += "\ntimezone= " + observer.timezone_name
-
-    str_head += "\n\n*** unaware -> aware -> utc"
-    observer.unaware = local_unaware_datetime
-    observer.unaware_to_aware_by_tz()  # aware_datetime
-    observer.aware_to_utc()  # utc_datetime
-    str_head += "\nuna= " + observer.unaware.strftime(geo.dt_format)
-    str_head += "\nawa= " + observer.aware.strftime(geo.dt_format)
-    str_head += "\nutc= " + observer.utc.strftime(geo.dt_format)
+    result_text = ["", "", ""]
+    observer_obj, observer_text = geo.main_observer(geo_name=geographical_name, unaware_datetime=local_unaware_datetime)
+    result_text[0] += observer_text[0]
+    result_text[0] += observer_text[1]
+    # result_text[0] += observer_text[2]
 
     moon = ephem.Moon()
-    observer.place.date = observer.utc
+    observer_obj.place.date = observer_obj.utc
     #####################################################################
 
-    calc_date = ephem.Date(observer.utc)
-    prev_NM = ephem.previous_new_moon(observer.utc)
-    next_NM = ephem.next_new_moon(observer.utc)
+    calc_date = ephem.Date(observer_obj.utc)
+    prev_NM = ephem.previous_new_moon(observer_obj.utc)
+    next_NM = ephem.next_new_moon(observer_obj.utc)
 
-    str_head += "\n\nCalculate for UTC:{0:<18}".format(str(calc_date))
-    str_head += "\nprev_NM : {:<18}".format(str(prev_NM))
-    str_head += "\nnext_NM : {:<18}".format(str(next_NM))
-    str_head += ">>" + "\n"
+    result_text[0] += "\n"
+    result_text[0] += "\nprev_NM : {:<18}".format(str(prev_NM))
+    result_text[0] += "\nnext_NM : {:<18}".format(str(next_NM))
+    # result_text[0] += "\n"
 
     cur_mday = 1
-    observer.place.date = prev_NM
-    day_rise = observer.place.previous_rising(moon)
-    day_sett = observer.place.previous_setting(moon)
-    new_rise = observer.place.next_rising(moon)
+    observer_obj.place.date = prev_NM
+    day_rise = observer_obj.place.previous_rising(moon)
+    day_sett = observer_obj.place.previous_setting(moon)
+    new_rise = observer_obj.place.next_rising(moon)
 
-    md_dict = {}
-    md_dict["calc_date"] = calc_date
-    md_dict["moon_day"] = cur_mday
-    md_dict["day_rise"] = day_rise
-    md_dict["day_sett"] = day_sett
-    md_dict["new_rise"] = new_rise
+    result_dict = {}
+    result_dict["calc_date"] = calc_date
+    result_dict["moon_day"] = cur_mday
+    result_dict["day_rise"] = day_rise
+    result_dict["day_sett"] = day_sett
+    result_dict["new_rise"] = new_rise
 
     while calc_date > new_rise:
         str_mark = ""
 
         if cur_mday == 1:
-            day_rise = observer.place.previous_rising(moon)
-            day_sett = observer.place.previous_setting(moon)
+            day_rise = observer_obj.place.previous_rising(moon)
+            day_sett = observer_obj.place.previous_setting(moon)
             if day_rise > day_sett:
-                day_sett = observer.place.next_setting(moon)
+                day_sett = observer_obj.place.next_setting(moon)
             str_mark = " new moon >>>"
         else:
-            day_rise = observer.place.next_rising(moon)
-            observer.place.date = day_rise
-            day_sett = observer.place.next_setting(moon)
-            observer.place.date = day_sett
-            new_rise = observer.place.next_rising(moon)
+            day_rise = observer_obj.place.next_rising(moon)
+            observer_obj.place.date = day_rise
+            day_sett = observer_obj.place.next_setting(moon)
+            observer_obj.place.date = day_sett
+            new_rise = observer_obj.place.next_rising(moon)
 
             if next_NM < new_rise:
                 str_mark = " >>> new moon"
@@ -342,17 +324,17 @@ def main_moon_day(geographical_name, local_unaware_datetime):
         str_out += " to:{0:<18}".format(str(new_rise))
         str_out += str_mark
 
-        md_dict["moon_day"] = cur_mday
-        md_dict["day_rise"] = day_rise
-        md_dict["day_sett"] = day_sett
-        md_dict["new_rise"] = new_rise
+        result_dict["moon_day"] = cur_mday
+        result_dict["day_rise"] = day_rise
+        result_dict["day_sett"] = day_sett
+        result_dict["new_rise"] = new_rise
 
         cur_mday += 1  # prepare for next moon day
 
-        str_head += str_out + "\n"
-        # print str_head
+        result_text[1] += str_out + "\n"
+        # print result_text
 
-    str_head += "<" * 76 + "\n"
+    result_text[1] += "<" * 76 + "\n"
 
     '''
        { 'calc_date': 44893.072367212015,
@@ -360,14 +342,16 @@ def main_moon_day(geographical_name, local_unaware_datetime):
          'day_sett': 44893.345916710365,
          'moon_day': 7,
          'new_rise': 44893.92266362893}'''
-    calc_date = observer.dt_utc_to_aware_by_tz((md_dict["calc_date"].datetime()))
-    day_rise = observer.dt_utc_to_aware_by_tz((md_dict["day_rise"].datetime()))
-    day_sett = observer.dt_utc_to_aware_by_tz((md_dict["day_sett"].datetime()))
-    str_head += "\n" + day_rise.strftime(geo.dt_format) + " day_rise"
-    str_head += "\n" + calc_date.strftime(geo.dt_format) + " calc_date_utc"
-    str_head += "\n" + day_sett.strftime(geo.dt_format) + " day_sett"
+    calc_date = observer_obj.dt_utc_to_aware_by_tz((result_dict["calc_date"].datetime()))
+    day_rise = observer_obj.dt_utc_to_aware_by_tz((result_dict["day_rise"].datetime()))
+    day_sett = observer_obj.dt_utc_to_aware_by_tz((result_dict["day_sett"].datetime()))
 
-    return md_dict, str_head
+    result_text[2] += "\nMoon day: " + str(result_dict["moon_day"])
+    result_text[2] += "\n" + day_rise.strftime(geo.dt_format) + " day_rise"
+    # result_text[2] += "\n" + calc_date.strftime(geo.dt_format) + " calc_date_utc"
+    result_text[2] += "\n" + day_sett.strftime(geo.dt_format) + " day_sett"
+
+    return result_dict, result_text
 
 
 if __name__ == '__main__':
@@ -382,12 +366,12 @@ if __name__ == '__main__':
     # ###########################################################################
 
     # mph_dict, str_head = main_moon_phase(geo_name, local_unaware_datetime)
-    md_dict, str_head = main_moon_day(geo_name, local_unaware_datetime)
+    md_dict, md_text = main_moon_day(geo_name, local_unaware_datetime)
 
     # pprint.pprint(md_dict)
-    print(str_head)
-
-
+    print(md_text[0])
+    # print(md_text[1])
+    print(md_text[2])
 
     # tp_md_ext = get_moon_day_local12place(loc_date, cur_place)
     # print "tp_md_ext=\n", pprint.pprint(tp_md_ext)

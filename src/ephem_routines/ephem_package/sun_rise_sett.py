@@ -13,18 +13,9 @@ def get_sun_rise_sett(place=None, in_date_utc=None):
 
     prev_rise = place.previous_rising(sun, use_center=False)
     next_sett = place.next_setting(sun, use_center=False)
-    # next_rise = ephem_routines.localtime(place.next_rising(sun))
-    # prev_sett = ephem_routines.localtime(place.previous_setting(sun))
 
-    sun_dict_utc = {"day_rise": prev_rise,
-                    "day_sett": next_sett}
-
-    # print("noon=", place.date)
-    # print("prise=", prev_rise)
-    # print("nsett=", next_sett)
-
-    # print("nrise=", next_rise)
-    # print("psett=", prev_sett)
+    sun_dict_utc = {"sun_rise": prev_rise,
+                    "sun_sett": next_sett}
 
     return sun_dict_utc
 
@@ -104,28 +95,20 @@ def _print_UTC_time(time):
 
 def main_sun_rise_sett(geographical_name, local_unaware_datetime):
 
-    str_head = ""
-    observer = geo.Observer(geo_name=geographical_name)
-    observer.get_coords_by_name()
-    observer.get_tz_by_coord()
-    str_head += "geo_name= " + observer.geo_name + "\n[lat=" + str(observer.location.latitude) + " lon=" + str(observer.location.longitude) + "]"
-    str_head += "\ntimezone= " + observer.timezone_name
+    result_text = ""
+    observer_obj, observer_text = geo.main_observer(geo_name=geographical_name, unaware_datetime=local_unaware_datetime)
+    result_text += observer_text[0]
+    # result_text += observer_text[1]
+    result_text += observer_text[2]
 
-    str_head += "\n\n*** unaware -> aware12 -> utc"
-    observer.unaware = local_unaware_datetime
-    observer.aware12_to_utc()  # utc_datetime
-    str_head += "\nuna=" + observer.unaware.strftime(geo.dt_format)
-    str_head += "\nutc=" + observer.utc.strftime(geo.dt_format)
+    result_text += "\n"
+    result_dict = get_sun_rise_sett(place=observer_obj.place, in_date_utc=observer_obj.utc12)
+    day_rise = observer_obj.dt_utc_to_aware_by_tz((result_dict["sun_rise"].datetime()))
+    day_sett = observer_obj.dt_utc_to_aware_by_tz((result_dict["sun_sett"].datetime()))
+    result_text += "\nsun_rise: " + day_rise.strftime(geo.dt_format)
+    result_text += "\nsun_sett: " + day_sett.strftime(geo.dt_format)
 
-    str_head += "\n\n*** get_sun_rise_sett() in aware"
-    sun_dict = get_sun_rise_sett(place=observer.place, in_date_utc=observer.utc)
-    day_rise = observer.dt_utc_to_aware_by_tz((sun_dict["day_rise"].datetime()))
-    day_sett = observer.dt_utc_to_aware_by_tz((sun_dict["day_sett"].datetime()))
-    str_head += "\nday_rise=" + day_rise.strftime(geo.dt_format)
-    str_head += "\nday_sett=" + day_sett.strftime(geo.dt_format)
-    str_head += "\n***"
-
-    return str_head
+    return result_dict, result_text
 
 
 if __name__ == '__main__':
@@ -139,8 +122,8 @@ if __name__ == '__main__':
     # local_unaware_datetime = datetime.now()
     # ###########################################################################
 
-    res_str = main_sun_rise_sett(geo_name, local_unaware_datetime)
-    print(res_str)
+    sun_dict, sun_text = main_sun_rise_sett(geo_name, local_unaware_datetime)
+    print(sun_text)
 
 
     # out_list = get_sun_on_month(cur_place)
