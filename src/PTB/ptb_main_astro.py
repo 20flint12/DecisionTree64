@@ -87,6 +87,7 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
                 "\n/md <CITY> - calculates moon day for geoplace" \
                 "\n/sr <CITY> - sunrise and sunset for geoplace" \
                 "\n/wt <CITY> - current weather for geoplace" \
+                "\n/sum <CITY> - summarize info for geoplace" \
                 "\n/obs - specify Observer and moment time" \
                 "\n/set [HHMM] - set notification time" \
                 "\n" \
