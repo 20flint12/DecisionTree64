@@ -91,15 +91,15 @@ async def custom_choice(update: Update, context: ContextTypes.DEFAULT_TYPE) -> i
     """Create a new observer object and save to context"""
     user = update.effective_user
 
-    try:
-        context.user_data["object"]
-    except NameError:
-        print("var_exists = False")
-    else:
-        print("var_exists = True")
+    # try:
+    #     context.user_data["object"]
+    # except NameError:
+    #     print("var_exists = False")
+    # else:
+    #     print("var_exists = True")
 
-    observer_obj = geo.Observer(geo_name="London")
-    context.user_data["object"] = observer_obj
+    # observer_obj = geo.Observer(geo_name="London")
+    # context.user_data["object"] = observer_obj
 
     logger.info("%s: context.user_data=%s", user.first_name, context.user_data)
     await update.message.reply_text(

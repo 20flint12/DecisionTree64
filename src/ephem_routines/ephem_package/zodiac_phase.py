@@ -171,11 +171,11 @@ def main_zodiac_sun_moon(observer=None):
 
     result_text += "\n"
     result_text += "\n" + str(result_dict["sun_zod"])
-    result_text += " [{:7.3f},".format(result_dict["sun_lon"]) + " {:7.3f}]".format(result_dict["sun_lon"]) + " sun_zod"
+    result_text += " [{:7.3f},".format(result_dict["sun_lon"]) + " {:7.3f}]".format(result_dict["sun_lat"]) + " sun_zod"
     # result_text += "\n(" + str(deg(ecl_sun.lon)) + ", " + str(deg(ecl_sun.lat)) + ")"
 
     result_text += "\n" + str(result_dict["moon_zod"])
-    result_text += " [{:7.3f},".format(result_dict["moon_lon"]) + " {:7.3f}]".format(result_dict["moon_lon"]) + " moon_zod"
+    result_text += " [{:7.3f},".format(result_dict["moon_lon"]) + " {:7.3f}]".format(result_dict["moon_lat"]) + " moon_zod"
     # result_text += "\n(" + str(deg(ecl_moon.lon)) + ", " + str(deg(ecl_moon.lat)) + ")"
 
     return result_dict, result_text
@@ -203,8 +203,6 @@ def getInfo(body):
     #
     # str_out += " me.lon =" + str(deg(me.lon))
     # str_out += " & deg={:7.3f}".format(me.lon * 180 / 3.14) + " - "
-
-
 
     ###########################################################################
     ecl = ephem.Ecliptic(body, epoch=cur_date)

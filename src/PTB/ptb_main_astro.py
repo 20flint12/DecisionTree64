@@ -319,6 +319,7 @@ async def set_daily_timer(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
         hhmm = context.args[0]
         try:
             dt_hhmm = datetime.strptime("2000-01-01 " + hhmm, "%Y-%m-%d %H%M")
+            context.user_data["daily notify"] = hhmm
             logger.info("hhmm: %s", dt_hhmm.time())
         except ValueError:
             logger.info("Sorry, enter corrrect time [HHMM]")
@@ -340,7 +341,12 @@ async def set_daily_timer(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
         await update.effective_message.reply_text(text)
 
     except (IndexError, ValueError):
-        await update.effective_message.reply_text("Usage: /set HHMM")
+        if "daily notify" in context.user_data.keys():
+            set_hhmm = context.user_data["daily notify"]
+            logger.info("Last set on {%s}.", set_hhmm)
+            await update.effective_message.reply_text("Last set on " + set_hhmm)
+        else:
+            await update.effective_message.reply_text("Usage: /set HHMM")
 
 
 def main() -> None:
