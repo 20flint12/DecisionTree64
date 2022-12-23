@@ -73,12 +73,11 @@ async def observer(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
 async def regular_choice(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """Ask the user for info about the selected predefined choice."""
     user = update.effective_user
+
     text = update.message.text.lower()
     context.user_data["choice"] = text
     if context.user_data.get(text):
-        reply_text = (
-            f"Your {text}? I already know the following about that: {context.user_data[text]}"
-        )
+        reply_text = f"Your {text}? I already know the following about that: {context.user_data[text]}"
     else:
         reply_text = f"Your {text}? Yes, I would love to hear about that!"
 

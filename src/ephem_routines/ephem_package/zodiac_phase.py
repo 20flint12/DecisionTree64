@@ -137,9 +137,9 @@ def get_zodiac_Sun_Moon(observer, utc_datetime):
     return ecl_dict
 
 
-def main_zodiac_sun_moon(geographical_name, local_unaware_datetime):
+def main_zodiac_sun_moon(observer=None):
     """
-    :param UTC_datetime:
+    :param observer:
     :return:
         {'moon_lat': -2.33097500404082,
          'moon_lon': 249.4578276816824,
@@ -149,19 +149,14 @@ def main_zodiac_sun_moon(geographical_name, local_unaware_datetime):
          'sun_zod': 'Коз00'}
     """
     result_text = ""
-    observer_obj, observer_text = geo.main_observer(geo_name=geographical_name, unaware_datetime=local_unaware_datetime)
-    result_text += observer_text[0]
-    result_text += observer_text[1]
-    # result_text += observer_text[2]
-
     # result_text += "\nutc= " + observer.utc.strftime(geo.dt_format)
 
     #####################################################################
     deg = ephem.degrees
-    body = ephem.Sun(observer_obj.utc)
-    ecl_sun = ephem.Ecliptic(body, epoch=observer_obj.utc)
-    body = ephem.Moon(observer_obj.utc)
-    ecl_moon = ephem.Ecliptic(body, epoch=observer_obj.utc)
+    body = ephem.Sun(observer.utc)
+    ecl_sun = ephem.Ecliptic(body, epoch=observer.utc)
+    body = ephem.Moon(observer.utc)
+    ecl_moon = ephem.Ecliptic(body, epoch=observer.utc)
 
     result_dict = {}
     result_dict["sun_lon"] = ecl_sun.lon * 180 / 3.14159
@@ -174,13 +169,14 @@ def main_zodiac_sun_moon(geographical_name, local_unaware_datetime):
     result_dict["moon_zod"] = format_zodiacal_longitude(ecl_moon.long)
     # =========================================================================
 
-    result_text += "\n\nSun  " + str(result_dict["sun_zod"])
+    result_text += "\n"
+    result_text += "\n" + str(result_dict["sun_zod"])
+    result_text += " [{:7.3f},".format(result_dict["sun_lon"]) + " {:7.3f}]".format(result_dict["sun_lon"]) + " sun_zod"
     # result_text += "\n(" + str(deg(ecl_sun.lon)) + ", " + str(deg(ecl_sun.lat)) + ")"
-    result_text += " [{:7.3f},".format(result_dict["sun_lon"]) + " {:7.3f}]".format(result_dict["sun_lon"])
 
-    result_text += "\nMoon " + str(result_dict["moon_zod"])
+    result_text += "\n" + str(result_dict["moon_zod"])
+    result_text += " [{:7.3f},".format(result_dict["moon_lon"]) + " {:7.3f}]".format(result_dict["moon_lon"]) + " moon_zod"
     # result_text += "\n(" + str(deg(ecl_moon.lon)) + ", " + str(deg(ecl_moon.lat)) + ")"
-    result_text += " [{:7.3f},".format(result_dict["moon_lon"]) + " {:7.3f}]".format(result_dict["moon_lon"])
 
     return result_dict, result_text
 
@@ -246,11 +242,19 @@ if __name__ == "__main__":
     # local_unaware_datetime = datetime.strptime("1976-07-13 02:37:21", geo.dt_format_rev)  # "%Y-%m-%d %H:%M:%S"
     local_unaware_datetime = datetime.today()
     # local_unaware_datetime = datetime.now()
+
+    observer_obj, observer_text = geo.main_observer(geo_name=geo_name, unaware_datetime=local_unaware_datetime)
+    text = ""
+    text += observer_text[0]
+    text += observer_text[1]
+    # text += observer_text[2]
+
     # ###########################################################################
 
-    zodiac_dict, zodiac_text = main_zodiac_sun_moon(geo_name, local_unaware_datetime)
+    zodiac_dict, zodiac_text = main_zodiac_sun_moon(observer=observer_obj)
     # pprint.pprint(zodiac_dict)
-    print(zodiac_text)
+    text += zodiac_text
+    print(text)
 
     # ---------------------------------------------------------------------
     start_date = ephem.Date('2015/10/21 15:00')

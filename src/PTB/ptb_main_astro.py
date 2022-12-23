@@ -23,6 +23,7 @@ bot.
 
 from datetime import datetime, time
 import pytz
+import src.ephem_routines.ephem_package.geo_place as geo
 import src.ephem_routines.ephem_package.moon_day as md
 import src.ephem_routines.ephem_package.sun_rise_sett as sr
 import src.ephem_routines.ephem_package.zodiac_phase as zd
@@ -87,6 +88,7 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
                 "\n/sr <CITY> - sunrise and sunset for geoplace" \
                 "\n/wt <CITY> - current weather for geoplace" \
                 "\n/obs - specify Observer and moment time" \
+                "\n/set [HHMM] - set notification time" \
                 "\n" \
                 "\ndeveloped by Serhii Surmylo (Ukraine)"
     await update.message.reply_text(help_text)
@@ -110,8 +112,16 @@ async def moon_phase(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None
     moment = context.user_data["moment"]
     logger.info("moon day for city: %s at %s", city, moment)
 
-    mph_dict, mph_text = md.main_moon_phase(city, datetime.today())
-    update.message.text = mph_text
+    observer_obj, observer_text = geo.main_observer(geo_name=city, unaware_datetime=datetime.today())
+    text = ""
+    text += observer_text[0]
+    text += observer_text[1]
+    # text += observer_text[2]
+    # ++++++++++++++++++++++
+    mph_dict, mph_text = md.main_moon_phase(observer=observer_obj)
+    text += mph_text
+
+    update.message.text = text
     logger.info("moon_day of %s: %s", user.first_name, update.message.text)
     await update.message.reply_text(update.message.text)
 
@@ -127,8 +137,18 @@ async def moon_day(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     moment = context.user_data["moment"]
     logger.info("moon day for city:  %s at %s", city, moment)
 
-    md_dict, md_text = md.main_moon_day(city, datetime.today())
-    update.message.text = md_text[0] + md_text[2]
+    # md_dict, md_text = md.main_moon_day(city, datetime.today())
+    observer_obj, observer_text = geo.main_observer(geo_name=city, unaware_datetime=datetime.today())
+    text = ""
+    text += observer_text[0]
+    text += observer_text[1]
+    # text += observer_text[2]
+    # ++++++++++++++++++++++
+    md_dict, md_text = md.main_moon_day(observer=observer_obj)
+    text += md_text[0]
+    text += md_text[2]
+
+    update.message.text = text
     logger.info("moon_day of %s: %s", user.first_name, update.message.text)
     await update.message.reply_text(update.message.text)
 
@@ -144,8 +164,15 @@ async def sun_rise(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     moment = context.user_data["moment"]
     logger.info("sun rise for city: %s at %s", city, moment)
 
-    sun_dict, sun_text = sr.main_sun_rise_sett(city, datetime.today())     # at noon
-    update.message.text = sun_text
+    observer_obj, observer_text = geo.main_observer(geo_name=city, unaware_datetime=datetime.today())
+    text = ""
+    text += observer_text[0]
+    # text += observer_text[1]
+    text += observer_text[2]
+    # ++++++++++++++++++++++
+    sun_dict, sun_text = sr.main_sun_rise_sett(observer=observer_obj)     # at noon
+    text += sun_text
+    update.message.text = text
     logger.info("sun rise of %s: %s", user.first_name, update.message.text)
     await update.message.reply_text(update.message.text)
 
@@ -160,14 +187,18 @@ async def zodiac(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         city = context.user_data["geo place"]
     moment = context.user_data["moment"]
     logger.info("zodiac at %s", moment)
-    try:
-        zodiac_dict, zodiac_text = zd.main_zodiac_sun_moon(city, datetime.today())
-        update.message.text = zodiac_text
-        logger.info("moon_zodiac of %s: %s", user.first_name, update.message.text)
-        await update.message.reply_text(update.message.text)
 
-    except (IndexError, ValueError):
-        await update.effective_message.reply_text("Usage: /zod <GEO_PLACE> Moon/Sun")
+    observer_obj, observer_text = geo.main_observer(geo_name=city, unaware_datetime=datetime.today())
+    text = ""
+    text += observer_text[0]
+    text += observer_text[1]
+    # text += observer_text[2]
+    # ++++++++++++++++++++++
+    zodiac_dict, zodiac_text = zd.main_zodiac_sun_moon(observer=observer_obj)
+    text += zodiac_text
+    update.message.text = text
+    logger.info("moon_zodiac of %s: %s", user.first_name, update.message.text)
+    await update.message.reply_text(update.message.text)
 
 
 async def weather(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -182,21 +213,89 @@ async def weather(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     moment = context.user_data["moment"]
     logger.info("weather for city %s at %s", city, moment)
 
-    try:
-        wt_dict, wt_text = wt.main_weather_now(city, datetime.today())
-        update.message.text = wt_text
-        logger.info("weather of %s: %s", user.first_name, update.message.text)
+    observer_obj, observer_text = geo.main_observer(geo_name=city, unaware_datetime=datetime.today())
+    text = ""
+    text += observer_text[0]
+    # text += observer_text[1]
+    text += observer_text[2]
+    # ++++++++++++++++++++++
+    wt_dict, wt_text = wt.main_weather_now(observer=observer_obj)
+    text += wt_text
+    update.message.text = text
+    logger.info("weather of %s: %s", user.first_name, update.message.text)
 
-        await update.message.reply_text(update.message.text)
+    await update.message.reply_text(update.message.text)
 
-    except (IndexError, ValueError):
-        await update.effective_message.reply_text("Usage: /wt <CITY>")
+
+async def summary(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Return summary info to the user message."""
+    user = update.effective_user
+
+    if len(context.args) > 0:
+        city = str(context.args[0])
+    else:
+        city = context.user_data["geo place"]
+    moment = context.user_data["moment"]
+    logger.info("summary at %s", moment)
+
+    observer_obj, observer_text = geo.main_observer(geo_name=city, unaware_datetime=datetime.today())
+    text = ""
+    text += observer_text[0]
+    text += observer_text[1]
+    # text += observer_text[2]
+    # ++++++++++++++++++++++
+    mph_dict, mph_text = md.main_moon_phase(observer=observer_obj)
+    text += mph_text
+    # ++++++++++++++++++++++
+    md_dict, md_text = md.main_moon_day(observer=observer_obj)
+    # text += md_text[0]
+    text += md_text[2]
+    # ++++++++++++++++++++++
+    sun_dict, sun_text = sr.main_sun_rise_sett(observer=observer_obj)  # at noon
+    text += sun_text
+    # ++++++++++++++++++++++
+    zodiac_dict, zodiac_text = zd.main_zodiac_sun_moon(observer=observer_obj)
+    text += zodiac_text
+    # ++++++++++++++++++++++
+    wt_dict, wt_text = wt.main_weather_now(observer=observer_obj)
+    text += wt_text
+
+    update.message.text = text
+    logger.info("moon_zodiac of %s: %s", user.first_name, update.message.text)
+    await update.message.reply_text(update.message.text)
 
 
 async def alarm(context: ContextTypes.DEFAULT_TYPE) -> None:
     """Send the alarm message."""
     job = context.job
-    await context.bot.send_message(job.chat_id, text=f"Beep! {job.data} seconds are over!")
+
+    city = "Mragowo"    # context.user_data["geo place"]
+    # moment = context.user_data["moment"]
+    logger.info("summary for %s", city)
+
+    observer_obj, observer_text = geo.main_observer(geo_name=city, unaware_datetime=datetime.today())
+    text = ""
+    text += observer_text[0]
+    text += observer_text[1]
+    # text += observer_text[2]
+    # ++++++++++++++++++++++
+    mph_dict, mph_text = md.main_moon_phase(observer=observer_obj)
+    text += mph_text
+    # ++++++++++++++++++++++
+    md_dict, md_text = md.main_moon_day(observer=observer_obj)
+    # text += md_text[0]
+    text += md_text[2]
+    # ++++++++++++++++++++++
+    sun_dict, sun_text = sr.main_sun_rise_sett(observer=observer_obj)  # at noon
+    text += sun_text
+    # ++++++++++++++++++++++
+    zodiac_dict, zodiac_text = zd.main_zodiac_sun_moon(observer=observer_obj)
+    text += zodiac_text
+    # ++++++++++++++++++++++
+    wt_dict, wt_text = wt.main_weather_now(observer=observer_obj)
+    text += wt_text
+
+    await context.bot.send_message(job.chat_id, text=text)
 
 
 def remove_job_if_exists(name: str, context: ContextTypes.DEFAULT_TYPE) -> bool:
@@ -212,19 +311,26 @@ def remove_job_if_exists(name: str, context: ContextTypes.DEFAULT_TYPE) -> bool:
 async def set_daily_timer(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Add a job to the queue."""
     chat_id = update.effective_message.chat_id
+
+    # timezone = context.user_data["time zone"]
+    # print(timezone)
+
     try:
-        # args[0] should contain the time for the timer in seconds
-        due = float(context.args[0])
-        logger.info("due: %s", context.args[0])
-        if due < 0:
-            await update.effective_message.reply_text("Sorry we can not go back to future!")
+        hhmm = context.args[0]
+        try:
+            dt_hhmm = datetime.strptime("2000-01-01 " + hhmm, "%Y-%m-%d %H%M")
+            logger.info("hhmm: %s", dt_hhmm.time())
+        except ValueError:
+            logger.info("Sorry, enter corrrect time [HHMM]")
+            await update.effective_message.reply_text("Sorry, enter corrrect time [HHMM]")
             return
 
         job_removed = remove_job_if_exists(str(chat_id), context)
-        # context.job_queue.run_daily(alarm, "10:10:10", chat_id=chat_id, name=str(chat_id), data=due)
-        # context.job_queue.run_daily(alarm, days=(0, 1, 2, 3, 4, 5, 6), time=time(hour=10, minute=00, second=00))
         context.job_queue.run_daily(alarm,
-                                    time=time(hour=6, minute=27, tzinfo=pytz.timezone('Asia/Kolkata')),
+                                    time=time(hour=dt_hhmm.hour,
+                                              minute=dt_hhmm.minute,
+                                              second=10,
+                                              tzinfo=pytz.timezone('Europe/Warsaw')),
                                     days=(0, 1, 2, 3, 4, 5, 6),
                                     chat_id=chat_id, name=str(chat_id))
 
@@ -234,7 +340,7 @@ async def set_daily_timer(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
         await update.effective_message.reply_text(text)
 
     except (IndexError, ValueError):
-        await update.effective_message.reply_text("Usage: /set <seconds>")
+        await update.effective_message.reply_text("Usage: /set HHMM")
 
 
 def main() -> None:
@@ -259,6 +365,7 @@ def main() -> None:
     application.add_handler(CommandHandler("zod", zodiac))          # /zod <GEO_PLACE>
     application.add_handler(CommandHandler("set", set_daily_timer))
     application.add_handler(CommandHandler("wt", weather))
+    application.add_handler(CommandHandler("sum", summary))
 
     application.add_handler(opc.observer_conversation_handler)      # /obs
     application.add_handler(opc.show_data_handler)

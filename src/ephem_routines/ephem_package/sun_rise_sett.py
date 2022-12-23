@@ -93,20 +93,16 @@ def _print_UTC_time(time):
     return out_str_time
 
 
-def main_sun_rise_sett(geographical_name, local_unaware_datetime):
+def main_sun_rise_sett(observer=None):
 
     result_text = ""
-    observer_obj, observer_text = geo.main_observer(geo_name=geographical_name, unaware_datetime=local_unaware_datetime)
-    result_text += observer_text[0]
-    # result_text += observer_text[1]
-    result_text += observer_text[2]
-
     result_text += "\n"
-    result_dict = get_sun_rise_sett(place=observer_obj.place, in_date_utc=observer_obj.utc12)
-    day_rise = observer_obj.dt_utc_to_aware_by_tz((result_dict["sun_rise"].datetime()))
-    day_sett = observer_obj.dt_utc_to_aware_by_tz((result_dict["sun_sett"].datetime()))
-    result_text += "\nsun_rise: " + day_rise.strftime(geo.dt_format)
-    result_text += "\nsun_sett: " + day_sett.strftime(geo.dt_format)
+
+    result_dict = get_sun_rise_sett(place=observer.place, in_date_utc=observer.utc12)
+    day_rise = observer.dt_utc_to_aware_by_tz((result_dict["sun_rise"].datetime()))
+    day_sett = observer.dt_utc_to_aware_by_tz((result_dict["sun_sett"].datetime()))
+    result_text += "\n" + day_rise.strftime(geo.dt_format) + " sun_rise"
+    result_text += "\n" + day_sett.strftime(geo.dt_format) + " sun_sett"
 
     return result_dict, result_text
 
@@ -120,10 +116,17 @@ if __name__ == '__main__':
     # local_unaware_datetime = datetime.strptime("1976-07-13 02:37:21", geo.dt_format_rev)  # "%Y-%m-%d %H:%M:%S"
     local_unaware_datetime = datetime.today()
     # local_unaware_datetime = datetime.now()
+
+    observer_obj, observer_text = geo.main_observer(geo_name=geo_name, unaware_datetime=local_unaware_datetime)
+    text = ""
+    text += observer_text[0]
+    # text += observer_text[1]
+    text += observer_text[2]
     # ###########################################################################
 
-    sun_dict, sun_text = main_sun_rise_sett(geo_name, local_unaware_datetime)
-    print(sun_text)
+    sun_dict, sun_text = main_sun_rise_sett(observer=observer_obj)
+    text += sun_text
+    print(text)
 
 
     # out_list = get_sun_on_month(cur_place)

@@ -6,19 +6,15 @@ import requests
 import src.ephem_routines.ephem_package.geo_place as geo
 
 
-def main_weather_now(geographical_name, local_unaware_datetime):
+def main_weather_now(observer=None):
 
     result_text = ""
-    observer_obj, observer_text = geo.main_observer(geo_name=geographical_name, unaware_datetime=local_unaware_datetime)
-    result_text += observer_text[0]
-    result_text += observer_text[1]
-    # result_text += observer_text[2]
 
     # *********************************************
     # api.openweathermap.org/data/2.5/weather?q=London,uk&APPID=683d1608f3ac1dc0916acbed01d0d2e5
     api_key = "683d1608f3ac1dc0916acbed01d0d2e5"
     base_url = "http://api.openweathermap.org/data/2.5/weather?"
-    city_name = geographical_name
+    city_name = observer.geo_name
     complete_url = base_url + "appid=" + api_key + "&q=" + city_name
 
     response = requests.get(complete_url)
@@ -48,19 +44,10 @@ def main_weather_now(geographical_name, local_unaware_datetime):
         result_dict["P"] = round(y["pressure"] / 1.33322387415, 1)
         result_dict["H"] = y["humidity"]
 
-        result_text += "\n\n*** weatherdata"
-        # print(" Temperature (in kelvin unit) = " +
-        #       str(current_temperature) +
-        #       "\n atmospheric pressure (in hPa unit) = " +
-        #       str(current_pressure) +
-        #       "\n humidity (in percentage) = " +
-        #       str(current_humidity) +
-        #       "\n description = " +
-        #       str(weather_description))
-
-        result_text += "\nT= " + str(result_dict["T"])
-        result_text += "\nP= " + str(result_dict["P"])
-        result_text += "\nH= " + str(result_dict["H"])
+        # result_text += "\n\n*** weatherdata"
+        result_text += "\n\nT= " + str(result_dict["T"])
+        result_text += " P= " + str(result_dict["P"])
+        result_text += " H= " + str(result_dict["H"])
 
     else:
         print(" City Not Found ")
@@ -78,8 +65,16 @@ if __name__ == '__main__':
     # local_unaware_datetime = datetime.strptime("1976-07-13 02:37:21", geo.dt_format_rev)  # "%Y-%m-%d %H:%M:%S"
     local_unaware_datetime = datetime.today()
     # local_unaware_datetime = datetime.now()
+
+    observer_obj, observer_text = geo.main_observer(geo_name=geo_name, unaware_datetime=local_unaware_datetime)
+    text = ""
+    text += observer_text[0]
+    text += observer_text[1]
+    # text += observer_text[2]
+
     # ###########################################################################
 
-    wth_dict, str_head = main_weather_now(geo_name, local_unaware_datetime)
+    wt_dict, wt_text = main_weather_now(observer=observer_obj)
     # pprint(wth_dict)
-    print(str_head)
+    text += wt_text
+    print(text)
