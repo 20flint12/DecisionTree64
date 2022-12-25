@@ -8,7 +8,7 @@ import src.ephem_routines.ephem_package.moon_day as md
 import src.ephem_routines.ephem_package.sun_rise_sett as sr
 import src.ephem_routines.ephem_package.zodiac_phase as zd
 import src.weather_package.main_openweathermap as wt
-import src.mathplot_package.mathplot_DB_attr as mt
+import src.mathplot_package.plot_DB_attr as mt
 
 
 try:

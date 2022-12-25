@@ -10,7 +10,7 @@ from datetime import datetime
 from pprint import pprint
 
 import src.boto3_package.mainDB_recorder as mr
-import src.mathplot_package.mathplot_DB_attr as mp
+import src.mathplot_package.plot_DB_attr as mp
 
 import socket
 hostname = socket.gethostname()     # DELL-DEV

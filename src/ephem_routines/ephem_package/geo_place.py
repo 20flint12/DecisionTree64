@@ -13,11 +13,12 @@ dt_format_rev = "%Y-%m-%d %H:%M:%S"     # fits for dynamoDB "main_record" table 
 
 
 class Observer:
-
-    """This is an observer class"""
+    """
+        This is an observer class
+    """
     place = ephem.Observer()
     place.pressure = 1010     # millibar
-    place.temp = 25           # deg. Celcius
+    place.temp = 20           # deg. Celcius
     '''
     Civil twilight uses the value –6 degrees.
     Nautical twilight uses the value –12 degrees.
@@ -78,7 +79,11 @@ class Observer:
 
     def aware_to_utc(self):
         self.utc = self.aware.astimezone(pytz.timezone('UTC'))
+        self.place.date = self.utc
         # print("self.utc_datetime=", self.utc_datetime)
+
+    def set_place_date(self, utc_date):
+        self.place.date = utc_date
 
     def utc_to_aware_by_tz(self):
         cur_timezone = pytz.timezone(self.timezone_name)
@@ -113,99 +118,99 @@ class Observer:
 
 
 
-def get_place_coord(in_place_name):
-
-    from geopy.geocoders import Nominatim               # pip install geopy
-    geolocator = Nominatim(user_agent="user_agent")
-    location = geolocator.geocode(in_place_name)        # Kremenchuk Boston
-    # print((location.latitude, location.longitude))
-
-    return location.latitude, location.longitude
-
-
-def get_tz_name(in_coord):
-
-    from timezonefinder import TimezoneFinder
-    tf = TimezoneFinder()
-    tz_name = tf.timezone_at(lng=in_coord[1], lat=in_coord[0])
-    # print(tz_name)
-
-    return tz_name
-
-
-def set_tz_to_unaware_time(in_tz_name, in_unaware):
-
-    local_tz = pytz.timezone(in_tz_name)  # 'Europe/Kiev'
-    loc_aware = local_tz.localize(in_unaware)
-
-    # print "loc_aware=", loc_aware
-    return loc_aware
-
-    # I had use from dt_aware to dt_unware
-    #
-    # dt_unaware = dt_aware.replace(tzinfo=None)
-    #
-    # and dt_unware to dt_aware
-    #
-    # from pytz import timezone
-    # localtz = timezone('Europe/Lisbon')
-    # dt_aware = localtz.localize(dt_unware)
-
-
-def aware_time_to_utc(in_aware):
-    utc_aware = in_aware.astimezone(pytz.timezone('UTC'))
-    # print "utc_aware=", utc_aware
-    return utc_aware
-
-
-def utc_to_loc_time(in_tz_name, in_utc_time):
-    local_timezone = pytz.timezone(in_tz_name)  # 'Europe/Kiev'
-    loc_time = in_utc_time.replace(tzinfo=pytz.utc).astimezone(local_timezone)
-    # print "loc_time=", loc_time
-    return loc_time
-
-
-def loc_to_utc_time(in_tz_name, in_loc_time):
-    loc_timezone = pytz.timezone(in_tz_name)
-    loc_time = loc_timezone.localize(in_loc_time)
-    utc_time = loc_time.astimezone(pytz.timezone('UTC'))
-
-    # print "utc_time=", utc_time
-    return utc_time
-
-
-def aware_loc_unaware_utc_for_local12place(in_unaware_loc, place):  # rework!!!
-    """
-    Input: local unaware time and place
-    Returns tuple in utc for local time and place
-    """
-    # tz_nam, coord = geopr.set_tz(place)
-    # place = Observer.objects.get(pk=10)
-    # tz_nam = place.timezone_name
-    tz_nam = "Europe/Kiev"
-    # coord = (place.latitude, place.longitude)
-    coord = (22, 33)
-
-    print("place=", place.title, coord, tz_nam)
-
-    ###########################################################################
-    cur_date_loc = in_unaware_loc  # datetime.datetime.today()
-    # print "cur_date_loc=", cur_date_loc.strftime(format)
-
-    # Calculate utc date on local noon for selected place #####################
-    cur_noon_loc = datetime(cur_date_loc.year, cur_date_loc.month, cur_date_loc.day, 12, 0, 0)
-    # print "cur_noon_loc=", cur_noon_loc
-    # -------------------------------------------------------------------------
-
-    aware_loc = set_tz_to_unaware_time(tz_nam, cur_noon_loc)
-    # print "aware_loc=", aware_loc.strftime(format)
-    # -------------------------------------------------------------------------
-
-    unaware_utc = aware_time_to_utc(aware_loc)
-    # print "aware_utc=",    unaware_utc.strftime(format)
-    # print "unaware_utc=", unaware_utc.strftime(format), "utcoffset=", unaware_utc.utcoffset()
-
-    return aware_loc, unaware_utc
+# def get_place_coord(in_place_name):
+#
+#     from geopy.geocoders import Nominatim               # pip install geopy
+#     geolocator = Nominatim(user_agent="user_agent")
+#     location = geolocator.geocode(in_place_name)        # Kremenchuk Boston
+#     # print((location.latitude, location.longitude))
+#
+#     return location.latitude, location.longitude
+#
+#
+# def get_tz_name(in_coord):
+#
+#     from timezonefinder import TimezoneFinder
+#     tf = TimezoneFinder()
+#     tz_name = tf.timezone_at(lng=in_coord[1], lat=in_coord[0])
+#     # print(tz_name)
+#
+#     return tz_name
+#
+#
+# def set_tz_to_unaware_time(in_tz_name, in_unaware):
+#
+#     local_tz = pytz.timezone(in_tz_name)  # 'Europe/Kiev'
+#     loc_aware = local_tz.localize(in_unaware)
+#
+#     # print "loc_aware=", loc_aware
+#     return loc_aware
+#
+#     # I had use from dt_aware to dt_unware
+#     #
+#     # dt_unaware = dt_aware.replace(tzinfo=None)
+#     #
+#     # and dt_unware to dt_aware
+#     #
+#     # from pytz import timezone
+#     # localtz = timezone('Europe/Lisbon')
+#     # dt_aware = localtz.localize(dt_unware)
+#
+#
+# def aware_time_to_utc(in_aware):
+#     utc_aware = in_aware.astimezone(pytz.timezone('UTC'))
+#     # print "utc_aware=", utc_aware
+#     return utc_aware
+#
+#
+# def utc_to_loc_time(in_tz_name, in_utc_time):
+#     local_timezone = pytz.timezone(in_tz_name)  # 'Europe/Kiev'
+#     loc_time = in_utc_time.replace(tzinfo=pytz.utc).astimezone(local_timezone)
+#     # print "loc_time=", loc_time
+#     return loc_time
+#
+#
+# def loc_to_utc_time(in_tz_name, in_loc_time):
+#     loc_timezone = pytz.timezone(in_tz_name)
+#     loc_time = loc_timezone.localize(in_loc_time)
+#     utc_time = loc_time.astimezone(pytz.timezone('UTC'))
+#
+#     # print "utc_time=", utc_time
+#     return utc_time
+#
+#
+# def aware_loc_unaware_utc_for_local12place(in_unaware_loc, place):  # rework!!!
+#     """
+#     Input: local unaware time and place
+#     Returns tuple in utc for local time and place
+#     """
+#     # tz_nam, coord = geopr.set_tz(place)
+#     # place = Observer.objects.get(pk=10)
+#     # tz_nam = place.timezone_name
+#     tz_nam = "Europe/Kiev"
+#     # coord = (place.latitude, place.longitude)
+#     coord = (22, 33)
+#
+#     print("place=", place.title, coord, tz_nam)
+#
+#     ###########################################################################
+#     cur_date_loc = in_unaware_loc  # datetime.datetime.today()
+#     # print "cur_date_loc=", cur_date_loc.strftime(format)
+#
+#     # Calculate utc date on local noon for selected place #####################
+#     cur_noon_loc = datetime(cur_date_loc.year, cur_date_loc.month, cur_date_loc.day, 12, 0, 0)
+#     # print "cur_noon_loc=", cur_noon_loc
+#     # -------------------------------------------------------------------------
+#
+#     aware_loc = set_tz_to_unaware_time(tz_nam, cur_noon_loc)
+#     # print "aware_loc=", aware_loc.strftime(format)
+#     # -------------------------------------------------------------------------
+#
+#     unaware_utc = aware_time_to_utc(aware_loc)
+#     # print "aware_utc=",    unaware_utc.strftime(format)
+#     # print "unaware_utc=", unaware_utc.strftime(format), "utcoffset=", unaware_utc.utcoffset()
+#
+#     return aware_loc, unaware_utc
 
 
 def main_observer(geo_name="Boston", unaware_datetime=datetime.today()):
@@ -220,7 +225,6 @@ def main_observer(geo_name="Boston", unaware_datetime=datetime.today()):
     result_observer.aware_to_utc()                  # utc_datetime
 
     result_observer.unaware12_to_utc()              # utc_datetime
-
 
     result_text[0] += "\n" + geo_name
     result_text[0] += " [{:7.3f},".format(result_observer.location.latitude) + \
@@ -251,7 +255,7 @@ if __name__ == '__main__':
     unaware_dt = datetime.strptime("2011-05-21 08:37:21", "%Y-%m-%d %H:%M:%S")
     # unaware_dt = datetime.today()
     observer_obj, observer_text = main_observer(geo_name=geo_name, unaware_datetime=unaware_dt)
-    # print(observer_obj)
+    print(observer_obj.place)
     print(observer_text[0])
     print(observer_text[1])
     print(observer_text[2])

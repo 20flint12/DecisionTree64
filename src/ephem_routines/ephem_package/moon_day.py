@@ -6,30 +6,8 @@ import ephem
 # import geo_place as geo
 import src.ephem_routines.ephem_package.geo_place as geo
 
-# from src.ephem_routines.ephem_package import geo_place as geo
-# from . import geo_place as geo
 
-
-# def _set_Observer(coord):
-#
-#     place = ephem.Observer()    # Kharkov
-#     place.pressure = 1010       # millibar
-#     place.temp = 25             # deg. Celcius
-#     place.horizon = 0
-#
-#     # place.lat = '50.0'
-#     # place.lon = '36.15'
-#     place.lat = str(coord[0])
-#     place.lon = str(coord[1])
-#
-#     place.elevation = 3     # meters
-#
-#     return place
-
-
-def _form_str_moon_day(cur_day,
-                       day_rise, day_sett, new_rise,
-                       str_mark):
+def _form_str_moon_day(cur_day, day_rise, day_sett, new_rise, str_mark):
     str_out = ""
     str_out += "{:2d} #".format(cur_day)
     str_out += " rise:{0:<18}".format(str(day_rise))
@@ -74,88 +52,6 @@ def get_moons_in_year(year):
     moons.sort(key=lambda x: x[0])
 
     return moons
-
-
-def get_moon_phase_local12place(in_date_loc, place):
-    """
-    Input: local unaware time and place
-    Returns tuple in utc for local time and place
-    """
-    tz_name, coord = geopr.set_tz(place)
-    print("Place:", place, coord, tz_name)
-
-    format = "%Y-%m-%d %H:%M:%S %z"
-    ###########################################################################
-    cur_date_loc = in_date_loc  # datetime.datetime.today()
-    # print "cur_date_loc=", cur_date_loc.strftime(format)
-
-    # Calculate utc date on local noon for selected place #####################
-    cur_noon_loc = datetime(cur_date_loc.year, cur_date_loc.month, cur_date_loc.day, 12, 0, 0)
-    # print "cur_noon_loc=", cur_noon_loc
-    # -------------------------------------------------------------------------
-
-    aware_loc = geo.set_tz_to_unaware_time(tz_name, cur_noon_loc)
-    # print "aware_loc=", aware_loc.strftime(format)
-    # -------------------------------------------------------------------------
-
-    cur_date_utc = geo.aware_time_to_utc(aware_loc)
-    print("aware_utc=",    cur_date_utc.strftime(format))
-    print("cur_date_utc=", cur_date_utc.strftime(format), "utcoffset=", cur_date_utc.utcoffset())
-    # -------------------------------------------------------------------------
-
-    tp_mph = get_moon_phase(cur_date_utc)
-    # =========================================================================
-    # print("tp_mph=", pprint.pprint(tp_mph))
-    print("=======")
-
-    # for k in tp_mph.keys():
-    #
-    #     str_re = "(.*)_utc"
-    #     res = re.search(str_re, k)
-    #     if res:
-    #         time_item = res.group(1)
-    #         time_item_loc = time_item + "_loc"
-    #
-    #         time_utc = tp_mph[k]
-    #         time_loc = geo.utc_to_loc_time(tz_name, ephem_routines.Date(time_utc).datetime())
-    #
-    #         tp_mph[time_item_loc] = time_loc
-    #
-    # # tp_mph.update({"date_utc": cur_date_utc})
-    # tp_mph.update({"aware_loc": aware_loc})
-    #
-    return tp_mph
-
-
-def get_moon_day_ext(in_aware_loc, in_unaware_utc, place):
-
-    """
-    Input: local unaware time and place
-    Returns tuple in utc for local time and place
-    """
-
-    tz_name, coord = geopr.set_tz(place)
-    # print "place=", place, coord, tz_name
-
-    # print "in_aware_loc=", in_aware_loc.strftime(format), "utcoffset=", in_aware_loc.utcoffset()
-    # print "in_unaware_utc=", in_unaware_utc
-    # -------------------------------------------------------------------------
-
-    tp_md_ext, ctx2 = get_moon_day(in_unaware_utc, coord)
-    # =========================================================================
-    # print "&^%$"*20, "\ntp_md_ext", tp_md_ext, ctx2
-
-    tp_md_ext.update({"date_utc": in_unaware_utc})
-    tp_md_ext.update({"aware_loc": in_aware_loc})
-
-    day_rise_loc = geo.utc_to_loc_time(tz_name, ephem.Date(tp_md_ext["day_rise"]).datetime())
-    day_sett_loc = geo.utc_to_loc_time(tz_name, ephem.Date(tp_md_ext["day_sett"]).datetime())
-    new_rise_loc = geo.utc_to_loc_time(tz_name, ephem.Date(tp_md_ext["new_rise"]).datetime())
-    tp_md_ext.update({"day_rise_loc": day_rise_loc})
-    tp_md_ext.update({"day_sett_loc": day_sett_loc})
-    tp_md_ext.update({"new_rise_loc": new_rise_loc})
-
-    return tp_md_ext
 
 
 def get_moon_phase(in_date_utc):
@@ -270,8 +166,10 @@ def main_moon_day(observer=None):
     """
     result_text = ["", "", ""]
 
-    moon = ephem.Moon()
-    observer.place.date = observer.utc
+    moon = ephem.Moon(observer.place)
+    # observer.place.date = observer.utc
+    observer.set_place_date(observer.utc)
+
     #####################################################################
 
     calc_date = ephem.Date(observer.utc)
@@ -284,7 +182,9 @@ def main_moon_day(observer=None):
     # result_text[0] += "\n"
 
     cur_mday = 1
-    observer.place.date = prev_NM
+    # observer.place.date = prev_NM
+    observer.set_place_date(prev_NM)
+
     moon_rise = observer.place.previous_rising(moon)
     moon_sett = observer.place.previous_setting(moon)
     new_rise = observer.place.next_rising(moon)
@@ -307,9 +207,11 @@ def main_moon_day(observer=None):
             str_mark = " new moon >>>"
         else:
             moon_rise = observer.place.next_rising(moon)
-            observer.place.date = moon_rise
+            # observer.place.date = moon_rise
+            observer.set_place_date(moon_rise)
             moon_sett = observer.place.next_setting(moon)
-            observer.place.date = moon_sett
+            # observer.place.date = moon_sett
+            observer.set_place_date(moon_sett)
             new_rise = observer.place.next_rising(moon)
 
             if next_NM < new_rise:
@@ -361,7 +263,7 @@ if __name__ == '__main__':
     text = ""
     text += observer_text[0]
     text += observer_text[1]
-    text += observer_text[2]
+    # text += observer_text[2]
     # ###########################################################################
 
     mph_dict, mph_text = main_moon_phase(observer=observer_obj)
@@ -369,12 +271,14 @@ if __name__ == '__main__':
     text += mph_text
 
     # md_dict, md_text = main_moon_day(observer=observer_obj)
-    # # pprint.pprint(md_dict)
+    # pprint.pprint(md_dict)
     # text += md_text[0]
     # # text += md_text[1]
     # text += md_text[2]
 
     print(text)
+
+
 
     # tp_md_ext = get_moon_day_local12place(loc_date, cur_place)
     # print "tp_md_ext=\n", pprint.pprint(tp_md_ext)

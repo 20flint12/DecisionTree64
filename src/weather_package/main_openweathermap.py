@@ -45,9 +45,9 @@ def main_weather_now(observer=None):
         result_dict["H"] = y["humidity"]
 
         # result_text += "\n\n*** weatherdata"
-        result_text += "\n\nT= " + str(result_dict["T"])
-        result_text += " P= " + str(result_dict["P"])
-        result_text += " H= " + str(result_dict["H"])
+        result_text += "\n\nT=" + str(result_dict["T"])
+        result_text += " P=" + str(result_dict["P"])
+        result_text += " H=" + str(result_dict["H"])
 
     else:
         print(" City Not Found ")

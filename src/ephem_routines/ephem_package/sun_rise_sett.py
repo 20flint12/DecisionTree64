@@ -98,12 +98,30 @@ def main_sun_rise_sett(observer=None):
     result_text = ""
     result_text += "\n"
 
-    result_dict = get_sun_rise_sett(place=observer.place, in_date_utc=observer.utc12)
+    sun = ephem.Sun(observer.place)
+
+    # observer.place.date = observer.utc12
+    observer.set_place_date(observer.utc12)
+    sun.compute(observer.place)
+    # ===============================================
+
+    prev_rise = observer.place.previous_rising(sun, use_center=False)
+    next_sett = observer.place.next_setting(sun, use_center=False)
+
+    result_dict = {}
+    result_dict["sun_rise"] = prev_rise
+    result_dict["sun_sett"] = next_sett
+
+    # observer.place.date = observer.utc
+    observer.set_place_date(observer.utc)
+    sun.compute(observer.place)
+    result_dict["sun_angle"] = round(float(sun.alt) * 57.2957795, 3)
+
     day_rise = observer.dt_utc_to_aware_by_tz((result_dict["sun_rise"].datetime()))
     day_sett = observer.dt_utc_to_aware_by_tz((result_dict["sun_sett"].datetime()))
     result_text += "\n" + day_rise.strftime(geo.dt_format) + " sun_rise"
     result_text += "\n" + day_sett.strftime(geo.dt_format) + " sun_sett"
-
+    result_text += "\n" + "sun_angle: " + str(result_dict["sun_angle"])
     return result_dict, result_text
 
 
@@ -120,7 +138,7 @@ if __name__ == '__main__':
     observer_obj, observer_text = geo.main_observer(geo_name=geo_name, unaware_datetime=local_unaware_datetime)
     text = ""
     text += observer_text[0]
-    # text += observer_text[1]
+    text += observer_text[1]
     text += observer_text[2]
     # ###########################################################################
 

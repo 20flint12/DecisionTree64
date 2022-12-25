@@ -28,8 +28,9 @@ import src.ephem_routines.ephem_package.moon_day as md
 import src.ephem_routines.ephem_package.sun_rise_sett as sr
 import src.ephem_routines.ephem_package.zodiac_phase as zd
 import src.weather_package.main_openweathermap as wt
-
 import src.PTB._ptb_observer_persist_conversation as opc
+import src.mathplot_package.plot_astro_summary as mp
+
 
 
 import socket
@@ -350,6 +351,34 @@ async def set_daily_timer(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
             await update.effective_message.reply_text("Usage: /set HHMM")
 
 
+async def color_of_the_days(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+
+    chat_id = update.message.chat_id
+    job_name = str(chat_id) + "#REP"            # 442763659#REP
+    photo_name = str(chat_id) + "_photo.png"    # 442763659_photo.jpg
+    # print(job_name)
+
+    if len(context.args) > 0:
+        city = str(context.args[0])
+    else:
+        city = context.user_data["geo place"]
+    moment = context.user_data["moment"]
+    logger.info("summary at %s", moment)
+
+    observer_obj, observer_text = geo.main_observer(geo_name=city, unaware_datetime=datetime.today())
+    text = ""
+    text += observer_text[0]
+    text += observer_text[1]
+    # text += observer_text[2]
+    # ++++++++++++++++++++++
+
+    mp.plot_color_of_the_days(observer=observer_obj, days=3, file_name=photo_name)
+
+    text = "reply_photo"
+    logger.info("%s", text)
+    await update.message.reply_photo(photo=open(photo_name, 'rb'))
+
+
 def main() -> None:
     """
     Start the bot.
@@ -370,9 +399,11 @@ def main() -> None:
     application.add_handler(CommandHandler("md", moon_day))
     application.add_handler(CommandHandler("sr", sun_rise))
     application.add_handler(CommandHandler("zod", zodiac))          # /zod <GEO_PLACE>
-    application.add_handler(CommandHandler("set", set_daily_timer))
     application.add_handler(CommandHandler("wt", weather))
     application.add_handler(CommandHandler("sum", summary))
+    application.add_handler(CommandHandler("set", set_daily_timer))
+    application.add_handler(CommandHandler("photo", color_of_the_days))
+
 
     application.add_handler(opc.observer_conversation_handler)      # /obs
     application.add_handler(opc.show_data_handler)
