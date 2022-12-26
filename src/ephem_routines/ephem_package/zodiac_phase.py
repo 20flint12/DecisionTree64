@@ -249,12 +249,9 @@ if __name__ == "__main__":
     local_unaware_datetime = datetime.today()
     # local_unaware_datetime = datetime.now()
 
-    observer_obj, observer_text = geo.main_observer(geo_name=geo_name, unaware_datetime=local_unaware_datetime)
+    observer_obj = geo.Observer(geo_name=geo_name, unaware_datetime=local_unaware_datetime)
     text = ""
-    text += observer_text[0]
-    text += observer_text[1]
-    text += observer_text[2]
-
+    text += str(observer_obj)
     # ###########################################################################
 
     zodiac_dict, zodiac_text = main_zodiac_sun_moon(observer=observer_obj)
@@ -262,19 +259,19 @@ if __name__ == "__main__":
     text += zodiac_text
     print(text)
 
-    # ---------------------------------------------------------------------
-    start_date = ephem.Date('2015/10/21 15:00')
-    stop_date = ephem.Date('2016/02/21 15:00')
-
-    cur_date = start_date
-    cur_date = ephem.Date(datetime.now())
-    # while stop_date >= cur_date:
-
-    cur_date = datetime.now()
-    # print cur_date
-
-    # body = ephem.Moon(cur_date)
-    # ---------------------------------------------------------------------
+    # # ---------------------------------------------------------------------
+    # start_date = ephem.Date('2015/10/21 15:00')
+    # stop_date = ephem.Date('2016/02/21 15:00')
+    #
+    # cur_date = start_date
+    # cur_date = ephem.Date(datetime.now())
+    # # while stop_date >= cur_date:
+    #
+    # cur_date = datetime.now()
+    # # print cur_date
+    #
+    # # body = ephem.Moon(cur_date)
+    # # ---------------------------------------------------------------------
 
 
 

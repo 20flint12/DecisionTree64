@@ -98,10 +98,8 @@ def main_sun_rise_sett(observer=None):
     result_text = ""
     result_text += "\n"
 
+    observer.unaware_update_utc12()
     sun = ephem.Sun(observer.place)
-
-    # observer.place.date = observer.utc12
-    observer.set_place_date(observer.utc12)
     sun.compute(observer.place)
     # ===============================================
 
@@ -112,16 +110,34 @@ def main_sun_rise_sett(observer=None):
     result_dict["sun_rise"] = prev_rise
     result_dict["sun_sett"] = next_sett
 
-    # observer.place.date = observer.utc
-    observer.set_place_date(observer.utc)
-    sun.compute(observer.place)
-    result_dict["sun_angle"] = round(float(sun.alt) * 57.2957795, 3)
-
     day_rise = observer.dt_utc_to_aware_by_tz((result_dict["sun_rise"].datetime()))
     day_sett = observer.dt_utc_to_aware_by_tz((result_dict["sun_sett"].datetime()))
     result_text += "\n" + day_rise.strftime(geo.dt_format) + " sun_rise"
     result_text += "\n" + day_sett.strftime(geo.dt_format) + " sun_sett"
+
+    return result_dict, result_text
+
+
+def main_sun_altitude(observer=None):
+
+    result_text = ""
+    result_text += "\n"
+
+    observer.unaware_update_utc()
+    sun = ephem.Sun(observer.place)
+    sun.compute(observer.place)
+    # ===============================================
+
+    # print(sun.alt, observer.utc)
+    # u_alt = ephem.unrefract(observer.place.pressure, observer.place.temperature, sun.alt)
+    # print(u_alt)
+
+    result_dict = {}
+    result_dict["sun_angle"] = round(float(sun.alt) * 57.2957795, 3)
+    del sun
+
     result_text += "\n" + "sun_angle: " + str(result_dict["sun_angle"])
+
     return result_dict, result_text
 
 
@@ -131,19 +147,22 @@ if __name__ == '__main__':
     # geo_name = 'Boston'
     # geo_name = 'Kharkiv'
 
-    # local_unaware_datetime = datetime.strptime("1976-07-13 02:37:21", geo.dt_format_rev)  # "%Y-%m-%d %H:%M:%S"
-    local_unaware_datetime = datetime.today()
-    # local_unaware_datetime = datetime.now()
+    # local_unaware_datetime = datetime.strptime("2022-12-26 23:59:21", geo.dt_format_rev)  # "%Y-%m-%d %H:%M:%S"
+    # local_unaware_datetime = datetime.today()
+    local_unaware_datetime = datetime.now()
 
-    observer_obj, observer_text = geo.main_observer(geo_name=geo_name, unaware_datetime=local_unaware_datetime)
+    observer_obj = geo.Observer(geo_name=geo_name, unaware_datetime=local_unaware_datetime)
     text = ""
-    text += observer_text[0]
-    text += observer_text[1]
-    text += observer_text[2]
+    text += str(observer_obj)
     # ###########################################################################
 
     sun_dict, sun_text = main_sun_rise_sett(observer=observer_obj)
     text += sun_text
+
+    alt_dict, alt_text = main_sun_altitude(observer=observer_obj)
+    text += alt_text
+
+    # text += str(observer_obj)
     print(text)
 
 

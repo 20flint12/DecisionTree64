@@ -167,9 +167,7 @@ def main_moon_day(observer=None):
     result_text = ["", "", ""]
 
     moon = ephem.Moon(observer.place)
-    # observer.place.date = observer.utc
-    observer.set_place_date(observer.utc)
-
+    # observer.utc_update_utc()
     #####################################################################
 
     calc_date = ephem.Date(observer.utc)
@@ -182,8 +180,7 @@ def main_moon_day(observer=None):
     # result_text[0] += "\n"
 
     cur_mday = 1
-    # observer.place.date = prev_NM
-    observer.set_place_date(prev_NM)
+    observer.utc_update_utc(prev_NM)
 
     moon_rise = observer.place.previous_rising(moon)
     moon_sett = observer.place.previous_setting(moon)
@@ -207,11 +204,9 @@ def main_moon_day(observer=None):
             str_mark = " new moon >>>"
         else:
             moon_rise = observer.place.next_rising(moon)
-            # observer.place.date = moon_rise
-            observer.set_place_date(moon_rise)
+            observer.utc_update_utc(moon_rise)
             moon_sett = observer.place.next_setting(moon)
-            # observer.place.date = moon_sett
-            observer.set_place_date(moon_sett)
+            observer.utc_update_utc(moon_sett)
             new_rise = observer.place.next_rising(moon)
 
             if next_NM < new_rise:
@@ -259,19 +254,17 @@ if __name__ == '__main__':
     local_unaware_datetime = datetime.today()
     # local_unaware_datetime = datetime.now()
 
-    observer_obj, observer_text = geo.main_observer(geo_name=geo_name, unaware_datetime=local_unaware_datetime)
+    observer_obj = geo.Observer(geo_name=geo_name, unaware_datetime=local_unaware_datetime)
     text = ""
-    text += observer_text[0]
-    text += observer_text[1]
-    # text += observer_text[2]
+    text += str(observer_obj)
     # ###########################################################################
 
     mph_dict, mph_text = main_moon_phase(observer=observer_obj)
-    pprint.pprint(mph_dict)
+    # pprint.pprint(mph_dict)
     text += mph_text
 
     # md_dict, md_text = main_moon_day(observer=observer_obj)
-    # pprint.pprint(md_dict)
+    # # pprint.pprint(md_dict)
     # text += md_text[0]
     # # text += md_text[1]
     # text += md_text[2]

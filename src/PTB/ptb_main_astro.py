@@ -114,11 +114,9 @@ async def moon_phase(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None
     moment = context.user_data["moment"]
     logger.info("moon day for city: %s at %s", city, moment)
 
-    observer_obj, observer_text = geo.main_observer(geo_name=city, unaware_datetime=datetime.today())
+    observer_obj = geo.Observer(geo_name=city, unaware_datetime=datetime.today())
     text = ""
-    text += observer_text[0]
-    text += observer_text[1]
-    # text += observer_text[2]
+    text += str(observer_obj)
     # ++++++++++++++++++++++
     mph_dict, mph_text = md.main_moon_phase(observer=observer_obj)
     text += mph_text
@@ -139,12 +137,9 @@ async def moon_day(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     moment = context.user_data["moment"]
     logger.info("moon day for city:  %s at %s", city, moment)
 
-    # md_dict, md_text = md.main_moon_day(city, datetime.today())
-    observer_obj, observer_text = geo.main_observer(geo_name=city, unaware_datetime=datetime.today())
+    observer_obj = geo.Observer(geo_name=city, unaware_datetime=datetime.today())
     text = ""
-    text += observer_text[0]
-    text += observer_text[1]
-    # text += observer_text[2]
+    text += str(observer_obj)
     # ++++++++++++++++++++++
     md_dict, md_text = md.main_moon_day(observer=observer_obj)
     text += md_text[0]
@@ -166,11 +161,9 @@ async def sun_rise(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     moment = context.user_data["moment"]
     logger.info("sun rise for city: %s at %s", city, moment)
 
-    observer_obj, observer_text = geo.main_observer(geo_name=city, unaware_datetime=datetime.today())
+    observer_obj = geo.Observer(geo_name=city, unaware_datetime=datetime.today())
     text = ""
-    text += observer_text[0]
-    # text += observer_text[1]
-    text += observer_text[2]
+    text += str(observer_obj)
     # ++++++++++++++++++++++
     sun_dict, sun_text = sr.main_sun_rise_sett(observer=observer_obj)     # at noon
     text += sun_text
@@ -190,11 +183,9 @@ async def zodiac(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     moment = context.user_data["moment"]
     logger.info("zodiac at %s", moment)
 
-    observer_obj, observer_text = geo.main_observer(geo_name=city, unaware_datetime=datetime.today())
+    observer_obj = geo.Observer(geo_name=city, unaware_datetime=datetime.today())
     text = ""
-    text += observer_text[0]
-    text += observer_text[1]
-    # text += observer_text[2]
+    text += str(observer_obj)
     # ++++++++++++++++++++++
     zodiac_dict, zodiac_text = zd.main_zodiac_sun_moon(observer=observer_obj)
     text += zodiac_text
@@ -215,11 +206,9 @@ async def weather(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     moment = context.user_data["moment"]
     logger.info("weather for city %s at %s", city, moment)
 
-    observer_obj, observer_text = geo.main_observer(geo_name=city, unaware_datetime=datetime.today())
+    observer_obj = geo.Observer(geo_name=city, unaware_datetime=datetime.today())
     text = ""
-    text += observer_text[0]
-    # text += observer_text[1]
-    text += observer_text[2]
+    text += str(observer_obj)
     # ++++++++++++++++++++++
     wt_dict, wt_text = wt.main_weather_now(observer=observer_obj)
     text += wt_text
@@ -240,11 +229,9 @@ async def summary(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     moment = context.user_data["moment"]
     logger.info("summary at %s", moment)
 
-    observer_obj, observer_text = geo.main_observer(geo_name=city, unaware_datetime=datetime.today())
+    observer_obj = geo.Observer(geo_name=city, unaware_datetime=datetime.today())
     text = ""
-    text += observer_text[0]
-    text += observer_text[1]
-    # text += observer_text[2]
+    text += str(observer_obj)
     # ++++++++++++++++++++++
     mph_dict, mph_text = md.main_moon_phase(observer=observer_obj)
     text += mph_text
@@ -365,13 +352,10 @@ async def color_of_the_days(update: Update, context: ContextTypes.DEFAULT_TYPE) 
     moment = context.user_data["moment"]
     logger.info("summary at %s", moment)
 
-    observer_obj, observer_text = geo.main_observer(geo_name=city, unaware_datetime=datetime.today())
+    observer_obj = geo.Observer(geo_name=city, unaware_datetime=datetime.today())
     text = ""
-    text += observer_text[0]
-    text += observer_text[1]
-    # text += observer_text[2]
+    text += str(observer_obj)
     # ++++++++++++++++++++++
-
     mp.plot_color_of_the_days(observer=observer_obj, days=3, file_name=photo_name)
 
     text = "reply_photo"

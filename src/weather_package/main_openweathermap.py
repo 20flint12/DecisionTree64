@@ -66,12 +66,9 @@ if __name__ == '__main__':
     local_unaware_datetime = datetime.today()
     # local_unaware_datetime = datetime.now()
 
-    observer_obj, observer_text = geo.main_observer(geo_name=geo_name, unaware_datetime=local_unaware_datetime)
+    observer_obj = geo.Observer(geo_name=geo_name, unaware_datetime=local_unaware_datetime)
     text = ""
-    text += observer_text[0]
-    text += observer_text[1]
-    # text += observer_text[2]
-
+    text += str(observer_obj)
     # ###########################################################################
 
     wt_dict, wt_text = main_weather_now(observer=observer_obj)
