@@ -21,7 +21,7 @@ def plot_color_of_the_days(observer=None, days=1, file_name="plot_astro_summary.
     end_date = observer.utc + timedelta(days=days)
     # end_date = mdates.epoch2num(end_date)
     # print(begin_date, " - ", end_date)
-    dates = np.linspace(begin_date.timestamp(), end_date.timestamp(), 1000)
+    dates = np.linspace(begin_date.timestamp(), end_date.timestamp(), 100)
     # dates = mdates.epoch2num(dates)
 
     # begin_date = datetime.now()
@@ -35,11 +35,13 @@ def plot_color_of_the_days(observer=None, days=1, file_name="plot_astro_summary.
     moon_lat = []
     # sun_dist = []
     # moon_dist = []
-    sun_angle = [0,]
-
+    sun_angle = []
+    moon_angle = []
+    lbl_dates = []
     for cur_dt in dates:
 
         observer.unaware_update_utc((datetime.fromtimestamp(cur_dt)))
+        lbl_dates.append(mdates.date2num(observer.unaware))
         # print(cur_dt, " | ", observer.utc, " / ", observer.place.date)
         # ecl_dict, ecl_text = zd.main_zodiac_sun_moon(observer=observer)
         # sun_lon.append(ecl_dict["sun_lon"])
@@ -53,42 +55,52 @@ def plot_color_of_the_days(observer=None, days=1, file_name="plot_astro_summary.
         # print(observer)
 
         sun_dict, sun_text = sr.main_sun_rise_sett(observer=observer)
-        alt_dict, alt_text = sr.main_sun_altitude(observer=observer)
 
-        # sun_angle.append(sun_dict["sun_rise"])
+        alt_dict, alt_text = sr.main_sun_altitude(observer=observer)
         sun_angle.append(alt_dict["sun_angle"])
+
+        alt_dict, alt_text = zd.main_moon_altitude(observer=observer)
+        moon_angle.append(alt_dict["moon_angle"])
+
         # print(cur_dt, " | ", observer.utc, " \ ", observer.place.date)
 
-    # print(sun_angle)
+
+    print(lbl_dates)
     # print(sun_lat)
     # print(moon_lon)
     # print(sun_angle.__len__())
 
-    y = np.array(sun_angle)
-    # y = np.power(sun_angle, 2)
+    # y = np.array(sun_angle)
+    y = np.power(sun_angle, 4)
+    # y2 = np.array(moon_angle)
+    y2 = np.power(moon_angle, 4)
 
-    fig, axs = plt.subplots(nrows=1, ncols=2, figsize=(4, 7))
+    fig, axes = plt.subplots(nrows=1, ncols=2, figsize=(4, 7))
     fig.subplots_adjust(top=0.95, bottom=.05, left=0.15, right=.95, wspace=0.00)
     # ************************************************************************
 
     arr_size = len(y)
-    Z = np.zeros(arr_size * 3).reshape(arr_size, 3)
-    dates = np.ones(arr_size)
-    # Z[:, 0] = y
+    gcolumn = 5
+    Z = np.zeros(arr_size * gcolumn).reshape(arr_size, gcolumn)
+    Z[:, 0] = y
     Z[:, 1] = y
-    # Z[:, 2] = y
+    # Z[:, 2] = y2
+    Z[:, 3] = y2
+    Z[:, 4] = y2
     # print(Z)
 
-    axs[0].grid(axis='y')
-    data_offset = 1600   # observer.utc.timestamp()
-    im = axs[0].imshow(Z, interpolation='bicubic',  # 'nearest', 'bilinear', 'bicubic'
+    axes[0].grid(axis='y')
+    mdate_begin = lbl_dates[0]
+    mdate_end = lbl_dates[-1]  # days+data_offset
+    im = axes[0].imshow(Z, interpolation='bilinear',  # 'nearest', 'bilinear', 'bicubic'
                     cmap=cm.RdYlGn,  # gray
+                    # cmap="gray",
                     origin='lower',
-                    extent=[-days / 4, days / 4, -days+data_offset, days+data_offset],
+                    extent=[-days / 4, days / 4, mdate_begin, mdate_end],
                     vmax=Z.max(), vmin=Z.min())
 
-    axs[0].yaxis.set_major_formatter(mdates.DateFormatter('%d-%m'))
-    axs[0].yaxis.set_major_locator(mdates.DayLocator(interval=1))
+    axes[0].yaxis.set_major_formatter(mdates.DateFormatter('%d-%m'))
+    axes[0].yaxis.set_major_locator(mdates.DayLocator(interval=1))
 
     # /////////////////////////////////////////////////////////////
     # Create the colormap
@@ -98,8 +110,8 @@ def plot_color_of_the_days(observer=None, days=1, file_name="plot_astro_summary.
     gradient = np.linspace(0, 1, 20)
     gradient = np.vstack((gradient, gradient))
 
-    axs[1].set_title(f'my_list', fontsize=10)
-    axs[1].imshow(gradient, aspect='auto', cmap=my_cmap)
+    axes[1].set_title(f'my_list', fontsize=10)
+    axes[1].imshow(gradient, aspect='auto', cmap=my_cmap)
 
     res = plt.savefig(file_name)
     print(res)
@@ -121,4 +133,4 @@ if __name__ == '__main__':
     text += str(observer_obj)
     # ##########################################################
 
-    plot_color_of_the_days(observer=observer_obj, days=5, file_name="plot_astro_summary.png")
+    plot_color_of_the_days(observer=observer_obj, days=4, file_name="plot_astro_summary.png")

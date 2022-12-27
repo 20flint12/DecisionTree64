@@ -189,6 +189,29 @@ def main_zodiac_sun_moon(observer=None):
     return result_dict, result_text
 
 
+def main_moon_altitude(observer=None):
+
+    result_text = ""
+    result_text += "\n"
+
+    observer.unaware_update_utc()
+    moon = ephem.Moon(observer.place)
+    moon.compute(observer.place)
+    # ===============================================
+
+    # print(moon.alt, observer.utc)
+    # u_alt = ephem.unrefract(observer.place.pressure, observer.place.temperature, sun.alt)
+    # print(u_alt)
+
+    result_dict = {}
+    result_dict["moon_angle"] = round(float(moon.alt) * 57.2957795, 3)
+    del moon
+
+    result_text += "\n" + "moon_angle: " + str(result_dict["moon_angle"])
+
+    return result_dict, result_text
+
+
 def getInfo(body):
 
     str_out = "\n"
@@ -255,8 +278,12 @@ if __name__ == "__main__":
     # ###########################################################################
 
     zodiac_dict, zodiac_text = main_zodiac_sun_moon(observer=observer_obj)
-    pprint.pprint(zodiac_dict)
+    # pprint.pprint(zodiac_dict)
     text += zodiac_text
+
+    alt_dict, alt_text = main_moon_altitude(observer=observer_obj)
+    text += alt_text
+
     print(text)
 
     # # ---------------------------------------------------------------------
