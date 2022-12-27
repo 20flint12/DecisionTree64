@@ -65,7 +65,7 @@ def plot_color_of_the_days(observer=None, days=1, file_name="plot_astro_summary.
         # print(cur_dt, " | ", observer.utc, " \ ", observer.place.date)
 
 
-    print(lbl_dates)
+    # print(lbl_dates)
     # print(sun_lat)
     # print(moon_lon)
     # print(sun_angle.__len__())

@@ -239,9 +239,13 @@ async def summary(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     md_dict, md_text = md.main_moon_day(observer=observer_obj)
     # text += md_text[0]
     text += md_text[2]
+    alt_dict, alt_text = zd.main_moon_altitude(observer=observer_obj)
+    text += alt_text
     # ++++++++++++++++++++++
     sun_dict, sun_text = sr.main_sun_rise_sett(observer=observer_obj)  # at noon
     text += sun_text
+    alt_dict, alt_text = sr.main_sun_altitude(observer=observer_obj)
+    text += alt_text
     # ++++++++++++++++++++++
     zodiac_dict, zodiac_text = zd.main_zodiac_sun_moon(observer=observer_obj)
     text += zodiac_text
