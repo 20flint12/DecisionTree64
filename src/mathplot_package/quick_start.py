@@ -2,74 +2,113 @@ import matplotlib.pyplot as plt
 from matplotlib.colors import ListedColormap, LinearSegmentedColormap
 import matplotlib.cm as cm
 import numpy as np
+import math
 
-plt.style.use('_mpl-gallery-nogrid')
 
-# # make data with uneven sampling in x
-# x = [-3, -2, -1.6, -1.2, -.8, -.5, -.2, .1, .3, .5, .8, 1.1, 1.5, 1.9, 2.3, 3]
-# X, Y = np.meshgrid(x, np.linspace(-3, 3, 128))
-# Z = (1 - X/2 + X**5 + Y**3) * np.exp(-X**2 - Y**2)
-#
-# # plot
-# fig, ax = plt.subplots()
-#
-# ax.pcolormesh(X, Y, Z, vmin=-0.5, vmax=1.0)
+def convert_colors(in_y_list=None, thresh=0.2):
+    """
+    :param in_y_list:
+    :param thresh:    threshold
+    :return:
+    """
+
+    y_max = (max(in_y_list) + abs(min(in_y_list))) / 2
+    y_thr = y_max * thresh
+    print("y_max=", y_max, " y_thr=", y_thr)
+
+    last_y = 0
+    res_color_list = []
+
+    for y in in_y_list:
+
+        if y > y_thr:
+            y = y_thr
+        elif y < -y_thr:
+            y = -y_thr
+
+        color_y = y / y_max
+        if last_y < y:      # rising
+            color_y = y / y_max
+        elif last_y > y:    # setting
+            color_y = -y / y_max + 2 * y_thr / y_max
+        if last_y == y:
+            if y >= y_thr:
+                color_y = y_thr / y_max
+            if y <= -y_thr:
+                color_y = 3 * y_thr / y_max
+        last_y = y
+
+        res_color_list.append(color_y)
+
+    print("len=", len(res_color_list), " min=", min(res_color_list), " max=", max(res_color_list))
+
+    return res_color_list
+
+
+
 
 
 # Create the colormap
 colors = [(1, 0, 0), (0, 1, 0), (0, 0, 1), (0.7, 0.4, 0.1)]  # R -> G -> B
-my_cmap = LinearSegmentedColormap.from_list('my_list', colors, N=100)
+my_cmap = LinearSegmentedColormap.from_list('my_list', colors, N=1000)
 
 
-fig, axs = plt.subplots(nrows=1, ncols=2, figsize=(4, 7))
+plt.style.use('_mpl-gallery-nogrid')
+fig, axes = plt.subplots(nrows=1, ncols=2, figsize=(4, 7))
 fig.subplots_adjust(top=0.95, bottom=.05, left=0.15, right=.95, wspace=0.00)
 # ************************************************************************
 
-# gradient = np.linspace(0, 1, 100)
-gradient = np.linspace(0, 1, 20)
-gradient = np.vstack((gradient, gradient))
 
-
-# x = np.linspace(-2, 2, 100)
-# y = np.sin(x)
-# gradient = np.vstack((x, y))
-# gradient = np.hstack((x, y))
-
-
-# t = np.linspace(0, 2 * np.pi, 10)
-# gradient = np.sin(t)[:, np.newaxis] * np.cos(t)[np.newaxis, :]
-# print(gradient)
-
-
-delta = 1
-x = y = np.arange(-10.0, 10.0, delta)
-X, Y = np.meshgrid(x, y)
-# print(X)
-# print(Y)
-# Z1 = np.exp(-X**2 - Y**2)
-# Z = np.sin(Y)
-i = np.linspace(-3, 3, 10)
-Z = np.power(i, 2)
-# Z = np.sin(i) - np.cos(i[:, np.newaxis])
-# Z2 = np.exp(-(X - 1)**2 - (Y - 1)**2)
-# Z = (Z1 - Z2) * 2
-print(Z)
+# i = np.linspace(-5, 5, 20)
+# print(i)
+# # Z = np.power(i, 2)
 #
-# # fig, ax = plt.subplots()
-# im = axs[1].imshow(Z, interpolation='bilinear',
-#                    cmap=cm.RdYlGn,
-#                    origin='lower',
-#                    extent=[-1, 1, -4, 4],
-#                    vmax=Z.max(), vmin=Z.min())
-# print(im)
-#
-# axs[0].set_title(f'my_list', fontsize=10)
-# # axs[0].grid()
-# # axs[0].swap_axes()
-# # axs[0].invert_yaxis()
-# axs[0].imshow(gradient, aspect='auto', cmap=my_cmap)
-#
-# # axs[1].set_title(f"twilight_r", fontsize=10)
-# # axs[1].imshow(gradient, aspect='auto', cmap="twilight_r")
-#
-# plt.show()
+# # image *= 255.0 / image.max()
+# i *= 0.5/i.max()
+# Z = i + 0.5
+# print(Z)
+
+
+xs = np.linspace(-2 * np.pi, 2 * np.pi, 1000)
+# xs = np.linspace(-6, 6, 100)
+ys = np.sin(xs) * 27
+# ys = np.power(y, 4)
+# ys = np.abs(y)
+# ys = np.log(y)
+
+# ***********************************************************
+ycolors = convert_colors(in_y_list=ys, thresh=0.27)
+ys = ycolors
+
+axes[0].set_title(f'ypoints', fontsize=10)
+axes[0].grid()
+# axs[0].invert_xaxis()
+# axs[0].invert_yaxis()
+axes[0].axis(ymin=-2 * np.pi, ymax=2 * np.pi)
+axes[0].plot(ys, xs,
+             # aspect='auto',
+             linestyle='dotted')
+
+
+arr_size = len(ys)
+gcolumn = 5
+Z = np.zeros(arr_size * gcolumn).reshape(arr_size, gcolumn)
+Z[:, 0] = ys
+Z[:, 1] = ys
+Z[:, 2] = ys
+Z[:, 3] = ys
+Z[:, 4] = ys
+# print(Z)
+
+axes[1].set_title(f"twilight_r", fontsize=10)
+axes[1].axis('off')
+axes[1].imshow(Z, interpolation='nearest',  # 'nearest', 'bilinear', 'bicubic'
+               aspect='auto',
+               # cmap=cm.RdYlGn,  # gray
+               cmap="twilight_shifted",     # twilight_shifted
+               origin='lower',
+               # extent=[-days / 4, days / 4, mdate_begin, mdate_end],
+               vmax=Z.max(), vmin=Z.min())
+
+plt.show()
+
