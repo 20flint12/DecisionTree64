@@ -155,6 +155,7 @@ def plot_color_of_the_days(observer=None, days=1, file_name="plot_astro_summary.
     axes[0].grid(axis='y')
     mdate_begin = lbl_dates[0]
     mdate_end = lbl_dates[-1]  # days+data_offset
+    axes[0].set_title(f'Sun   ===   Moon', fontsize=10)
     # axes[0].axis('off')
     im = axes[0].imshow(Z, interpolation='nearest',  # 'nearest', 'bilinear', 'bicubic'
                     # cmap=cm.RdYlGn,  # gray
@@ -199,4 +200,4 @@ if __name__ == '__main__':
     text += str(observer_obj)
     # ##########################################################
 
-    plot_color_of_the_days(observer=observer_obj, days=3, file_name="plot_astro_summary.png")
+    plot_color_of_the_days(observer=observer_obj, days=1, file_name="plot_astro_summary.png")
