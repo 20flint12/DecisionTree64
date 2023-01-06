@@ -1,4 +1,4 @@
-import ephem
+
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 import matplotlib.cm as cm
@@ -12,47 +12,8 @@ import src.ephem_routines.ephem_package.geo_place as geo
 import src.ephem_routines.ephem_package.sun_rise_sett as sr
 import src.ephem_routines.ephem_package.zodiac_phase as zd
 
-
-def convert_colors(in_y_list=None, thresh=0.2):
-    """
-    :param in_y_list:
-    :param thresh:    threshold
-    :return:
-    """
-
-    # y_max = (max(in_y_list) + abs(min(in_y_list))) / 2
-    y_max = min(max(in_y_list), abs(min(in_y_list)))
-
-    y_thr = y_max * thresh
-    print("y_max=", y_max, " y_thr=", y_thr)
-
-    last_y = 0
-    res_color_list = []
-
-    for y in in_y_list:
-
-        if y > y_thr:
-            y = y_thr
-        elif y < -y_thr:
-            y = -y_thr
-
-        color_y = y / y_max
-        if last_y < y:      # rising
-            color_y = y / y_max
-        elif last_y > y:    # setting
-            color_y = -y / y_max + 2 * y_thr / y_max
-        if last_y == y:
-            if y >= y_thr:
-                color_y = y_thr / y_max
-            if y <= -y_thr:
-                color_y = 3 * y_thr / y_max
-        last_y = y
-
-        res_color_list.append(color_y)
-
-    print("len=", len(res_color_list), " min=", min(res_color_list), " max=", max(res_color_list))
-
-    return res_color_list
+import src.mathplot_package._plot_Sun_Moon as ps
+import src.mathplot_package._plot_Zodiac as pz
 
 
 def plot_color_of_the_days(observer=None, days=1, file_name="plot_astro_summary.png"):
@@ -87,7 +48,7 @@ def plot_color_of_the_days(observer=None, days=1, file_name="plot_astro_summary.
         # print(cur_dt, " | ", observer.utc, " / ", observer.place.date)
         ecl_dict, ecl_text = zd.main_zodiac_sun_moon(observer=observer)
         sun_lon.append(ecl_dict["sun_lon"])
-        sun_lat.append(ecl_dict["sun_lat"])  # sun.alt
+        sun_lat.append(ecl_dict["sun_lat"])
         moon_lon.append(ecl_dict["moon_lon"])
         moon_lat.append(ecl_dict["moon_lat"])
         # sun_dist.append(ecl_dict["sun_dist"])
@@ -108,39 +69,24 @@ def plot_color_of_the_days(observer=None, days=1, file_name="plot_astro_summary.
         # print(cur_dt, " | ", observer.utc, " \ ", observer.place.date)
 
 
+    # ************************************************************************
+    plt.style.use('_mpl-gallery-nogrid')
+    fig, axes = plt.subplots(nrows=1, ncols=2, figsize=(4, 7))
+    fig.subplots_adjust(top=0.95, bottom=.05, left=0.15, right=.95, wspace=0.00)
+
+    # ////////////////////  SUN MOON DAYS  //////////////////////////////////
     # print(lbl_dates)
     # print(sun_lat)
     # print(moon_lon)
     # print(sun_angle.__len__())
 
-    # y = np.array(sun_angle)
-    # y *= 0.5/y.max() + 0.5
-    # y = np.power(sun_angle, 4)
-    # y2 = np.array(moon_angle)
-    # y2 = np.power(moon_angle, 4)
-
-    # *************************************
     ys = np.array(sun_angle)
-    print(len(ys), np.amin(ys), np.amax(ys))
-    ycolors = convert_colors(in_y_list=ys, thresh=0.35)
+    ycolors = ps.convert_colors(in_y_list=ys, thresh=0.35)
     ys = np.array(ycolors)
 
     y2s = np.array(moon_angle)
-    print(len(y2s), np.amin(y2s), np.amax(y2s))
-    ycolors = convert_colors(in_y_list=y2s, thresh=0.35)
+    ycolors = ps.convert_colors(in_y_list=y2s, thresh=0.35)
     y2s = np.array(ycolors)
-
-    # yss = ys + y2s
-    # print(len(yss), np.amin(yss), np.amax(yss))
-    # ycolors = convert_colors(in_y_list=yss, thresh=0.35)
-    # yss = np.array(ycolors)
-
-
-
-    plt.style.use('_mpl-gallery-nogrid')
-    fig, axes = plt.subplots(nrows=1, ncols=2, figsize=(4, 7))
-    fig.subplots_adjust(top=0.95, bottom=.05, left=0.15, right=.95, wspace=0.00)
-    # ************************************************************************
 
     arr_size = len(ys)
     gcolumn = 5
@@ -152,33 +98,50 @@ def plot_color_of_the_days(observer=None, days=1, file_name="plot_astro_summary.
     Z[:, 4] = y2s
     # print(Z)
 
+    axes[0].set_title(f'Sun    ===   Moon', fontsize=10)
     axes[0].grid(axis='y')
-    mdate_begin = lbl_dates[0]
-    mdate_end = lbl_dates[-1]  # days+data_offset
-    axes[0].set_title(f'Sun   ===   Moon', fontsize=10)
     # axes[0].axis('off')
-    im = axes[0].imshow(Z, interpolation='nearest',  # 'nearest', 'bilinear', 'bicubic'
-                    # cmap=cm.RdYlGn,  # gray
-                    cmap="twilight_shifted",
-                    origin='lower',
-                    # aspect='auto',
-                    extent=[-days / 4, days / 4, mdate_begin, mdate_end],
-                    vmax=Z.max(), vmin=Z.min())
+    axes[0].set_xticks([])
+    im = axes[0].imshow(Z,
+                        interpolation='nearest',  # 'nearest', 'bilinear', 'bicubic'
+                        cmap="twilight_shifted",
+                        origin='lower',
+                        extent=[-days / 4, days / 4, lbl_dates[0], lbl_dates[-1]],
+                        vmax=Z.max(), vmin=Z.min())
 
     axes[0].yaxis.set_major_formatter(mdates.DateFormatter('%d-%m'))
     axes[0].yaxis.set_major_locator(mdates.DayLocator(interval=1))
 
-    # /////////////////////////////////////////////////////////////
-    # Create the colormap
-    colors = [(1, 0, 0), (0, 1, 0), (0, 0, 1), (0.7, 0.4, 0.1)]  # R -> G -> B
-    my_cmap = LinearSegmentedColormap.from_list('my_list', colors, N=100)
 
-    gradient = np.linspace(0, 1, 20)
-    gradient = np.vstack((gradient, gradient))
+    # ///////////////////////  ZODIAC  //////////////////////////////////////
+    # gradient = np.linspace(0, 1, 360)
+    # gradient = np.vstack((gradient, gradient))
 
-    axes[1].set_title(f'my_list', fontsize=10)
-    axes[1].axis('off')
-    axes[1].imshow(gradient, aspect='auto', cmap=my_cmap)
+    ys = np.array(moon_lon)
+    y2s = np.array(sun_lon)
+
+    arr_size = len(ys)
+    gcolumn = 5
+    Z = np.zeros(arr_size * gcolumn).reshape(arr_size, gcolumn)
+    Z[:, 0] = ys
+    Z[:, 1] = ys
+    Z[:, 2] = ys
+    Z[:, 3] = y2s
+    Z[:, 4] = y2s
+
+    axes[1].set_title(f'Zodiac', fontsize=10)
+    axes[1].grid(axis='y')
+    # axes[1].axis('off')
+    # axes[1].imshow(gradient, aspect='auto', cmap=pz.zodiac_cmap)
+    axes[1].set_xticks([])
+    axes[1].set_yticks([])
+    im = axes[1].imshow(Z,
+                        interpolation='nearest',  # 'nearest', 'bilinear', 'bicubic'
+                        cmap=pz.zodiac_cmap,
+                        origin='lower',
+                        extent=[-days / 4, days / 4, lbl_dates[0], lbl_dates[-1]],
+                        vmax=Z.max(), vmin=Z.min())
+
 
     res = plt.savefig(file_name)
     print(res)
@@ -192,12 +155,12 @@ if __name__ == '__main__':
     # geo_name = 'Boston'
     # geo_name = 'Kharkiv'
 
-    local_unaware_datetime = datetime.strptime("1976-07-20 02:37:21", geo.dt_format_rev)  # "%Y-%m-%d %H:%M:%S"
-    # local_unaware_datetime = datetime.today()
+    # local_unaware_datetime = datetime.strptime("1976-07-20 02:37:21", geo.dt_format_rev)  # "%Y-%m-%d %H:%M:%S"
+    local_unaware_datetime = datetime.today()
 
     observer_obj = geo.Observer(geo_name=geo_name, unaware_datetime=local_unaware_datetime)
     text = ""
     text += str(observer_obj)
     # ##########################################################
 
-    plot_color_of_the_days(observer=observer_obj, days=1, file_name="plot_astro_summary.png")
+    plot_color_of_the_days(observer=observer_obj, days=3, file_name="plot_astro_summary.png")

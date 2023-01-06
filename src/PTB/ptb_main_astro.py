@@ -91,6 +91,7 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
                 "\n/sum <CITY> - summarize info for geoplace" \
                 "\n/obs - specify Observer and moment time" \
                 "\n/set [HHMM] - set notification time" \
+                "\n/photo - colors of days" \
                 "\n" \
                 "\ndeveloped by Serhii Surmylo (Ukraine)"
     await update.message.reply_text(help_text)
