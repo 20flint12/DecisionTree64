@@ -17,7 +17,8 @@ import src.mathplot_package._plot_Zodiac as pz
 
 
 def plot_color_of_the_days(observer=None, days=1, file_name="plot_astro_summary.png"):
-    # print("=======", observer)
+    print("unaware=", mdates.date2num(observer.unaware))
+
     begin_date = observer.utc - timedelta(days=days)
     # print(begin_date, begin_date.timestamp(), mdates.epoch2num(begin_date))
     # begin_date = mdates.epoch2num(begin_date)
@@ -98,19 +99,24 @@ def plot_color_of_the_days(observer=None, days=1, file_name="plot_astro_summary.
     Z[:, 4] = y2s
     # print(Z)
 
-    axes[0].set_title(f'Sun    ===   Moon', fontsize=10)
-    axes[0].grid(axis='y')
+    # axes[0].set_title(f'Sun    ===   Moon', fontsize=10)
+    axes[0].set_title(f'===', fontsize=10)
+    axes[0].set_title('   Sun', loc='left', fontsize=10)
+    axes[0].set_title('Moon   ', loc='right', fontsize=10)
+    axes[0].grid(axis='y', color='white', linestyle='-', linewidth=0.2)
     # axes[0].axis('off')
     axes[0].set_xticks([])
+
+    axes[0].yaxis.set_major_formatter(mdates.DateFormatter('%d %b'))
+    axes[0].yaxis.set_major_locator(mdates.DayLocator(interval=1))
+    # axes[0].yaxis.set_label_coords(0.5, 0.35)
+
     im = axes[0].imshow(Z,
                         interpolation='nearest',  # 'nearest', 'bilinear', 'bicubic'
                         cmap="twilight_shifted",
-                        origin='lower',
-                        extent=[-days / 4, days / 4, lbl_dates[0], lbl_dates[-1]],
+                        origin='upper',
+                        extent=[-days / 4, days / 4, lbl_dates[-1], lbl_dates[0]],
                         vmax=Z.max(), vmin=Z.min())
-
-    axes[0].yaxis.set_major_formatter(mdates.DateFormatter('%d-%m'))
-    axes[0].yaxis.set_major_locator(mdates.DayLocator(interval=1))
 
 
     # ///////////////////////  ZODIAC  //////////////////////////////////////
@@ -130,16 +136,24 @@ def plot_color_of_the_days(observer=None, days=1, file_name="plot_astro_summary.
     Z[:, 4] = y2s
 
     axes[1].set_title(f'Zodiac', fontsize=10)
-    axes[1].grid(axis='y')
     # axes[1].axis('off')
-    # axes[1].imshow(gradient, aspect='auto', cmap=pz.zodiac_cmap)
+
+    axes[1].grid(axis='y', color='white', linestyle='--', linewidth=0.2)
     axes[1].set_xticks([])
-    axes[1].set_yticks([])
+    # axes[1].set_yticks([], labels=[])
+    axes[1].set_yticklabels([])     # remove labels but keep grid
+
+    coord = (4, 4)
+    # coord = (4, 19364)
+    # coord = (19364, 3)
+    axes[1].annotate("ewwe", coord)
+
+
     im = axes[1].imshow(Z,
                         interpolation='nearest',  # 'nearest', 'bilinear', 'bicubic'
                         cmap=pz.zodiac_cmap,
-                        origin='lower',
-                        extent=[-days / 4, days / 4, lbl_dates[0], lbl_dates[-1]],
+                        origin='upper',
+                        extent=[-days / 4, days / 4, lbl_dates[-1], lbl_dates[0]],
                         vmax=Z.max(), vmin=Z.min())
 
 

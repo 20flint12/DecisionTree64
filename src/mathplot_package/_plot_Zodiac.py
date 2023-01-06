@@ -40,7 +40,7 @@ if __name__ == '__main__':
     axes[0].grid()
     # axes[0].invert_xaxis()
     # axes[0].invert_yaxis()
-    axes[0].axis(ymin=0, ymax=360)
+    axes[0].axis(ymin=360, ymax=0)
     axes[0].plot(ys, xs, linestyle='dotted')
 
 
@@ -59,7 +59,7 @@ if __name__ == '__main__':
     axes[1].imshow(Z, interpolation='bilinear',  # 'nearest', 'bilinear', 'bicubic'
                    aspect='auto',
                    cmap=zodiac_cmap,
-                   origin='lower',
+                   origin='upper',
                    vmax=Z.max(), vmin=Z.min())
 
     plt.show()

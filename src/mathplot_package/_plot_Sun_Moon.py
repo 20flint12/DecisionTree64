@@ -72,9 +72,10 @@ if __name__ == '__main__':
 
     axes[0].set_title(f'ypoints', fontsize=10)
     axes[0].grid()
-    # axs[0].invert_xaxis()
-    # axs[0].invert_yaxis()
-    axes[0].axis(ymin=-2 * np.pi, ymax=2 * np.pi)
+    # axes[0].invert_xaxis()
+    # axes[0].invert_yaxis()
+    # axes[0].axis(ymin=-2 * np.pi, ymax=2 * np.pi)
+    axes[0].axis(ymin=2 * np.pi, ymax=-2 * np.pi)
     axes[0].plot(ys, xs,
                  # aspect='auto',
                  linestyle='dotted')
@@ -95,7 +96,7 @@ if __name__ == '__main__':
                    aspect='auto',
                    # cmap=cm.RdYlGn,  # gray
                    cmap="twilight_shifted",     # twilight_shifted
-                   origin='lower',
+                   origin='upper',
                    vmax=Z.max(), vmin=Z.min())
 
     plt.show()
