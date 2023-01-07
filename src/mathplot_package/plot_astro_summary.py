@@ -103,7 +103,7 @@ def plot_color_of_the_days(observer=None, days=1., file_name="plot_astro_summary
     axes[0].yaxis.set_major_locator(mdates.DayLocator(interval=1))
     # axes[0].yaxis.set_label_coords(0.5, 0.35)
 
-    _plot_annotations_of_the_days(observer=observer_obj, days=days, axes=axes)
+    _plot_annotations_of_the_days(observer=observer, days=days, axes=axes)
 
     im = axes[0].imshow(Z,
                         interpolation='nearest',  # 'nearest', 'bilinear', 'bicubic'
@@ -152,7 +152,7 @@ def plot_color_of_the_days(observer=None, days=1., file_name="plot_astro_summary
     plt.show()
 
 
-def _plot_annotations_of_the_days(observer=None, days=2, axes=None):
+def _plot_annotations_of_the_days(observer=None, days=2., axes=None):
 
     observer.restore_unaware()
     # print("unaware date2num=", mdates.date2num(observer.get_unaware))
