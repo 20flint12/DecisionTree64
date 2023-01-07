@@ -31,7 +31,7 @@ moon_lat = []
 sun_angle = []
 
 for cur_dt in dates:
-    observer.utc = datetime.fromtimestamp(cur_dt)
+    observer._utc = datetime.fromtimestamp(cur_dt)
     ecl_dict, ecl_text = zd.main_zodiac_sun_moon(observer=observer)
     # print(ecl_dict)
     sun_lon.append(ecl_dict["sun_lon"])

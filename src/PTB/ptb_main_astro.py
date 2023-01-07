@@ -261,6 +261,10 @@ async def summary(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
 async def alarm(context: ContextTypes.DEFAULT_TYPE) -> None:
     """Send the alarm message."""
+    # chat_id = update.message.chat_id
+    # job_name = str(chat_id) + "#REP"  # 442763659#REP
+    # photo_name = str(chat_id) + "_photo.png"  # 442763659_photo.jpg
+
     job = context.job
 
     city = "Mragowo"    # context.user_data["geo place"]
@@ -290,6 +294,13 @@ async def alarm(context: ContextTypes.DEFAULT_TYPE) -> None:
     text += wt_text
 
     await context.bot.send_message(job.chat_id, text=text)
+
+    # # ++++++++++++++++++++++
+    # mp.plot_color_of_the_days(observer=observer_obj, days=3, file_name=photo_name)
+    #
+    # text = "reply_photo"
+    # logger.info("%s", text)
+    # await update.message.reply_photo(photo=open(photo_name, 'rb'))
 
 
 def remove_job_if_exists(name: str, context: ContextTypes.DEFAULT_TYPE) -> bool:
@@ -392,7 +403,6 @@ def main() -> None:
     application.add_handler(CommandHandler("sum", summary))
     application.add_handler(CommandHandler("set", set_daily_timer))
     application.add_handler(CommandHandler("photo", color_of_the_days))
-
 
     application.add_handler(opc.observer_conversation_handler)      # /obs
     application.add_handler(opc.show_data_handler)

@@ -54,37 +54,37 @@ def get_moons_in_year(year):
     return moons
 
 
-def get_moon_phase(in_date_utc):
-    """
-    :param in_date_utc:
+# def get_moon_phase(in_date_utc):
+def get_moon_phase(observer=None):
+    '''
+    :param observer:
     :return:
-    """
-    # moon = ephem_routines.Moon()
-
+    '''
     #####################################################################
-    calc_date_utc = ephem.Date(in_date_utc)
+    # observer.unaware_update_utc()
+    place_date_utc = observer.get_utc
 
-    prev_NM = ephem.previous_new_moon(calc_date_utc)
-    prev_FQ = ephem.previous_first_quarter_moon(calc_date_utc)
-    prev_FM = ephem.previous_full_moon(calc_date_utc)
-    prev_LQ = ephem.previous_last_quarter_moon(calc_date_utc)
-    delta_prev_NM = calc_date_utc - prev_NM
-    delta_prev_FQ = calc_date_utc - prev_FQ
-    delta_prev_FM = calc_date_utc - prev_FM
-    delta_prev_LQ = calc_date_utc - prev_LQ
+    prev_NM = ephem.previous_new_moon(place_date_utc)
+    prev_FQ = ephem.previous_first_quarter_moon(place_date_utc)
+    prev_FM = ephem.previous_full_moon(place_date_utc)
+    prev_LQ = ephem.previous_last_quarter_moon(place_date_utc)
+    delta_prev_NM = place_date_utc - prev_NM
+    delta_prev_FQ = place_date_utc - prev_FQ
+    delta_prev_FM = place_date_utc - prev_FM
+    delta_prev_LQ = place_date_utc - prev_LQ
 
-    next_NM = ephem.next_new_moon(calc_date_utc)
-    next_FQ = ephem.next_first_quarter_moon(calc_date_utc)
-    next_FM = ephem.next_full_moon(calc_date_utc)
-    next_LQ = ephem.next_last_quarter_moon(calc_date_utc)
-    delta_next_NM = next_NM - calc_date_utc
-    delta_next_FQ = next_FQ - calc_date_utc
-    delta_next_FM = next_FM - calc_date_utc
-    delta_next_LQ = next_LQ - calc_date_utc
+    next_NM = ephem.next_new_moon(place_date_utc)
+    next_FQ = ephem.next_first_quarter_moon(place_date_utc)
+    next_FM = ephem.next_full_moon(place_date_utc)
+    next_LQ = ephem.next_last_quarter_moon(place_date_utc)
+    delta_next_NM = next_NM - place_date_utc
+    delta_next_FQ = next_FQ - place_date_utc
+    delta_next_FM = next_FM - place_date_utc
+    delta_next_LQ = next_LQ - place_date_utc
 
     mph_dict = {}
-    mph_dict["calc_date_utc"] = calc_date_utc
-    # ==========================================================================
+    mph_dict["place_date_utc"] = place_date_utc
+    # =======================================================================
 
     # New Moon
     # First Quarter
@@ -144,7 +144,7 @@ def main_moon_phase(observer=None):
     result_text = ""
 
     result_text += "\n"
-    result_dict = get_moon_phase(observer.utc)
+    result_dict = get_moon_phase(observer)
 
     # calc_date_utc = observer.dt_utc_to_aware_by_tz((result_dict["calc_date_utc"].datetime()))
     prev_utc = observer.dt_utc_to_aware_by_tz((result_dict["prev_utc"].datetime()))
@@ -158,7 +158,7 @@ def main_moon_phase(observer=None):
 
 def main_moon_day(observer=None):
     """
-       {'calc_date': 44916.03218687011,
+       {'place_date_utc': 44916.03218687011,
         'moon_rise': 44915.7511011787,
         'moon_sett': 44916.03452341712,
         'moon_day': 29,
@@ -166,13 +166,13 @@ def main_moon_day(observer=None):
     """
     result_text = ["", "", ""]
 
-    moon = ephem.Moon(observer.place)
-    # observer.utc_update_utc()
+    # observer.unaware_update_utc()
+    place_date_utc = observer.get_utc
+    moon = ephem.Moon(observer._place)
     #####################################################################
 
-    calc_date = ephem.Date(observer.utc)
-    prev_NM = ephem.previous_new_moon(observer.utc)
-    next_NM = ephem.next_new_moon(observer.utc)
+    prev_NM = ephem.previous_new_moon(place_date_utc)
+    next_NM = ephem.next_new_moon(place_date_utc)
 
     result_text[0] += "\n"
     result_text[0] += "\nprev_NM : {:<18}".format(str(prev_NM))
@@ -182,32 +182,32 @@ def main_moon_day(observer=None):
     cur_mday = 1
     observer.utc_update_utc(prev_NM)
 
-    moon_rise = observer.place.previous_rising(moon)
-    moon_sett = observer.place.previous_setting(moon)
-    new_rise = observer.place.next_rising(moon)
+    moon_rise = observer._place.previous_rising(moon)
+    moon_sett = observer._place.previous_setting(moon)
+    new_rise = observer._place.next_rising(moon)
 
     result_dict = {}
-    result_dict["calc_date"] = calc_date
+    result_dict["place_date_utc"] = place_date_utc
     result_dict["moon_day"] = cur_mday
     result_dict["moon_rise"] = moon_rise
     result_dict["moon_sett"] = moon_sett
     result_dict["new_rise"] = new_rise
 
-    while calc_date > new_rise:
+    while place_date_utc > new_rise:
         str_mark = ""
 
         if cur_mday == 1:
-            moon_rise = observer.place.previous_rising(moon)
-            moon_sett = observer.place.previous_setting(moon)
+            moon_rise = observer._place.previous_rising(moon)
+            moon_sett = observer._place.previous_setting(moon)
             if moon_rise > moon_sett:
-                moon_sett = observer.place.next_setting(moon)
+                moon_sett = observer._place.next_setting(moon)
             str_mark = " new moon >>>"
         else:
-            moon_rise = observer.place.next_rising(moon)
+            moon_rise = observer._place.next_rising(moon)
             observer.utc_update_utc(moon_rise)
-            moon_sett = observer.place.next_setting(moon)
+            moon_sett = observer._place.next_setting(moon)
             observer.utc_update_utc(moon_sett)
-            new_rise = observer.place.next_rising(moon)
+            new_rise = observer._place.next_rising(moon)
 
             if next_NM < new_rise:
                 str_mark = " >>> new moon"
@@ -263,11 +263,11 @@ if __name__ == '__main__':
     # pprint.pprint(mph_dict)
     text += mph_text
 
-    # md_dict, md_text = main_moon_day(observer=observer_obj)
-    # # pprint.pprint(md_dict)
-    # text += md_text[0]
-    # # text += md_text[1]
-    # text += md_text[2]
+    md_dict, md_text = main_moon_day(observer=observer_obj)
+    # pprint.pprint(md_dict)
+    text += md_text[0]
+    # text += md_text[1]
+    text += md_text[2]
 
     print(text)
 

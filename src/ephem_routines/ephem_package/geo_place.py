@@ -16,27 +16,27 @@ class Observer:
     """
         This is an observer class
     """
-    place = ephem.Observer()
-    place.pressure = 1010     # millibar
-    place.temp = 20           # deg. Celcius
+    _place = ephem.Observer()
+    _place.pressure = 1010     # millibar
+    _place.temp = 20           # deg. Celcius
     '''
     Civil twilight uses the value –6 degrees.
     Nautical twilight uses the value –12 degrees.
     Astronomical twilight uses the value –18 degrees.
     '''
-    place.horizon = '0'
-    place.elevation = 3       # meters
+    _place.horizon = '0'
+    _place.elevation = 3       # meters
 
     location = None
     timezone_name = "UNDEF"
 
-    unaware = datetime.strptime("1976-01-13 02:37:21", dt_format_rev)  # dt_format_rev = "%Y-%m-%d %H:%M:%S"
-    unaware12 = datetime.strptime("1999-09-09 09:09:09", dt_format_rev)
-    aware = datetime.strptime("2000-06-21 02:37:21", dt_format_rev)
-    aware12 = datetime.strptime("1999-09-09 09:09:09", dt_format_rev)
-    utc = datetime.strptime("2000-01-01 00:00:01", dt_format_rev)
-    utc12 = datetime.strptime("2000-01-01 00:00:01", dt_format_rev)
-    set_noon = False
+    _unaware = datetime.strptime("1976-01-13 02:37:21", dt_format_rev)  # dt_format_rev = "%Y-%m-%d %H:%M:%S"
+    _unaware12 = datetime.strptime("1999-09-09 09:09:09", dt_format_rev)
+    _aware = datetime.strptime("2000-06-21 02:37:21", dt_format_rev)
+    _aware12 = datetime.strptime("1999-09-09 09:09:09", dt_format_rev)
+    _utc = datetime.strptime("2000-01-01 00:00:01", dt_format_rev)
+    _utc12 = datetime.strptime("2000-01-01 00:00:01", dt_format_rev)
+    _set_noon = False
 
     def __init__(self,
                  latitude=1, longitude=2,
@@ -45,7 +45,7 @@ class Observer:
         self.latitude = latitude
         self.longitude = longitude
         self.geo_name = geo_name
-        self.unaware = unaware_datetime
+        self._unaware = unaware_datetime
 
         self.get_coords_by_name()
         self.get_tz_by_coord()
@@ -53,10 +53,10 @@ class Observer:
         # **********************************
         self.timezone = pytz.timezone(self.timezone_name)
 
-        self.aware = self.timezone.localize(self.unaware)
-        self.utc = self.aware.astimezone(pytz.timezone('UTC'))
-        self.place.date = ephem.Date(self.utc)  # !!!!!!!!!!!!!!!!!!!!!!
-        self.set_noon = False
+        self._aware = self.timezone.localize(self._unaware)
+        self._utc = self._aware.astimezone(pytz.timezone('UTC'))
+        self._place.date = ephem.Date(self._utc)  # !!!!!!!!!!!!!!!!!!!!!!
+        self._set_noon = False
 
     def __str__(self):
         str_obj = ""
@@ -64,26 +64,26 @@ class Observer:
         # str_obj += "\n" + repr(self.timezone)
         str_obj += "\n" + self.geo_name
         str_obj += " [{:7.3f},".format(self.location.latitude) + " {:7.3f}]".format(self.location.longitude)
-        str_obj += "\n" + self.timezone_name + " (" + str(self.aware.utcoffset()) + ")"
-        str_obj += " [DST " + str(self.aware.dst()) + "]"
+        str_obj += "\n" + self.timezone_name + " (" + str(self._aware.utcoffset()) + ")"
+        str_obj += " [DST " + str(self._aware.dst()) + "]"
 
-        str_obj += f'\n{self.unaware.strftime(dt_format)}'
+        str_obj += f'\n{self._unaware.strftime(dt_format)}'
 
-        if not self.set_noon:
-            str_obj += f'\n{self.aware.strftime(dt_format)}'
-            str_obj += f'\n{self.utc.strftime(dt_format)}'
+        if not self._set_noon:
+            str_obj += f'\n{self._aware.strftime(dt_format)}'
+            str_obj += f'\n{self._utc.strftime(dt_format)}'
         else:
-            str_obj += f'\n{self.aware12.strftime(dt_format)}'
-            str_obj += f'\n{self.utc12.strftime(dt_format)}'
+            str_obj += f'\n{self._aware12.strftime(dt_format)}'
+            str_obj += f'\n{self._utc12.strftime(dt_format)}'
 
         return str_obj
 
     def __repr__(self):
-        return f'Observer(name={self.geo_name}, unaware={self.unaware})'
+        return f'Observer(name={self.geo_name}, unaware={self._unaware})'
 
     def set_coords(self):
-        self.place.lat = self.latitude
-        self.place.lon = self.longitude
+        self._place.lat = self.latitude
+        self._place.lon = self.longitude
 
     # def set_pressure(self):
     #     self.place.pressure = self.pressure
@@ -101,12 +101,12 @@ class Observer:
         from geopy.geocoders import Nominatim               # pip install geopy
         geolocator = Nominatim(user_agent="user_agent")
         self.location = geolocator.geocode(self.geo_name)   # Kremenchuk Boston
-        self.place.lat = str(self.location.latitude)
-        self.place.lon = str(self.location.longitude)
+        self._place.lat = str(self.location.latitude)
+        self._place.lon = str(self.location.longitude)
 
         # ToDo for setting by coordinate. Now just for monitoring
-        self.latitude = self.place.lat
-        self.longitude = self.place.lon
+        self.latitude = self._place.lat
+        self.longitude = self._place.lon
         # print(self.geo_name, self.location.latitude, self.location.longitude)
 
     def get_tz_by_coord(self):
@@ -117,53 +117,64 @@ class Observer:
 
     def unaware_to_aware_by_tz(self):
         cur_timezone = pytz.timezone(self.timezone_name)  # 'Europe/Kiev'
-        self.aware = cur_timezone.localize(self.unaware)
+        self._aware = cur_timezone.localize(self._unaware)
         # print("self.aware_datetime=", self.aware_datetime)
 
     def aware_to_utc(self):
-        self.utc = self.aware.astimezone(pytz.timezone('UTC'))
-        self.place.date = self.utc
-        self.set_noon = False
+        self._utc = self._aware.astimezone(pytz.timezone('UTC'))
+        self._place.date = self._utc
+        self._set_noon = False
 
         # print("self.utc_datetime=", self.utc_datetime)
 
     def utc_update_utc(self, in_utc_date):
-        self.utc = in_utc_date
-        print(self.utc, "2222222")
-        self.place.date = ephem.Date(self.utc)  # !!!!!!!!!!!!!!!!!!!!!!
-        self.set_noon = False
+        self._utc = in_utc_date
+        self._place.date = ephem.Date(self._utc)  # !!!!!!!!!!!!!!!!!!!!!!
+        self._set_noon = False
 
-    def utc_to_aware_by_tz(self):
+    @property
+    def get_place(self):                        # currently set place of observer
+        return self._place
+
+    @property
+    def get_utc(self):                          # currently set place date of observer
+        return self._place.date
+
+    @property
+    def get_unaware(self):                      # currently set unaware of observer
+        return self._unaware
+
+    def utc_to_aware_by_tz(self):               # restore internal aware from UTC
         cur_timezone = pytz.timezone(self.timezone_name)
-        self.aware = self.utc.replace(tzinfo=pytz.utc).astimezone(cur_timezone)
+        self._aware = self._utc.replace(tzinfo=pytz.utc).astimezone(cur_timezone)
         # print("self.aware_datetime=", self.aware_datetime)
 
-    def dt_utc_to_aware_by_tz(self, in_utc):
+    def dt_utc_to_aware_by_tz(self, in_utc):    # restore external aware from UTC
         cur_timezone = pytz.timezone(self.timezone_name)
         out_aware = in_utc.replace(tzinfo=pytz.utc).astimezone(cur_timezone)
         # print("self.aware_datetime=", self.aware_datetime)
         return out_aware
 
-    def unaware_update_utc(self, in_unaware=None) -> utc:
+    def unaware_update_utc(self, in_unaware=None) -> _utc:
         # self.timezone = pytz.timezone(self.timezone_name)
         if in_unaware is not None:
-            self.unaware = in_unaware
-        self.aware = self.timezone.localize(self.unaware)
-        self.utc = self.aware.astimezone(pytz.timezone('UTC'))
-        self.place.date = ephem.Date(self.utc)  # !!!!!!!!!!!!!!!!!!!!!!
-        self.set_noon = False
+            self._unaware = in_unaware
+        self._aware = self.timezone.localize(self._unaware)
+        self._utc = self._aware.astimezone(pytz.timezone('UTC'))
+        self._place.date = ephem.Date(self._utc)  # !!!!!!!!!!!!!!!!!!!!!!
+        self._set_noon = False
 
-    def unaware_update_utc12(self, in_unaware=None) -> utc12:
+    def unaware_update_utc12(self, in_unaware=None) -> _utc12:
         # self.timezone = pytz.timezone(self.timezone_name)
         # print("in_unaware=", in_unaware)
         if in_unaware is not None:
-            self.unaware = in_unaware
+            self._unaware = in_unaware
         # print("in_unaware=", in_unaware)
-        self.unaware12 = datetime(self.unaware.year, self.unaware.month, self.unaware.day, 12, 0, 0)
-        self.aware12 = self.timezone.localize(self.unaware12)
-        self.utc12 = self.aware12.astimezone(pytz.timezone('UTC'))
-        self.place.date = ephem.Date(self.utc12)  # !!!!!!!!!!!!!!!!!!!!!!
-        self.set_noon = True
+        self._unaware12 = datetime(self._unaware.year, self._unaware.month, self._unaware.day, 12, 0, 0)
+        self._aware12 = self.timezone.localize(self._unaware12)
+        self._utc12 = self._aware12.astimezone(pytz.timezone('UTC'))
+        self._place.date = ephem.Date(self._utc12)  # !!!!!!!!!!!!!!!!!!!!!!
+        self._set_noon = True
 
 
 # def get_place_coord(in_place_name):
