@@ -372,7 +372,7 @@ async def color_of_the_days(update: Update, context: ContextTypes.DEFAULT_TYPE) 
     text = ""
     text += str(observer_obj)
     # ++++++++++++++++++++++
-    mp.plot_color_of_the_days(observer=observer_obj, days=3, file_name=photo_name)
+    mp.plot_color_of_the_days(observer=observer_obj, days=3.5, file_name=photo_name)
 
     text = "reply_photo"
     logger.info("%s", text)

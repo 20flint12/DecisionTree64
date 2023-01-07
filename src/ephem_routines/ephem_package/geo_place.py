@@ -6,8 +6,10 @@ from datetime import datetime
 import pytz
 import ephem
 
+
 dt_format = "%d/%m/%Y %H:%M:%S %Z %z"
 dt_format_rev = "%Y-%m-%d %H:%M:%S"     # fits for dynamoDB "main_record" table # SS[.ffffff]
+dt_format_plot = "%d %b, %a"
 # dt_format = "%Y-%m-%d %H:%M:%S %z"
 # 28/11/2022 10:53:58 +0200
 
@@ -37,6 +39,7 @@ class Observer:
     _utc = datetime.strptime("2000-01-01 00:00:01", dt_format_rev)
     _utc12 = datetime.strptime("2000-01-01 00:00:01", dt_format_rev)
     _set_noon = False
+    _init_unaware = datetime.strptime("1974-01-13 02:37:21", dt_format_rev)  # dt_format_rev = "%Y-%m-%d %H:%M:%S"
 
     def __init__(self,
                  latitude=1, longitude=2,
@@ -46,6 +49,7 @@ class Observer:
         self.longitude = longitude
         self.geo_name = geo_name
         self._unaware = unaware_datetime
+        self._init_unaware = self._unaware
 
         self.get_coords_by_name()
         self.get_tz_by_coord()
@@ -142,6 +146,11 @@ class Observer:
 
     @property
     def get_unaware(self):                      # currently set unaware of observer
+        return self._unaware
+
+    # @property
+    def restore_unaware(self):                      # restore unaware of observer
+        self._unaware = self._init_unaware
         return self._unaware
 
     def utc_to_aware_by_tz(self):               # restore internal aware from UTC

@@ -99,12 +99,12 @@ def main_sun_rise_sett(observer=None):
     result_text += "\n"
 
     observer.unaware_update_utc12()
-    sun = ephem.Sun(observer._place)
-    sun.compute(observer._place)
+    sun = ephem.Sun(observer.get_place)
+    sun.compute(observer.get_place)
     # ===============================================
 
-    prev_rise = observer._place.previous_rising(sun, use_center=False)
-    next_sett = observer._place.next_setting(sun, use_center=False)
+    prev_rise = observer.get_place.previous_rising(sun, use_center=False)
+    next_sett = observer.get_place.next_setting(sun, use_center=False)
 
     result_dict = {}
     result_dict["sun_rise"] = prev_rise

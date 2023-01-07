@@ -168,7 +168,7 @@ def main_moon_day(observer=None):
 
     # observer.unaware_update_utc()
     place_date_utc = observer.get_utc
-    moon = ephem.Moon(observer._place)
+    moon = ephem.Moon(observer.get_place)
     #####################################################################
 
     prev_NM = ephem.previous_new_moon(place_date_utc)
@@ -182,9 +182,9 @@ def main_moon_day(observer=None):
     cur_mday = 1
     observer.utc_update_utc(prev_NM)
 
-    moon_rise = observer._place.previous_rising(moon)
-    moon_sett = observer._place.previous_setting(moon)
-    new_rise = observer._place.next_rising(moon)
+    moon_rise = observer.get_place.previous_rising(moon)
+    moon_sett = observer.get_place.previous_setting(moon)
+    new_rise = observer.get_place.next_rising(moon)
 
     result_dict = {}
     result_dict["place_date_utc"] = place_date_utc
@@ -197,17 +197,17 @@ def main_moon_day(observer=None):
         str_mark = ""
 
         if cur_mday == 1:
-            moon_rise = observer._place.previous_rising(moon)
-            moon_sett = observer._place.previous_setting(moon)
+            moon_rise = observer.get_place.previous_rising(moon)
+            moon_sett = observer.get_place.previous_setting(moon)
             if moon_rise > moon_sett:
-                moon_sett = observer._place.next_setting(moon)
+                moon_sett = observer.get_place.next_setting(moon)
             str_mark = " new moon >>>"
         else:
-            moon_rise = observer._place.next_rising(moon)
+            moon_rise = observer.get_place.next_rising(moon)
             observer.utc_update_utc(moon_rise)
-            moon_sett = observer._place.next_setting(moon)
+            moon_sett = observer.get_place.next_setting(moon)
             observer.utc_update_utc(moon_sett)
-            new_rise = observer._place.next_rising(moon)
+            new_rise = observer.get_place.next_rising(moon)
 
             if next_NM < new_rise:
                 str_mark = " >>> new moon"
