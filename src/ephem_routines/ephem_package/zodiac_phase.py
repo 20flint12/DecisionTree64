@@ -8,9 +8,10 @@ import ephem
 import src.ephem_routines.ephem_package.geo_place as geo
 
 
-# zodiac = 'AR TA GE CN LE VI LI SC SG CP AQ PI'.split()
-# zodiac = u'Овен Телец Близнецы Рак Лев Дева Весы Скорпион Стрелец Козерог Водолей Рыбы'.split()
-zodiac = u'Овн Тлц Блз Рак Лев Дев Вес Скп Стр Коз Вод Рыб'.split()
+zodiac = 'AR TA GE CN LE VI LI SC SG CP AQ PI'.split()
+zodiac_full_rus = u'Овен Телец Близнецы Рак Лев Дева Весы Скорпион Стрелец Козерог Водолей Рыбы'.split()
+zodiac_full_ukr = u'Овен Телець Близнюки Рак Лев Діва Терези Скорпіон Стрілець Козоріг Водолій Риби'.split()
+zodiac_short_rus = u'Овн Тлц Блз Рак Лев Дев Вес Скп Стр Коз Вод Рыб'.split()
 
 
 def format_zodiacal_longitude(longitude):
@@ -18,13 +19,18 @@ def format_zodiacal_longitude(longitude):
     :param longitude:
     :return: Format longitude in zodiacal form (like '00AR00') and return as a string."
     """
-    # print longitude
-    l = math.degrees(longitude.norm)
-    degrees = int(l % 30)
-    sign = zodiac[int(l / 30)]
-    minutes = int(round((l % 1) * 60))
-    # return u'{0:02}{1}{2:02}'.format(degrees, sign, minutes)
-    # return u'{0:02}{1}'.format(degrees, sign)
+    # print("longitude=", longitude, type(longitude))
+    long = 0
+    if type(longitude) == ephem.Angle:
+        long = math.degrees(longitude.norm)
+    if type(longitude) == int:
+        long = longitude
+    if type(longitude) == float:
+        long = longitude
+
+    degrees = int(long % 30)
+    sign = zodiac_short_rus[int(long / 30)]
+    minutes = int(round((long % 1) * 60))
     return u'{1}{0:02}'.format(degrees, sign)
 
 
@@ -182,8 +188,10 @@ def main_zodiac_sun_moon(observer=None):
     result_dict = {}
     result_dict["utc_date"] = observer.get_utc
     result_dict["sun_lon"] = ecl_sun.lon * 180 / 3.14159
+    # result_dict["sun_lon"] = ecl_sun.long
     result_dict["sun_lat"] = ecl_sun.lat * 180 / 3.14159
     result_dict["moon_lon"] = ecl_moon.lon * 180 / 3.14159
+    # result_dict["moon_lon"] = ecl_moon.long
     result_dict["moon_lat"] = ecl_moon.lat * 180 / 3.14159
 
     result_dict["sun_dist"] = body_sun.earth_distance
@@ -192,8 +200,8 @@ def main_zodiac_sun_moon(observer=None):
     # result_dict["moon_alt"] = body_moon.alt
 
     # Format longitude in zodiacal form (like '00AR00') and return as a string.
-    result_dict["sun_zod"] = format_zodiacal_longitude(ecl_sun.long)
-    result_dict["moon_zod"] = format_zodiacal_longitude(ecl_moon.long)
+    result_dict["sun_zod"] = format_zodiacal_longitude(ecl_sun.lon)
+    result_dict["moon_zod"] = format_zodiacal_longitude(ecl_moon.lon)
     # =========================================================================
 
     result_text += "\n"
