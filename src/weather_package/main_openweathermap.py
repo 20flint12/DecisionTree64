@@ -14,7 +14,7 @@ def main_weather_now(observer=None):
     # api.openweathermap.org/data/2.5/weather?q=London,uk&APPID=683d1608f3ac1dc0916acbed01d0d2e5
     api_key = "683d1608f3ac1dc0916acbed01d0d2e5"
     base_url = "http://api.openweathermap.org/data/2.5/weather?"
-    city_name = observer.geo_name
+    city_name = observer._geo_name
     complete_url = base_url + "appid=" + api_key + "&q=" + city_name
 
     response = requests.get(complete_url)

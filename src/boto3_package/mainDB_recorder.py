@@ -173,14 +173,14 @@ def main_put_record(_chat_job="12345678#REP1"):
     # Location and timezone
     observer.get_coords_by_name()
     observer.get_tz_by_coord()
-    data_dict["location"] = {"geo": observer.geo_name,
-                             "lat": round(observer.location.latitude, 2),
-                             "lon": round(observer.location.longitude, 2),
+    data_dict["location"] = {"geo": observer._geo_name,
+                             "lat": round(observer.location._latitude, 2),
+                             "lon": round(observer.location._longitude, 2),
                              "tz": observer.timezone_name
                              }
 
     # Weather data
-    wth_dict, str_head = wt.main_weather_now(observer.geo_name, dt.today())
+    wth_dict, str_head = wt.main_weather_now(observer._geo_name, dt.today())
     data_dict["weather"] = wth_dict
 
     # Zodiac data

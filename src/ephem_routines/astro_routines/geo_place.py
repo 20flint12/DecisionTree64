@@ -60,14 +60,14 @@ class Observer:
         from geopy.geocoders import Nominatim               # pip install geopy
         geolocator = Nominatim(user_agent="user_agent")
         self.location = geolocator.geocode(self.geo_name)   # Kremenchuk Boston
-        self.place.lat = str(self.location.latitude)
-        self.place.lon = str(self.location.longitude)
+        self.place.lat = str(self.location._latitude)
+        self.place.lon = str(self.location._longitude)
         # print(self.geo_name, self.location.latitude, self.location.longitude)
 
     def get_tz_by_coord(self):
         from timezonefinder import TimezoneFinder
         timezone = TimezoneFinder()
-        self.timezone_name = timezone.timezone_at(lng=self.location.longitude, lat=self.location.latitude)
+        self.timezone_name = timezone.timezone_at(lng=self.location._longitude, lat=self.location._latitude)
         # print(self.timezone_name)
 
     def unaware_to_aware_by_tz(self):
@@ -119,7 +119,7 @@ def get_place_coord(in_place_name):
     location = geolocator.geocode(in_place_name)        # Kremenchuk Boston
     # print((location.latitude, location.longitude))
 
-    return location.latitude, location.longitude
+    return location._latitude, location._longitude
 
 
 def get_tz_name(in_coord):
@@ -215,7 +215,7 @@ if __name__ == '__main__':
 
     observer = Observer(geo_name=geo_name)
     observer.get_coords_by_name()
-    print("geo_name=", observer.geo_name, "[lat=", observer.location.latitude, "lon=", observer.location.longitude, "]")
+    print("geo_name=", observer.geo_name, "[lat=", observer.location._latitude, "lon=", observer.location._longitude, "]")
     observer.get_tz_by_coord()
     print("timezone=", observer.timezone_name)
     # print(observer.place, "\n")

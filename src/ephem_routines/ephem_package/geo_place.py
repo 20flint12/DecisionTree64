@@ -45,9 +45,9 @@ class Observer:
                  latitude=1, longitude=2,
                  geo_name="Kharkiv",
                  unaware_datetime=datetime.strptime("1976-01-13 02:37:21", dt_format_rev)):
-        self.latitude = latitude
-        self.longitude = longitude
-        self.geo_name = geo_name
+        self._latitude = latitude
+        self._longitude = longitude
+        self._geo_name = geo_name
         self._unaware = unaware_datetime
         self._init_unaware = self._unaware
 
@@ -66,7 +66,7 @@ class Observer:
         str_obj = ""
 
         # str_obj += "\n" + repr(self.timezone)
-        str_obj += "\n" + self.geo_name
+        str_obj += "\n" + self._geo_name
         str_obj += " [{:7.3f},".format(self.location.latitude) + " {:7.3f}]".format(self.location.longitude)
         str_obj += "\n" + self.timezone_name + " (" + str(self._aware.utcoffset()) + ")"
         str_obj += " [DST " + str(self._aware.dst()) + "]"
@@ -83,11 +83,11 @@ class Observer:
         return str_obj
 
     def __repr__(self):
-        return f'Observer(name={self.geo_name}, unaware={self._unaware})'
+        return f'Observer(name={self._geo_name}, unaware={self._unaware})'
 
     def set_coords(self):
-        self._place.lat = self.latitude
-        self._place.lon = self.longitude
+        self._place.lat = self._latitude
+        self._place.lon = self._longitude
 
     # def set_pressure(self):
     #     self.place.pressure = self.pressure
@@ -104,13 +104,13 @@ class Observer:
     def get_coords_by_name(self):
         from geopy.geocoders import Nominatim               # pip install geopy
         geolocator = Nominatim(user_agent="user_agent")
-        self.location = geolocator.geocode(self.geo_name)   # Kremenchuk Boston
+        self.location = geolocator.geocode(self._geo_name)   # Kremenchuk Boston
         self._place.lat = str(self.location.latitude)
         self._place.lon = str(self.location.longitude)
 
         # ToDo for setting by coordinate. Now just for monitoring
-        self.latitude = self._place.lat
-        self.longitude = self._place.lon
+        self._latitude = self._place.lat
+        self._longitude = self._place.lon
         # print(self.geo_name, self.location.latitude, self.location.longitude)
 
     def get_tz_by_coord(self):

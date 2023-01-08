@@ -12,6 +12,7 @@ from pprint import pprint
 import src.ephem_routines.ephem_package.geo_place as geo
 import src.ephem_routines.ephem_package.sun_rise_sett as sr
 import src.ephem_routines.ephem_package.zodiac_phase as zd
+import src.ephem_routines.ephem_package.moon_day as md
 
 import src.mathplot_package._plot_Sun_Moon as ps
 import src.mathplot_package._plot_Zodiac as pz
@@ -73,28 +74,26 @@ def plot_color_of_the_days(observer=None, days=1., file_name="plot_astro_summary
     # print(moon_lon)
     # print(sun_angle.__len__())
 
-    moon_zod = np.array(sun_angle)
-    ycolors = ps.convert_colors(in_y_list=moon_zod, thresh=0.35)
-    moon_zod = np.array(ycolors)
+    s_angle = np.array(sun_angle)
+    ycolors = ps.convert_colors(in_y_list=s_angle, thresh=0.35)
+    s_angle = np.array(ycolors)
 
-    sun_zod = np.array(moon_angle)
-    ycolors = ps.convert_colors(in_y_list=sun_zod, thresh=0.35)
-    sun_zod = np.array(ycolors)
+    m_angle = np.array(moon_angle)
+    ycolors = ps.convert_colors(in_y_list=m_angle, thresh=0.35)
+    m_angle = np.array(ycolors)
 
-    arr_size = len(moon_zod)
+    arr_size = len(s_angle)
     gcolumn = 5
     Z = np.zeros(arr_size * gcolumn).reshape(arr_size, gcolumn)
-    Z[:, 0] = moon_zod
-    Z[:, 1] = moon_zod
-    Z[:, 2] = (moon_zod + sun_zod) / 2
-    Z[:, 3] = sun_zod
-    Z[:, 4] = sun_zod
-    # print(Z)
+    Z[:, 0] = s_angle
+    Z[:, 1] = s_angle
+    Z[:, 2] = (s_angle + m_angle) / 2
+    Z[:, 3] = m_angle
+    Z[:, 4] = m_angle
 
-    # axes[0].set_title(f'Sun    ===   Moon', fontsize=10)
     axes[0].set_title(f'===', fontsize=10)
     axes[0].set_title('  Сонце', loc='left', fontsize=10)
-    axes[0].set_title('Місяць  ', loc='right', fontsize=10)
+    axes[0].set_title('Місяць ', loc='right', fontsize=10)
     axes[0].grid(axis='y', color='white', linestyle='-', linewidth=0.2)
     # axes[0].axis('off')
     axes[0].set_xticks([])
@@ -103,7 +102,8 @@ def plot_color_of_the_days(observer=None, days=1., file_name="plot_astro_summary
     axes[0].yaxis.set_major_locator(mdates.DayLocator(interval=1))
     # axes[0].yaxis.set_label_coords(0.5, 0.35)
 
-    _plot_annotations_of_the_days(observer=observer, days=days, axes=axes)
+    _plot_annotations_of_sun_days(observer=observer, days=days, axes=axes)
+    _plot_annotations_of_moon_days(observer=observer, days=days, axes=axes)
 
     im = axes[0].imshow(Z,
                         interpolation='nearest',  # 'nearest', 'bilinear', 'bicubic'
@@ -128,7 +128,7 @@ def plot_color_of_the_days(observer=None, days=1., file_name="plot_astro_summary
     Z[:, 3] = sun_zod
     Z[:, 4] = sun_zod
 
-    axes[1].set_title(f'Zodiac', fontsize=10)
+    axes[1].set_title(f'Зодіак', fontsize=10)
     # axes[1].axis('off')
     axes[1].grid(axis='y', color='white', linestyle='--', linewidth=0.2)
     axes[1].set_xticks([])
@@ -152,28 +152,28 @@ def plot_color_of_the_days(observer=None, days=1., file_name="plot_astro_summary
     plt.show()
 
 
-def _plot_annotations_of_the_days(observer=None, days=2., axes=None):
+def _plot_annotations_of_sun_days(observer=None, days=2., axes=None):
 
     observer.restore_unaware()
-    # print("unaware date2num=", mdates.date2num(observer.get_unaware))
-
     begin_unaware = observer.get_unaware - timedelta(days=days)
     end_unaware = observer.get_unaware + timedelta(days=days)
+    cur_unaware = begin_unaware
     # print(begin_unaware, " - ", end_unaware)
-
-    # получить метку на 12 часов первого дня диапазона
-    observer.unaware_update_utc12(begin_unaware)
-    sun_dict, sun_text = sr.main_sun_rise_sett(observer=observer)
-    lbl_begin = ephem.Date((sun_dict['sun_sett']+sun_dict['sun_rise'])/2)
-    cur_unaware = lbl_begin.datetime()
-    # print(sun_dict, lbl_begin, cur_unaware)
 
     while end_unaware > cur_unaware:
 
+        if cur_unaware == begin_unaware:                            # init pass
+            observer.unaware_update_utc12(begin_unaware)            # init calculation (at noon of the first day)
+            sun_dict, sun_text = sr.main_sun_rise_sett(observer=observer)
+            zenit_begin = ephem.Date((sun_dict['sun_sett'] + sun_dict['sun_rise']) / 2)
+            cur_unaware = zenit_begin.datetime()
+        else:
+            cur_unaware = cur_unaware + timedelta(days=1)           # next position of annotation
+
         date_str = format_datetime(cur_unaware, "d MMM EEE", locale='uk_UA')
         # date_str = str(cur_unaware.strftime(geo.dt_format_plot))
-
-        coords = (-0.80, mdates.date2num(cur_unaware))
+        # print(date_str)
+        coords = (-0.84, mdates.date2num(cur_unaware))
 
         axes[0].annotate(date_str,
                          xy=coords,
@@ -182,8 +182,40 @@ def _plot_annotations_of_the_days(observer=None, days=2., axes=None):
                          verticalalignment='top'
                          )
 
-        cur_unaware = cur_unaware + timedelta(days=1)
-        # print(date_str)
+
+def _plot_annotations_of_moon_days(observer=None, days=2., axes=None):
+
+    observer.restore_unaware()
+    begin_unaware = observer.get_unaware - timedelta(days=days)
+    end_unaware = observer.get_unaware + timedelta(days=days)
+    cur_unaware = begin_unaware
+    # print(begin_unaware, " - ", end_unaware)
+
+    while end_unaware > cur_unaware:
+        if cur_unaware == begin_unaware:                            # init pass
+            pass                                                    # init calculation
+        else:
+            cur_unaware = cur_unaware + timedelta(days=24.5 / 24)   # next calculation
+
+        observer.unaware_update_utc(cur_unaware)
+        moon_dict, moon_text = md.main_moon_day(observer=observer)
+        annot_text = moon_dict["moon_day"]
+
+        lbl_moon_noon = ephem.Date((moon_dict['moon_sett'] + moon_dict['moon_rise']) / 2)
+        cur_unaware = lbl_moon_noon.datetime()
+
+        # date_str = format_datetime(cur_unaware, "d MMM EEE", locale='uk_UA')
+        date_str = str(annot_text) + " міс. д."
+        coords = (0.2, mdates.date2num(cur_unaware))
+
+        axes[0].annotate(date_str,
+                         xy=coords,
+                         fontsize=8,
+                         horizontalalignment='left',
+                         verticalalignment='center'
+                         )
+
+
 
 
 
@@ -194,7 +226,7 @@ if __name__ == '__main__':
     # geo_name = 'Boston'
     # geo_name = 'Kharkiv'
 
-    # local_unaware_datetime = datetime.strptime("1976-07-20 02:37:21", geo.dt_format_rev)  # "%Y-%m-%d %H:%M:%S"
+    # in_unaware_datetime = datetime.strptime("1976-07-25 02:37:21", geo.dt_format_rev)  # "%Y-%m-%d %H:%M:%S"
     in_unaware_datetime = datetime.today()
     observer_obj = geo.Observer(geo_name=geo_name, unaware_datetime=in_unaware_datetime)
     text = ""

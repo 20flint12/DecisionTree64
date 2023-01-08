@@ -112,7 +112,7 @@ if __name__ == '__main__':
 
     observer = geo.Observer(geo_name=geo_name)
     observer.get_coords_by_name()
-    print("geo_name=", observer.geo_name, "[lat=", observer.location.latitude, "lon=", observer.location.longitude, "]")
+    print("geo_name=", observer.geo_name, "[lat=", observer.location._latitude, "lon=", observer.location._longitude, "]")
     observer.get_tz_by_coord()
     print("timezone=", observer.timezone_name)
     # print(observer.place, "\n")

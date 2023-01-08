@@ -262,20 +262,20 @@ async def summary(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 async def alarm(context: ContextTypes.DEFAULT_TYPE) -> None:
     """Send the alarm message."""
     # chat_id = update.message.chat_id
+    chat_id = "442763659"
     # job_name = str(chat_id) + "#REP"  # 442763659#REP
-    # photo_name = str(chat_id) + "_photo.png"  # 442763659_photo.jpg
+    photo_name = str(chat_id) + "_photo.png"  # 442763659_photo.jpg
 
     job = context.job
 
-    city = "Mragowo"    # context.user_data["geo place"]
+    # city = "Mragowo"    # context.user_data["geo place"]
+    city = context.user_data["geo place"]
     # moment = context.user_data["moment"]
     logger.info("summary for %s", city)
 
-    observer_obj, observer_text = geo.main_observer(geo_name=city, unaware_datetime=datetime.today())
+    observer_obj = geo.Observer(geo_name=city, unaware_datetime=datetime.today())
     text = ""
-    text += observer_text[0]
-    text += observer_text[1]
-    # text += observer_text[2]
+    text += str(observer_obj)
     # ++++++++++++++++++++++
     mph_dict, mph_text = md.main_moon_phase(observer=observer_obj)
     text += mph_text
@@ -296,11 +296,11 @@ async def alarm(context: ContextTypes.DEFAULT_TYPE) -> None:
     await context.bot.send_message(job.chat_id, text=text)
 
     # # ++++++++++++++++++++++
-    # mp.plot_color_of_the_days(observer=observer_obj, days=3, file_name=photo_name)
-    #
-    # text = "reply_photo"
-    # logger.info("%s", text)
-    # await update.message.reply_photo(photo=open(photo_name, 'rb'))
+    mp.plot_color_of_the_days(observer=observer_obj, days=3, file_name=photo_name)
+
+    text = "reply_photo"
+    logger.info("%s", text)
+    await context.message.reply_photo(photo=open(photo_name, 'rb'))
 
 
 def remove_job_if_exists(name: str, context: ContextTypes.DEFAULT_TYPE) -> bool:

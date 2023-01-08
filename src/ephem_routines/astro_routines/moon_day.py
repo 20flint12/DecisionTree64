@@ -242,7 +242,7 @@ def main_moon_phase(geographical_name, local_unaware_datetime):
     observer = geo.Observer(geo_name=geographical_name)
 
     observer.get_coords_by_name()
-    print("\ngeo_name=", observer.geo_name, "[lat=", observer.location.latitude, "lon=", observer.location.longitude, "]")
+    print("\ngeo_name=", observer.geo_name, "[lat=", observer.location._latitude, "lon=", observer.location._longitude, "]")
     observer.get_tz_by_coord()
     print("timezone=", observer.timezone_name)
 
@@ -274,7 +274,7 @@ def main_moon_day(geographical_name, local_unaware_datetime):
     observer = geo.Observer(geo_name=geographical_name)
 
     observer.get_coords_by_name()
-    print("\ngeo_name=", observer.geo_name, "[lat=", observer.location.latitude, "lon=", observer.location.longitude, "]")
+    print("\ngeo_name=", observer.geo_name, "[lat=", observer.location._latitude, "lon=", observer.location._longitude, "]")
     observer.get_tz_by_coord()
     print("timezone=", observer.timezone_name)
 
