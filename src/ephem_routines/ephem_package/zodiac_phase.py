@@ -12,6 +12,7 @@ zodiac = 'AR TA GE CN LE VI LI SC SG CP AQ PI'.split()
 zodiac_full_rus = u'Овен Телец Близнецы Рак Лев Дева Весы Скорпион Стрелец Козерог Водолей Рыбы'.split()
 zodiac_full_ukr = u'Овен Телець Близнюки Рак Лев Діва Терези Скорпіон Стрілець Козоріг Водолій Риби'.split()
 zodiac_short_rus = u'Овн Тлц Блз Рак Лев Дев Вес Скп Стр Коз Вод Рыб'.split()
+zodiac_short_ukr = u'Овн Тлц Блз Рак Лев Дів Тер Скп Стр Коз Вод Риб'.split()
 
 
 def format_zodiacal_longitude(longitude):
@@ -29,8 +30,8 @@ def format_zodiacal_longitude(longitude):
         long = longitude
 
     degrees = int(long % 30)
-    sign = zodiac_short_rus[int(long / 30)]
-    minutes = int(round((long % 1) * 60))
+    sign = zodiac_short_ukr[int(long / 30)]
+    # minutes = int(round((long % 1) * 60))
     return u'{1}{0:02}'.format(degrees, sign)
 
 

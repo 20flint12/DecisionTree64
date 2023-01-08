@@ -42,7 +42,11 @@ def plot_color_of_the_days(observer=None, days=1., file_name="plot_astro_summary
     lbl_dates = []
 
     blocked_m_long = False
-    annot_zod = {}
+    blocked_s_long = False
+    annot_moon_zod = {}
+    annot_sun_zod = {}
+    last_sun_str = ""
+
     for cur_un_dt in unaware_dates:
 
         observer.unaware_update_utc((datetime.fromtimestamp(cur_un_dt)))
@@ -74,12 +78,21 @@ def plot_color_of_the_days(observer=None, days=1., file_name="plot_astro_summary
 
                 sign = zd.zodiac_full_ukr[int(m_long / 30)]
                 # print(ecl_dict["moon_lon"], zd.format_zodiacal_longitude((ecl_dict["moon_lon"])), sign)
-                annot_zod[sign] = mdates.date2num(observer.get_unaware)
+                annot_moon_zod[sign] = mdates.date2num(observer.get_unaware)
         else:
             if (m_long % 30) == 16:
                 blocked_m_long = False
 
 
+        res_sun_str = zd.format_zodiacal_longitude((ecl_dict["sun_lon"]))
+        # print(ecl_dict["sun_lon"], res_sun_str)
+        if res_sun_str != last_sun_str:
+            last_sun_str = res_sun_str
+
+            if not blocked_s_long:      # bypass first annotation
+                blocked_s_long = True
+            else:
+                annot_sun_zod[res_sun_str] = mdates.date2num(observer.get_unaware)
 
 
 
@@ -99,7 +112,7 @@ def plot_color_of_the_days(observer=None, days=1., file_name="plot_astro_summary
 
     # ////////////////////  SUN MOON DAYS  //////////////////////////////////
     # print(lbl_dates)
-    # print(annot_zod)
+    # print(annot_moon_zod)
     # print(moon_lon)
 
     s_angle = np.array(sun_angle)
@@ -165,7 +178,7 @@ def plot_color_of_the_days(observer=None, days=1., file_name="plot_astro_summary
     # axes[1].yaxis.set_major_formatter(mdates.DateFormatter('%d %b'))
     axes[1].yaxis.set_major_locator(mdates.DayLocator(interval=1))
 
-    _plot_annotations_of_zodiacs(annotation_dict=annot_zod, axes=axes)
+    _plot_annotations_of_zodiacs(annotation_moon_dict=annot_moon_zod, annotation_sun_dict=annot_sun_zod, axes=axes)
 
     im = axes[1].imshow(Z,
                         interpolation='nearest',  # 'nearest', 'bilinear', 'bicubic'
@@ -252,12 +265,12 @@ def _plot_annotations_of_moon_days(observer=None, days=1., axes=None):
                          )
 
 
-def _plot_annotations_of_zodiacs(annotation_dict=None, axes=None):
-    for i in annotation_dict:
-        # print(i, annotation_dict[i])
+def _plot_annotations_of_zodiacs(annotation_moon_dict=None, annotation_sun_dict=None, axes=None):
+    for i in annotation_moon_dict:
+        # print(i, annotation_moon_dict[i])
 
         annot_text = str(i)
-        coords = (-0.5, annotation_dict[i])
+        coords = (-0.5, annotation_moon_dict[i])
 
         axes[1].annotate(annot_text,
                          xy=coords,
@@ -266,8 +279,18 @@ def _plot_annotations_of_zodiacs(annotation_dict=None, axes=None):
                          verticalalignment='center'
                          )
 
+    for i in annotation_sun_dict:
+        # print(i, annotation_sun_dict[i])
 
+        annot_text = str(i)
+        coords = (0.3, annotation_sun_dict[i])
 
+        axes[1].annotate(annot_text,
+                         xy=coords,
+                         fontsize=9.5,
+                         horizontalalignment='left',
+                         verticalalignment='center'
+                         )
 
 
 if __name__ == '__main__':
