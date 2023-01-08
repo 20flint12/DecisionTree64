@@ -60,6 +60,7 @@ def plot_color_of_the_days(observer=None, days=1., file_name="plot_astro_summary
         # else:
         #     print(zd.format_zodiacal_longitude())
 
+
         ecl_dict, ecl_text = zd.main_zodiac_sun_moon(observer=observer)     # unmodified observer
         sun_lon.append(ecl_dict["sun_lon"])
         sun_lat.append(ecl_dict["sun_lat"])
@@ -67,7 +68,6 @@ def plot_color_of_the_days(observer=None, days=1., file_name="plot_astro_summary
         moon_lat.append(ecl_dict["moon_lat"])
         # sun_dist.append(ecl_dict["sun_dist"])
         # moon_dist.append(ecl_dict["moon_dist"])
-
 
 
 
@@ -82,6 +82,7 @@ def plot_color_of_the_days(observer=None, days=1., file_name="plot_astro_summary
         else:
             if (m_long % 30) == 16:
                 blocked_m_long = False
+
 
 
         res_sun_str = zd.format_zodiacal_longitude((ecl_dict["sun_lon"]))
@@ -236,6 +237,7 @@ def _plot_annotations_of_sun_days(observer=None, days=1., axes=None):
                        fontsize=9
                        )
 
+
 def _plot_annotations_of_moon_days(observer=None, days=1., axes=None):
 
     observer.restore_unaware()
@@ -270,12 +272,12 @@ def _plot_annotations_of_zodiacs(annotation_moon_dict=None, annotation_sun_dict=
         # print(i, annotation_moon_dict[i])
 
         annot_text = str(i)
-        coords = (-0.5, annotation_moon_dict[i])
+        coords = (-0.4, annotation_moon_dict[i])
 
         axes[1].annotate(annot_text,
                          xy=coords,
                          fontsize=10,
-                         horizontalalignment='left',
+                         horizontalalignment='center',
                          verticalalignment='center'
                          )
 
@@ -283,12 +285,12 @@ def _plot_annotations_of_zodiacs(annotation_moon_dict=None, annotation_sun_dict=
         # print(i, annotation_sun_dict[i])
 
         annot_text = str(i)
-        coords = (0.3, annotation_sun_dict[i])
+        coords = (0.5, annotation_sun_dict[i])
 
         axes[1].annotate(annot_text,
                          xy=coords,
                          fontsize=9.5,
-                         horizontalalignment='left',
+                         horizontalalignment='center',
                          verticalalignment='center'
                          )
 
