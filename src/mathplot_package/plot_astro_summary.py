@@ -122,7 +122,7 @@ def plot_color_of_the_days(observer=None, days=1., file_name="plot_astro_summary
     axes[0].set_title(f'===', fontsize=10)
     axes[0].set_title('  Сонце', loc='left', fontsize=10)
     axes[0].set_title('Місяць ', loc='right', fontsize=10)
-    axes[0].grid(axis='y', color='white', linestyle='-', linewidth=0.2)
+    axes[0].grid(axis='y', color='white', linestyle='-', linewidth=0.3)
     # axes[0].axis('off')
     axes[0].set_xticks([])
 
@@ -211,6 +211,17 @@ def _plot_annotations_of_sun_days(observer=None, days=1., axes=None):
                          verticalalignment='top'
                          )
 
+    axes[0].set_xlabel("Геолокація: " + observer._geo_name,
+                       labelpad=8,
+                       loc='right',
+                       fontsize=9
+                       )
+
+    axes[1].set_xlabel("" + format_datetime(observer.restore_unaware(), "d MMMM YYYY р., EEEE", locale='uk_UA'),
+                       labelpad=8,
+                       loc='right',
+                       fontsize=9
+                       )
 
 def _plot_annotations_of_moon_days(observer=None, days=1., axes=None):
 
@@ -243,7 +254,7 @@ def _plot_annotations_of_moon_days(observer=None, days=1., axes=None):
 
 def _plot_annotations_of_zodiacs(annotation_dict=None, axes=None):
     for i in annotation_dict:
-        print(i, annotation_dict[i])
+        # print(i, annotation_dict[i])
 
         annot_text = str(i)
         coords = (-0.5, annotation_dict[i])
@@ -261,7 +272,8 @@ def _plot_annotations_of_zodiacs(annotation_dict=None, axes=None):
 
 if __name__ == '__main__':
 
-    geo_name = 'Mragowo'
+    geo_name = 'Kremenchuk'
+    # geo_name = 'Mragowo'
     # geo_name = 'Boston'
     # geo_name = 'Kharkiv'
 
