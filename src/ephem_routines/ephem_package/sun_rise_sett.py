@@ -123,7 +123,7 @@ def main_sun_altitude(observer=None):
     result_text = ""
     result_text += "\n"
 
-    # observer.unaware_update_utc()
+    observer.unaware_update_utc()
     sun = ephem.Sun(observer.get_place)
     sun.compute(observer.get_place)
     # ===============================================

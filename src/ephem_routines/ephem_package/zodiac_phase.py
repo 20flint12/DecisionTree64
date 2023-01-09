@@ -176,7 +176,7 @@ def main_zodiac_sun_moon(observer=None):
     result_text = ""
 
     #####################################################################
-    # observer.unaware_update_utc()
+    observer.unaware_update_utc()       # restore utc from previous calculation
     # print(observer.get_utc)
 
     body_sun = ephem.Sun(observer.get_place)
@@ -222,9 +222,9 @@ def main_moon_altitude(observer=None):
     result_text = ""
     result_text += "\n"
 
-    # observer.unaware_update_utc()
-    moon = ephem.Moon(observer._place)
-    moon.compute(observer._place)
+    observer.unaware_update_utc()       # restore utc from previous calculation
+    moon = ephem.Moon(observer.get_place)
+    moon.compute(observer.get_place)
     # ===============================================
 
     # print(moon.alt, observer.utc)

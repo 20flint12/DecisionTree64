@@ -128,6 +128,8 @@ async def received_information(update: Update, context: ContextTypes.DEFAULT_TYP
 
 async def show_data(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Display the gathered info."""
+
+    context.chat_data.update(context.user_data)
     await update.message.reply_text(
         f"This is what you already told me: {facts_to_str(context.user_data)}"
     )

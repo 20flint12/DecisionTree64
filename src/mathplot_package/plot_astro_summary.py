@@ -231,7 +231,7 @@ def _plot_annotations_of_sun_days(observer=None, days=1., axes=None):
                        fontsize=9
                        )
 
-    axes[1].set_xlabel("" + format_datetime(observer.restore_unaware(), "d MMMM YYYY р., EEEE", locale='uk_UA'),
+    axes[1].set_xlabel("" + format_datetime(observer.restore_unaware(), "d MMMM YYYY р., EEE", locale='uk_UA'),
                        labelpad=8,
                        loc='right',
                        fontsize=9

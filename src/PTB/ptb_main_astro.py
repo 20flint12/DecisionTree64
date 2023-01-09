@@ -226,9 +226,12 @@ async def summary(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     if len(context.args) > 0:
         city = str(context.args[0])
     else:
-        city = context.user_data["geo place"]
+        if "geo place" in context.user_data:
+            city = context.user_data["geo place"]
+        else:
+            city = "Mragowo"
     moment = context.user_data["moment"]
-    logger.info("summary at %s", moment)
+    logger.info("summary -> city=%s moment=%s", city, moment)
 
     observer_obj = geo.Observer(geo_name=city, unaware_datetime=datetime.today())
     text = ""
@@ -254,24 +257,23 @@ async def summary(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     wt_dict, wt_text = wt.main_weather_now(observer=observer_obj)
     text += wt_text
 
-    update.message.text = text
-    logger.info("moon_zodiac of %s: %s", user.first_name, update.message.text)
-    await update.message.reply_text(update.message.text)
+    # update.message.text = text
+    logger.info("moon_zodiac of %s: %s", user.first_name, text)
+    await update.message.reply_text(text)
 
 
 async def alarm(context: ContextTypes.DEFAULT_TYPE) -> None:
     """Send the alarm message."""
-    # chat_id = update.message.chat_id
-    chat_id = "442763659"
-    # job_name = str(chat_id) + "#REP"  # 442763659#REP
-    photo_name = str(chat_id) + "_photo.png"  # 442763659_photo.jpg
-
     job = context.job
+    photo_name = str(job.chat_id) + "_photo.png"  # 442763659_photo.jpg
+    # logger.info("photo: %s === %s --- %s", photo_name, str(context.user_data), str(context.chat_data))
 
-    # city = "Mragowo"    # context.user_data["geo place"]
-    city = context.user_data["geo place"]
-    # moment = context.user_data["moment"]
-    logger.info("summary for %s", city)
+    if "geo place" in context.chat_data:
+        city = context.chat_data["geo place"]
+    else:
+        city = "Mragowo"
+    moment = context.chat_data["moment"]
+    logger.info("summary -> city=%s moment=%s", city, moment)
 
     observer_obj = geo.Observer(geo_name=city, unaware_datetime=datetime.today())
     text = ""
@@ -293,14 +295,15 @@ async def alarm(context: ContextTypes.DEFAULT_TYPE) -> None:
     wt_dict, wt_text = wt.main_weather_now(observer=observer_obj)
     text += wt_text
 
-    await context.bot.send_message(job.chat_id, text=text)
+    await context.bot.send_message(chat_id=job.chat_id, text=text)
 
     # # ++++++++++++++++++++++
     mp.plot_color_of_the_days(observer=observer_obj, days=3, file_name=photo_name)
 
     text = "reply_photo"
     logger.info("%s", text)
-    await context.message.reply_photo(photo=open(photo_name, 'rb'))
+    # await context.message.reply_photo(photo=open(photo_name, 'rb'))
+    await context.bot.send_photo(chat_id=job.chat_id, photo=open(photo_name, 'rb'))
 
 
 def remove_job_if_exists(name: str, context: ContextTypes.DEFAULT_TYPE) -> bool:
@@ -332,13 +335,32 @@ async def set_daily_timer(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
             return
 
         job_removed = remove_job_if_exists(str(chat_id), context)
-        context.job_queue.run_daily(alarm,
-                                    time=time(hour=dt_hhmm.hour,
-                                              minute=dt_hhmm.minute,
-                                              second=10,
-                                              tzinfo=pytz.timezone('Europe/Warsaw')),
-                                    days=(0, 1, 2, 3, 4, 5, 6),
-                                    chat_id=chat_id, name=str(chat_id))
+        context.job_queue.run_daily(
+            alarm,
+            time=time(
+                hour=dt_hhmm.hour,
+                minute=dt_hhmm.minute,
+                second=10,
+                tzinfo=pytz.timezone('Europe/Warsaw')),
+            days=(0, 1, 2, 3, 4, 5, 6),
+            name=str(chat_id),
+            chat_id=chat_id,
+            job_kwargs={
+                # 'trigger': 'cron',
+                # 'days': 'mon-fri,sun',
+                # 'hour': '11,15,19,23',
+                # 'minute': 55,
+            },
+        )
+        # context.job_queue.run_custom(
+        #     alarm,
+        #     job_kwargs={
+        #         'trigger': 'cron',
+        #         'days': 'mon-fri,sun',
+        #         'hour': '11,15,19,23',
+        #         'minute': 55,
+        #     },
+        # )
 
         text = "Timer successfully set!"
         if job_removed:

@@ -144,7 +144,9 @@ def main_moon_phase(observer=None):
     result_text = ""
 
     result_text += "\n"
-    result_dict = get_moon_phase(observer)
+
+    observer.unaware_update_utc()       # restore utc from previous calculation
+    result_dict = get_moon_phase(observer=observer)
 
     # calc_date_utc = observer.dt_utc_to_aware_by_tz((result_dict["calc_date_utc"].datetime()))
     prev_utc = observer.dt_utc_to_aware_by_tz((result_dict["prev_utc"].datetime()))
@@ -166,7 +168,7 @@ def main_moon_day(observer=None):
     """
     result_text = ["", "", ""]
 
-    # observer.unaware_update_utc()
+    observer.unaware_update_utc()       # restore utc from previous calculation
     place_date_utc = observer.get_utc
     moon = ephem.Moon(observer.get_place)
     #####################################################################
@@ -241,6 +243,8 @@ def main_moon_day(observer=None):
     result_text[2] += "\n" + moon_rise.strftime(geo.dt_format) + " moon_rise"
     result_text[2] += "\n" + moon_sett.strftime(geo.dt_format) + " moon_sett"
 
+    # observer.unaware_update_utc()   # restore utc for future calculation
+
     return result_dict, result_text
 
 
@@ -270,8 +274,6 @@ if __name__ == '__main__':
     text += md_text[2]
 
     print(text)
-
-
 
     # tp_md_ext = get_moon_day_local12place(loc_date, cur_place)
     # print "tp_md_ext=\n", pprint.pprint(tp_md_ext)
