@@ -297,12 +297,10 @@ async def alarm(context: ContextTypes.DEFAULT_TYPE) -> None:
 
     await context.bot.send_message(chat_id=job.chat_id, text=text)
 
-    # # ++++++++++++++++++++++
+    # ++++++++++++++++++++++
     mp.plot_color_of_the_days(observer=observer_obj, days=3, file_name=photo_name)
 
-    text = "reply_photo"
-    logger.info("%s", text)
-    # await context.message.reply_photo(photo=open(photo_name, 'rb'))
+    logger.info("send_photo %s", photo_name)
     await context.bot.send_photo(chat_id=job.chat_id, photo=open(photo_name, 'rb'))
 
 

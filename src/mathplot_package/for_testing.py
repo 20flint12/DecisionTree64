@@ -1,18 +1,19 @@
-import ephem
-import datetime
 
-date = datetime.datetime.now()
-print("Date: " + str(date))
+import matplotlib.pyplot as plt
 
-obs=ephem.Observer()
-obs.lat='52:00'
-obs.long='21:00'
-obs.date = date
-# print obs
+# create a figure and axes
+fig, ax = plt.subplots()
 
-sun = ephem.Sun(obs)
-sun.compute(obs)
-print(float(sun.alt))
-print(str(sun.alt))
-sun_angle = float(sun.alt) * 57.2957795 # Convert Radians to degrees
-print("sun_angle: %f" % sun_angle)
+# create a line
+x = [1, 2, 3, 4, 5]
+y = [1, 2, 3, 2, 1]
+line, = ax.plot(x, y)
+
+print(line, line.get_ydata()[3])
+# add an annotation with a multi-line text
+ax.annotate("Line 1\nLine 2\nLine 3\nytu",
+            xy=(3, 2.76),
+            # xytext=(3, 1.76),
+            )
+
+plt.show()

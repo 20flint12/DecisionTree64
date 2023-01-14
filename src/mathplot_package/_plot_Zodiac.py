@@ -21,6 +21,8 @@ colors = [
     # '#35c3de', '#58dbee', '#35c3de',  # AQ    светло-голубой (такой оттенок у метановых облаков).
     # '#7ea7d8', '#207678', '#7ea7d8',  # PI    все оттенки синего (болотный, сиреневый)
 
+    '#7ea7d8', '#207678', '#207678', '#207678', '#7ea7d8',  # PI    все оттенки синего (болотный, сиреневый)
+
     '#ba1b1b', '#e75321', '#e75321', '#e75321', '#ba1b1b',  # AR    красный
     '#073763', '#0c343d', '#0c343d', '#0c343d', '#073763',  # TA    пастельные тона розового и зеленого
     '#ffdb00', '#fdff14', '#fdff14', '#fdff14', '#ffdb00',  # GE    желтый
@@ -34,47 +36,96 @@ colors = [
     '#35c3de', '#58dbee', '#58dbee', '#58dbee', '#35c3de',  # AQ    светло-голубой (такой оттенок у метановых облаков).
     '#7ea7d8', '#207678', '#207678', '#207678', '#7ea7d8',  # PI    все оттенки синего (болотный, сиреневый)
 
+    '#ba1b1b', '#e75321', '#e75321', '#e75321', '#ba1b1b',  # AR    красный
 ]
 zodiac_cmap = LinearSegmentedColormap.from_list('zodiac_cmap', colors, N=960)
 
+'''
+Огонь:      Овен, Лев, Стрелец          красным
+Земля:      Телец, Дева, Козерог        коричневый
+Воздух:     Близнецы, Весы, Водолей     синим
+Вода:       Рак, Скорпион, Рыбы         зеленым
+'''
+colors = [
+    '#2eeee1', '#02f991', '#02f991', '#02f991', '#2eeee1',  # Вода      зеленым
 
+    '#f25500', '#ea2300', '#ea2300', '#ea2300', '#f25500',  # Огонь     красный     Белок, тепло
+    '#543f2f', '#462e22', '#462e22', '#462e22', '#543f2f',  # Земля     коричневый  Соль, холод
+    '#009fff', '#007dff', '#007dff', '#007dff', '#009fff',  # Воздух    синим       Жиры, свет
+    '#90f0dc', '#02f991', '#02f991', '#02f991', '#90f0dc',  # Вода      зеленым     Углеводы, вода
+
+    '#f25500', '#ea2300', '#ea2300', '#ea2300', '#f25500',  # Огонь     красный
+]
+
+elements_cmap = LinearSegmentedColormap.from_list('elements_cmap', colors, N=960)
+
+
+OVERLAP_COEF = 0.91
 if __name__ == '__main__':
 
+    INT_BEG = 0
+    INT_END = 360
+    INT_BEG = 700
+    INT_END = 800
+
     plt.style.use('_mpl-gallery-nogrid')
-    fig, axes = plt.subplots(nrows=1, ncols=2, figsize=(4, 7))
+    fig, axes = plt.subplots(nrows=1, ncols=4, figsize=(4, 7))
     fig.subplots_adjust(top=0.95, bottom=.05, left=0.15, right=.95, wspace=0.00)
     # ************************************************************************
 
-    xs = np.linspace(0, 360, 1000)
+    xs = np.linspace(INT_BEG, INT_END, 1000)
     # ***********************************************************
 
-    ycolors = xs    # convert_colors(in_y_list=ys, thresh=0.27)
+    ycolors = np.mod(xs, 360)
     ys = ycolors
 
     axes[0].set_title(f'ypoints', fontsize=10)
     axes[0].grid()
-    # axes[0].invert_xaxis()
-    # axes[0].invert_yaxis()
-    axes[0].axis(ymin=360, ymax=0)
+    axes[0].axis(ymin=INT_END, ymax=INT_BEG)
     axes[0].plot(ys, xs, linestyle='dotted')
 
 
     arr_size = len(ys)
-    gcolumn = 5
+    gcolumn = 1
     Z = np.zeros(arr_size * gcolumn).reshape(arr_size, gcolumn)
     Z[:, 0] = ys
-    Z[:, 1] = ys
-    Z[:, 2] = ys
-    Z[:, 3] = ys
-    Z[:, 4] = ys
-    # print(Z)
 
     axes[1].set_title(f"Zodiac", fontsize=10)
     axes[1].axis('off')
-    axes[1].imshow(Z, interpolation='bilinear',  # 'nearest', 'bilinear', 'bicubic'
+
+    CYCLING_OVERLAP = 360 * (2/12)/2 * OVERLAP_COEF
+    axes[1].imshow(Z, interpolation='nearest',  # 'nearest', 'bilinear', 'bicubic'
                    aspect='auto',
                    cmap=zodiac_cmap,
                    origin='upper',
-                   vmax=Z.max(), vmin=Z.min())
+                   # vmax=Z.max(), vmin=Z.min(),
+                   vmin=0-CYCLING_OVERLAP, vmax=360+CYCLING_OVERLAP,
+                   )
+
+
+    # //////////////// ELEMENTS ////////////////////
+    ycolors = np.mod(xs, 120)
+    ys = ycolors
+
+    axes[2].set_title(f'ypoints', fontsize=10)
+    axes[2].grid()
+    axes[2].axis(ymin=INT_END, ymax=INT_BEG)
+    axes[2].plot(ys, xs, linestyle='dotted')
+
+
+    arr_size = len(ys)
+    gcolumn = 1
+    Z = np.zeros(arr_size * gcolumn).reshape(arr_size, gcolumn)
+    Z[:, 0] = ys
+
+    axes[3].set_title(f"Elements", fontsize=10)
+    axes[3].axis('off')
+    CYCLING_OVERLAP = 120 * (2/4)/2 * OVERLAP_COEF
+    axes[3].imshow(Z, interpolation='nearest',  # 'nearest', 'bilinear', 'bicubic'
+                   aspect='auto',
+                   cmap=elements_cmap,
+                   origin='upper',
+                   vmin=0 - CYCLING_OVERLAP, vmax=120 + CYCLING_OVERLAP,
+                   )
 
     plt.show()

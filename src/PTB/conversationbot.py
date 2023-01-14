@@ -175,10 +175,7 @@ def main() -> None:
         states={
             GENDER: [MessageHandler(filters.Regex("^(Boy|Girl|Other)$"), gender)],
             PHOTO: [MessageHandler(filters.PHOTO, photo), CommandHandler("skip", skip_photo)],
-            LOCATION: [
-                MessageHandler(filters.LOCATION, location),
-                CommandHandler("skip", skip_location),
-            ],
+            LOCATION: [MessageHandler(filters.LOCATION, location), CommandHandler("skip", skip_location), ],
             BIO: [MessageHandler(filters.TEXT & ~filters.COMMAND, bio)],
         },
         fallbacks=[CommandHandler("cancel", cancel)],

@@ -1,4 +1,3 @@
-
 from datetime import datetime
 import itertools
 import math
@@ -6,13 +5,25 @@ import pprint
 
 import ephem
 import src.ephem_routines.ephem_package.geo_place as geo
-
+'''
+Огонь:      Овен, Лев, Стрелец          красным
+Земля:      Телец, Дева, Козерог        коричневым
+Воздух:     Близнецы, Весы, Водолей     синим
+Вода:       Рак, Скорпион, Рыбы         зеленым
+'''
 
 zodiac = 'AR TA GE CN LE VI LI SC SG CP AQ PI'.split()
 zodiac_full_rus = u'Овен Телец Близнецы Рак Лев Дева Весы Скорпион Стрелец Козерог Водолей Рыбы'.split()
 zodiac_full_ukr = u'Овен Телець Близнюки Рак Лев Діва Терези Скорпіон Стрілець Козоріг Водолій Риби'.split()
 zodiac_short_rus = u'Овн Тлц Блз Рак Лев Дев Вес Скп Стр Коз Вод Рыб'.split()
 zodiac_short_ukr = u'Овн Тлц Блз Рак Лев Дів Тер Скп Стр Коз Вод Риб'.split()
+
+elements_full_ukr = [
+    u'Огонь Tепло Белок',
+    u'Земля Xолод Соль',
+    u'Воздух Cвет Жиры',
+    u'Вода Угле- воды',
+]
 
 
 def format_zodiacal_longitude(longitude):
@@ -46,14 +57,14 @@ def format_angle_as_time(a):
 
 def print_ephemeris_for_date(date, bodies):
     date = Date(date)
-    print(datetime.datetime(*date.tuple()[:3]).strftime('%A')[:2],)
-    print('{0:02}'.format(date.tuple()[2]),)
+    print(datetime.datetime(*date.tuple()[:3]).strftime('%A')[:2], )
+    print('{0:02}'.format(date.tuple()[2]), )
     greenwich = Observer()
     greenwich.date = date
-    print(format_angle_as_time(greenwich.sidereal_time()),)
+    print(format_angle_as_time(greenwich.sidereal_time()), )
     for b in bodies:
         b.compute(date, date)
-        print(format_zodiacal_longitude(Ecliptic(b).long),)
+        print(format_zodiacal_longitude(Ecliptic(b).long), )
     print
 
 
@@ -61,9 +72,9 @@ def print_ephemeris_for_month(year, month, bodies):
     print()
     print((datetime.date(year, month, 1).strftime('%B %Y').upper().center(14 + len(bodies) * 7)))
     print()
-    print('DATE  SID.TIME',)
+    print('DATE  SID.TIME', )
     for b in bodies:
-        print('{0: <6}'.format(b.name[:6].upper()),)
+        print('{0: <6}'.format(b.name[:6].upper()), )
     print()
     for day in itertools.count(1):
         try:
@@ -83,7 +94,6 @@ def print_ephemeris_for_year(year):
 
 
 def getInfo(body):
-
     str_out = "\n"
     str_out += str(body)
     str_out += " " + ephem.constellation(body)[0]
@@ -94,7 +104,6 @@ def getInfo(body):
     str_out += " [{:7.3f}".format(body.ra * 180 / 3.14) + ";"
     str_out += " {:7.3f}]".format(body.dec * 180 / 3.14)
     # ---------------------------------------------------------------------
-
 
     ma = ephem.Equatorial(body.ra, body.dec)
     me = ephem.Ecliptic(ma)
@@ -114,7 +123,6 @@ def getInfo(body):
     str_out += " {:7.3f}]".format(ecl.lat * 180 / 3.14)
     # ---------------------------------------------------------------------
 
-
     ###########################################################################
     ecl = ephem.Ecliptic(body, epoch='2000')
 
@@ -123,7 +131,6 @@ def getInfo(body):
     str_out += " [{:7.3f}".format(ecl.lon * 180 / 3.14) + ";"
     str_out += " {:7.3f}]".format(ecl.lat * 180 / 3.14)
     # ---------------------------------------------------------------------
-
 
     # body.compute(cur_date, cur_date)
     str_out += "\n"
@@ -162,6 +169,27 @@ def getInfo(body):
 #     # ===============================================
 
 
+def main_moon_lunation(observer=None):
+    """Returns a floating-point number from 0-1. where 0=new, 0.5=full, 1=new"""
+    # Ephem stores its date numbers as floating points, which the following uses
+    # to conveniently extract the percent time between one new moon and the next
+    # This corresponds (somewhat roughly) to the phase of the moon.
+
+    # Use Year, Month, Day as arguments
+    observer.unaware_update_utc()  # restore utc from previous calculation
+    date = ephem.Date(datetime.date(observer.get_utc))
+
+    nnm = ephem.next_new_moon(date)
+    pnm = ephem.previous_new_moon(date)
+
+    lunation = (date - pnm) / (nnm - pnm)
+
+    # Note that there is a ephem.Moon().phase() command, but this returns the
+    # percentage of the moon which is illuminated. This is not really what we want.
+
+    return lunation
+
+
 def main_zodiac_sun_moon(observer=None):
     """
     :param observer:
@@ -176,12 +204,13 @@ def main_zodiac_sun_moon(observer=None):
     result_text = ""
 
     #####################################################################
-    observer.unaware_update_utc()       # restore utc from previous calculation
+    observer.unaware_update_utc()  # restore utc from previous calculation
     # print(observer.get_utc)
 
     body_sun = ephem.Sun(observer.get_place)
     # body_sun.compute(observer.place)
     ecl_sun = ephem.Ecliptic(body_sun, epoch=observer.get_utc)
+
     body_moon = ephem.Moon(observer.get_place)
     # body_moon.compute(observer.place)
     ecl_moon = ephem.Ecliptic(body_moon, epoch=observer.get_utc)
@@ -202,7 +231,9 @@ def main_zodiac_sun_moon(observer=None):
 
     # Format longitude in zodiacal form (like '00AR00') and return as a string.
     result_dict["sun_zod"] = format_zodiacal_longitude(ecl_sun.lon)
+    result_dict["sun_constel"] = ephem.constellation(body_sun)
     result_dict["moon_zod"] = format_zodiacal_longitude(ecl_moon.lon)
+    result_dict["moon_constel"] = ephem.constellation(body_moon)
     # =========================================================================
 
     result_text += "\n"
@@ -211,18 +242,18 @@ def main_zodiac_sun_moon(observer=None):
     # result_text += "\n(" + str(deg(ecl_sun.lon)) + ", " + str(deg(ecl_sun.lat)) + ")"
 
     result_text += "\n" + str(result_dict["moon_zod"])
-    result_text += " [{:7.3f},".format(result_dict["moon_lon"]) + " {:7.3f}]".format(result_dict["moon_lat"]) + " moon_zod"
+    result_text += " [{:7.3f},".format(result_dict["moon_lon"]) + " {:7.3f}]".format(
+        result_dict["moon_lat"]) + " moon_zod"
     # result_text += "\n(" + str(deg(ecl_moon.lon)) + ", " + str(deg(ecl_moon.lat)) + ")"
 
     return result_dict, result_text
 
 
 def main_moon_altitude(observer=None):
-
     result_text = ""
     result_text += "\n"
 
-    observer.unaware_update_utc()       # restore utc from previous calculation
+    observer.unaware_update_utc()  # restore utc from previous calculation
     moon = ephem.Moon(observer.get_place)
     moon.compute(observer.get_place)
     # ===============================================
@@ -241,7 +272,6 @@ def main_moon_altitude(observer=None):
 
 
 if __name__ == "__main__":
-
     geo_name = 'Mragowo'
     # geo_name = 'Boston'
     # geo_name = 'Kharkiv'
@@ -256,7 +286,7 @@ if __name__ == "__main__":
     # ###########################################################################
 
     zodiac_dict, zodiac_text = main_zodiac_sun_moon(observer=observer_obj)
-    # pprint.pprint(zodiac_dict)
+    pprint.pprint(zodiac_dict)
     text += zodiac_text
 
     alt_dict, alt_text = main_moon_altitude(observer=observer_obj)
@@ -264,26 +294,8 @@ if __name__ == "__main__":
 
     print(text)
 
-    # # ---------------------------------------------------------------------
-    # start_date = ephem.Date('2015/10/21 15:00')
-    # stop_date = ephem.Date('2016/02/21 15:00')
-    #
-    # cur_date = start_date
-    # cur_date = ephem.Date(datetime.now())
-    # # while stop_date >= cur_date:
-    #
-    # cur_date = datetime.now()
-    # # print cur_date
-    #
-    # # body = ephem.Moon(cur_date)
-    # # ---------------------------------------------------------------------
-
-
-
-
     # str_out = ""
     # str_out += getInfo(body)
-    #
     #
     # body = ephem_routines.Sun(cur_date)
     # # body.compute(cur_date, cur_date)
@@ -291,13 +303,4 @@ if __name__ == "__main__":
     # str_out += getInfo(body)
     #
     # print str_out
-
-
-
-    # cur_date = ephem_routines.Date(cur_date + 0.5)
     # ===============================================
-
-
-
-
-

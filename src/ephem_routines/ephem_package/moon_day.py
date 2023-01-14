@@ -3,7 +3,6 @@ from datetime import datetime
 import pprint
 
 import ephem
-# import geo_place as geo
 import src.ephem_routines.ephem_package.geo_place as geo
 
 
@@ -54,8 +53,49 @@ def get_moons_in_year(year):
     return moons
 
 
-# def get_moon_phase(in_date_utc):
-def get_moon_phase(observer=None):
+def get_lunation_(observer=None):
+
+    # Convert input date to ephem date format
+    date = ephem.Date(observer.get_utc)
+    moon = ephem.Moon()
+    moon.compute(date)
+    phase = round(moon.moon_phase * 100, 2)
+    print(phase)
+    if phase < 100.0 / 8:
+        return phase, "Новолуние"
+    elif phase < 3 * 100.0 / 8:
+        return phase, "Растущая Луна"
+    elif phase < 5 * 100.0 / 8:
+        return phase, "Первая Четверть"
+    elif phase < 7 * 100.0 / 8:
+        return phase, "Растущая Луна"
+    else:
+        return phase, "Полнолуние"
+
+
+def get_lunation(observer=None):
+
+    # Convert input curr_date to ephem curr_date format
+    curr_date = ephem.Date(observer.get_utc)
+    # moon = ephem.Moon()
+    # moon.compute(curr_date)
+
+    # calculate the curr_date and time of the last new moon
+    last_new_moon = ephem.previous_new_moon(curr_date)
+    # calculate the curr_date and time of the next new moon
+    next_new_moon = ephem.next_new_moon(curr_date)
+
+    # calculate the lunation by subtracting the dates
+    cur_term = curr_date - last_new_moon
+    lun_term = next_new_moon - last_new_moon
+    lunation = cur_term / lun_term
+
+    # print("Lunation:", lunation, observer.get_utc)
+
+    return lunation
+
+
+def get_moon_phase_moment(observer=None):
     '''
     :param observer:
     :return:
@@ -86,49 +126,64 @@ def get_moon_phase(observer=None):
     mph_dict["place_date_utc"] = place_date_utc
     # =======================================================================
 
+    # Повний місяць
+    # Молодик
+    # Перша чверть
+    # Остання чверть
+
     # New Moon
     # First Quarter
     # Full Moon
     # Last Quarter
     delta_prev = delta_prev_NM
-    mph_dict["prev"] = "New Moon"
+    # mph_dict["prev"] = "New Moon"
+    mph_dict["prev"] = "Молодик"
     mph_dict["prev_utc"] = prev_NM
 
     if delta_prev > delta_prev_FQ:
         delta_prev = delta_prev_FQ
-        mph_dict["prev"] = "First Quarter"
+        # mph_dict["prev"] = "First Quarter"
+        mph_dict["prev"] = "Перша чверть"
         mph_dict["prev_utc"] = prev_FQ
 
     if delta_prev > delta_prev_FM:
         delta_prev = delta_prev_FM
-        mph_dict["prev"] = "Full Moon"
+        # mph_dict["prev"] = "Full Moon"
+        mph_dict["prev"] = "Повний місяць"
         mph_dict["prev_utc"] = prev_FM
 
     if delta_prev > delta_prev_LQ:
         delta_prev = delta_prev_LQ
-        mph_dict["prev"] = "Last Quarter"
+        # mph_dict["prev"] = "Last Quarter"
+        mph_dict["prev"] = "Остання чверть"
         mph_dict["prev_utc"] = prev_LQ
     # ==========================================================================
 
     delta_next = delta_next_NM
-    mph_dict["next"] = "New Moon"
+    # mph_dict["next"] = "New Moon"
+    mph_dict["next"] = "Молодик"
     mph_dict["next_utc"] = next_NM
 
     if delta_next > delta_next_FQ:
         delta_next = delta_next_FQ
-        mph_dict["next"] = "First Quarter"
+        # mph_dict["next"] = "First Quarter"
+        mph_dict["next"] = "Перша чверть"
         mph_dict["next_utc"] = next_FQ
 
     if delta_next > delta_next_FM:
         delta_next = delta_next_FM
-        mph_dict["next"] = "Full Moon"
+        # mph_dict["next"] = "Full Moon"
+        mph_dict["next"] = "Повний місяць"
         mph_dict["next_utc"] = next_FM
 
     if delta_next > delta_next_LQ:
         # delta_next = delta_next_LQ
-        mph_dict["next"] = "Last Quarter"
+        # mph_dict["next"] = "Last Quarter"
+        mph_dict["next"] = "Остання чверть"
         mph_dict["next_utc"] = next_LQ
     # =========================================================================
+
+    # mph_dict["moon_phase"] = moon.moon_phase
 
     return mph_dict
 
@@ -146,7 +201,7 @@ def main_moon_phase(observer=None):
     result_text += "\n"
 
     observer.unaware_update_utc()       # restore utc from previous calculation
-    result_dict = get_moon_phase(observer=observer)
+    result_dict = get_moon_phase_moment(observer=observer)
 
     # calc_date_utc = observer.dt_utc_to_aware_by_tz((result_dict["calc_date_utc"].datetime()))
     prev_utc = observer.dt_utc_to_aware_by_tz((result_dict["prev_utc"].datetime()))
@@ -250,9 +305,10 @@ def main_moon_day(observer=None):
 
 if __name__ == '__main__':
 
-    geo_name = 'Mragowo'
+    # geo_name = 'Mragowo'
     # geo_name = 'Boston'
     # geo_name = 'Kharkiv'
+    geo_name = 'Kyiv'
 
     # local_unaware_datetime = datetime.strptime("1976-07-13 02:37:21", geo.dt_format_rev)  # "%Y-%m-%d %H:%M:%S"
     local_unaware_datetime = datetime.today()
@@ -264,7 +320,7 @@ if __name__ == '__main__':
     # ###########################################################################
 
     mph_dict, mph_text = main_moon_phase(observer=observer_obj)
-    # pprint.pprint(mph_dict)
+    pprint.pprint(mph_dict)
     text += mph_text
 
     md_dict, md_text = main_moon_day(observer=observer_obj)
@@ -274,6 +330,10 @@ if __name__ == '__main__':
     text += md_text[2]
 
     print(text)
+
+
+
+    get_lunation(observer=observer_obj)
 
     # tp_md_ext = get_moon_day_local12place(loc_date, cur_place)
     # print "tp_md_ext=\n", pprint.pprint(tp_md_ext)
