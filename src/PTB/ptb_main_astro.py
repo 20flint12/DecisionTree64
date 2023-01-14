@@ -111,8 +111,8 @@ async def moon_phase(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None
     if len(context.args) > 0:
         city = str(context.args[0])
     else:
-        city = context.user_data["geo place"]
-    moment = context.user_data["moment"]
+        city = context.chat_data[opc.key_Geoloc]
+    moment = context.chat_data[opc.key_Moment]
     logger.info("moon day for city: %s at %s", city, moment)
 
     observer_obj = geo.Observer(geo_name=city, unaware_datetime=datetime.today())
@@ -122,9 +122,8 @@ async def moon_phase(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None
     mph_dict, mph_text = md.main_moon_phase(observer=observer_obj)
     text += mph_text
 
-    update.message.text = text
-    logger.info("moon_day of %s: %s", user.first_name, update.message.text)
-    await update.message.reply_text(update.message.text)
+    logger.info("moon_day of %s: %s", user.first_name, text)
+    await update.message.reply_text(text)
 
 
 async def moon_day(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -134,8 +133,8 @@ async def moon_day(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     if len(context.args) > 0:
         city = str(context.args[0])
     else:
-        city = context.user_data["geo place"]
-    moment = context.user_data["moment"]
+        city = context.chat_data[opc.key_Geoloc]
+    moment = context.chat_data[opc.key_Moment]
     logger.info("moon day for city:  %s at %s", city, moment)
 
     observer_obj = geo.Observer(geo_name=city, unaware_datetime=datetime.today())
@@ -146,9 +145,8 @@ async def moon_day(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     text += md_text[0]
     text += md_text[2]
 
-    update.message.text = text
-    logger.info("moon_day of %s: %s", user.first_name, update.message.text)
-    await update.message.reply_text(update.message.text)
+    logger.info("moon_day of %s: %s", user.first_name, text)
+    await update.message.reply_text(text)
 
 
 async def sun_rise(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -158,8 +156,8 @@ async def sun_rise(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     if len(context.args) > 0:
         city = str(context.args[0])
     else:
-        city = context.user_data["geo place"]
-    moment = context.user_data["moment"]
+        city = context.chat_data[opc.key_Geoloc]
+    moment = context.chat_data[opc.key_Moment]
     logger.info("sun rise for city: %s at %s", city, moment)
 
     observer_obj = geo.Observer(geo_name=city, unaware_datetime=datetime.today())
@@ -168,9 +166,9 @@ async def sun_rise(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     # ++++++++++++++++++++++
     sun_dict, sun_text = sr.main_sun_rise_sett(observer=observer_obj)     # at noon
     text += sun_text
-    update.message.text = text
-    logger.info("sun rise of %s: %s", user.first_name, update.message.text)
-    await update.message.reply_text(update.message.text)
+
+    logger.info("sun rise of %s: %s", user.first_name, text)
+    await update.message.reply_text(text)
 
 
 async def zodiac(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -180,8 +178,8 @@ async def zodiac(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     if len(context.args) > 0:
         city = str(context.args[0])
     else:
-        city = context.user_data["geo place"]
-    moment = context.user_data["moment"]
+        city = context.chat_data[opc.key_Geoloc]
+    moment = context.chat_data[opc.key_Moment]
     logger.info("zodiac at %s", moment)
 
     observer_obj = geo.Observer(geo_name=city, unaware_datetime=datetime.today())
@@ -190,9 +188,9 @@ async def zodiac(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     # ++++++++++++++++++++++
     zodiac_dict, zodiac_text = zd.main_zodiac_sun_moon(observer=observer_obj)
     text += zodiac_text
-    update.message.text = text
-    logger.info("moon_zodiac of %s: %s", user.first_name, update.message.text)
-    await update.message.reply_text(update.message.text)
+
+    logger.info("moon_zodiac of %s: %s", user.first_name, text)
+    await update.message.reply_text(text)
 
 
 async def weather(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -202,9 +200,8 @@ async def weather(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     if len(context.args) > 0:
         city = str(context.args[0])
     else:
-        # {'geo place': 'london', 'datetime': 'tomorrow', 'choice': 'additional'}
-        city = context.user_data["geo place"]
-    moment = context.user_data["moment"]
+        city = context.chat_data[opc.key_Geoloc]
+    moment = context.chat_data[opc.key_Moment]
     logger.info("weather for city %s at %s", city, moment)
 
     observer_obj = geo.Observer(geo_name=city, unaware_datetime=datetime.today())
@@ -213,10 +210,9 @@ async def weather(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     # ++++++++++++++++++++++
     wt_dict, wt_text = wt.main_weather_now(observer=observer_obj)
     text += wt_text
-    update.message.text = text
-    logger.info("weather of %s: %s", user.first_name, update.message.text)
 
-    await update.message.reply_text(update.message.text)
+    logger.info("weather of %s: %s", user.first_name, text)
+    await update.message.reply_text(text)
 
 
 async def summary(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -226,11 +222,11 @@ async def summary(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     if len(context.args) > 0:
         city = str(context.args[0])
     else:
-        if "geo place" in context.user_data:
-            city = context.user_data["geo place"]
+        if opc.key_Geoloc in context.chat_data:
+            city = context.chat_data[opc.key_Geoloc]
         else:
             city = "Mragowo"
-    moment = context.user_data["moment"]
+    moment = context.chat_data[opc.key_Moment]
     logger.info("summary -> city=%s moment=%s", city, moment)
 
     observer_obj = geo.Observer(geo_name=city, unaware_datetime=datetime.today())
@@ -257,7 +253,6 @@ async def summary(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     wt_dict, wt_text = wt.main_weather_now(observer=observer_obj)
     text += wt_text
 
-    # update.message.text = text
     logger.info("moon_zodiac of %s: %s", user.first_name, text)
     await update.message.reply_text(text)
 
@@ -266,13 +261,13 @@ async def alarm(context: ContextTypes.DEFAULT_TYPE) -> None:
     """Send the alarm message."""
     job = context.job
     photo_name = str(job.chat_id) + "_photo.png"  # 442763659_photo.jpg
-    # logger.info("photo: %s === %s --- %s", photo_name, str(context.user_data), str(context.chat_data))
+    # logger.info("photo: %s === %s --- %s", photo_name, str(context.chat_data), str(context.chat_data))
 
-    if "geo place" in context.chat_data:
-        city = context.chat_data["geo place"]
+    if opc.key_Geoloc in context.chat_data:
+        city = context.chat_data[opc.key_Geoloc]
     else:
         city = "Mragowo"
-    moment = context.chat_data["moment"]
+    moment = context.chat_data[opc.key_Moment]
     logger.info("summary -> city=%s moment=%s", city, moment)
 
     observer_obj = geo.Observer(geo_name=city, unaware_datetime=datetime.today())
@@ -298,7 +293,7 @@ async def alarm(context: ContextTypes.DEFAULT_TYPE) -> None:
     await context.bot.send_message(chat_id=job.chat_id, text=text)
 
     # ++++++++++++++++++++++
-    mp.plot_color_of_the_days(observer=observer_obj, days=3, file_name=photo_name)
+    mp.plot_color_of_the_days(observer=observer_obj, days=5, file_name=photo_name)
 
     logger.info("send_photo %s", photo_name)
     await context.bot.send_photo(chat_id=job.chat_id, photo=open(photo_name, 'rb'))
@@ -318,60 +313,67 @@ async def set_daily_timer(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
     """Add a job to the queue."""
     chat_id = update.effective_message.chat_id
 
-    # timezone = context.user_data["time zone"]
+    # timezone = context.chat_data["time zone"]
     # print(timezone)
 
+    text = ""
+    dt_hhmm = None
     try:
         hhmm = context.args[0]
         try:
-            dt_hhmm = datetime.strptime("2000-01-01 " + hhmm, "%Y-%m-%d %H%M")
-            context.user_data["daily notify"] = hhmm
-            logger.info("hhmm: %s", dt_hhmm.time())
+            dt_hhmm = datetime.strptime("2000-01-01 " + hhmm, "%Y-%m-%d %H%M10")
+            context.chat_data[opc.key_Notify] = hhmm
+            text += "Заданий час: " + str(dt_hhmm.time())
+            logger.info(text)
         except ValueError:
-            logger.info("Sorry, enter corrrect time [HHMM]")
-            await update.effective_message.reply_text("Sorry, enter corrrect time [HHMM]")
+            text += "Вибачте, задайте час в форматі [HHMM]"
+            logger.info(text)
+            await update.effective_message.reply_text(text)
             return
 
-        job_removed = remove_job_if_exists(str(chat_id), context)
-        context.job_queue.run_daily(
-            alarm,
-            time=time(
-                hour=dt_hhmm.hour,
-                minute=dt_hhmm.minute,
-                second=10,
-                tzinfo=pytz.timezone('Europe/Warsaw')),
-            days=(0, 1, 2, 3, 4, 5, 6),
-            name=str(chat_id),
-            chat_id=chat_id,
-            job_kwargs={
-                # 'trigger': 'cron',
-                # 'days': 'mon-fri,sun',
-                # 'hour': '11,15,19,23',
-                # 'minute': 55,
-            },
-        )
-        # context.job_queue.run_custom(
-        #     alarm,
-        #     job_kwargs={
-        #         'trigger': 'cron',
-        #         'days': 'mon-fri,sun',
-        #         'hour': '11,15,19,23',
-        #         'minute': 55,
-        #     },
-        # )
-
-        text = "Timer successfully set!"
-        if job_removed:
-            text += " Old one was removed."
-        await update.effective_message.reply_text(text)
-
     except (IndexError, ValueError):
-        if "daily notify" in context.user_data.keys():
-            set_hhmm = context.user_data["daily notify"]
-            logger.info("Last set on {%s}.", set_hhmm)
-            await update.effective_message.reply_text("Last set on " + set_hhmm)
+        if opc.key_Notify in context.chat_data.keys():
+            hhmm = context.chat_data[opc.key_Notify]
+            dt_hhmm = datetime.strptime("2000-01-01 " + hhmm, "%Y-%m-%d %H%M")
+            text += "Збережені настройки часу нагадування [" + hhmm + "]"
+            logger.info(text)
         else:
             await update.effective_message.reply_text("Usage: /set HHMM")
+
+    # ############# Specify timer with valid [HHMM] ###############
+    job_removed = remove_job_if_exists(str(chat_id), context)
+    context.job_queue.run_daily(
+        alarm,
+        time=time(
+            hour=dt_hhmm.hour,
+            minute=dt_hhmm.minute,
+            second=10,
+            tzinfo=pytz.timezone('Europe/Warsaw')),
+        days=(0, 1, 2, 3, 4, 5, 6),
+        name=str(chat_id),
+        chat_id=chat_id,
+        job_kwargs={
+            # 'trigger': 'cron',
+            # 'days': 'mon-fri,sun',
+            # 'hour': '11,15,19,23',
+            # 'minute': 55,
+        },
+    )
+    # context.job_queue.run_custom(
+    #     alarm,
+    #     job_kwargs={
+    #         'trigger': 'cron',
+    #         'days': 'mon-fri,sun',
+    #         'hour': '11,15,19,23',
+    #         'minute': 55,
+    #     },
+    # )
+
+    text += "\nТаймер нагадування запущений!"
+    if job_removed:
+        text += "\nСтарий таймер видалено."
+
+    await update.effective_message.reply_text(text)
 
 
 async def color_of_the_days(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -384,15 +386,15 @@ async def color_of_the_days(update: Update, context: ContextTypes.DEFAULT_TYPE) 
     if len(context.args) > 0:
         city = str(context.args[0])
     else:
-        city = context.user_data["geo place"]
-    moment = context.user_data["moment"]
+        city = context.chat_data[opc.key_Geoloc]
+    moment = context.chat_data[opc.key_Moment]
     logger.info("summary at %s", moment)
 
     observer_obj = geo.Observer(geo_name=city, unaware_datetime=datetime.today())
     text = ""
     text += str(observer_obj)
     # ++++++++++++++++++++++
-    mp.plot_color_of_the_days(observer=observer_obj, days=3.5, file_name=photo_name)
+    mp.plot_color_of_the_days(observer=observer_obj, days=5, file_name=photo_name)
 
     text = "reply_photo"
     logger.info("%s", text)

@@ -285,6 +285,22 @@ def plot_color_of_the_days(observer=None, days=1., file_name="plot_astro_summary
                      )
 
 
+    # //////////////////////  FOOTPRINT  ////////////////////////////////////
+
+    axe0.set_xlabel("Геолокація: " + observer._geo_name,
+                    labelpad=6,
+                    loc='left',
+                    fontsize=9
+                    )
+
+    axe5.set_xlabel("" + format_datetime(observer.restore_unaware(), "d MMMM YYYY р., EEE ", locale='uk_UA'),
+                    labelpad=6,
+                    loc='right',
+                    fontsize=9
+                    )
+
+
+
 
     # ***********************************************************************
     res = plt.savefig(file_name)
@@ -323,18 +339,6 @@ def _plot_annotations_of_sun_days(observer=None, days=1., axe=None, horiz_range=
                      horizontalalignment='center',
                      verticalalignment='top'
                      )
-
-    # axes[0].set_xlabel("Геолокація: " + observer._geo_name,
-    #                    labelpad=8,
-    #                    loc='right',
-    #                    fontsize=9
-    #                    )
-    #
-    # axes[1].set_xlabel("" + format_datetime(observer.restore_unaware(), "d MMMM YYYY р., EEE ", locale='uk_UA'),
-    #                    labelpad=8,
-    #                    loc='right',
-    #                    fontsize=9
-    #                    )
 
 
 def _plot_annotations_of_moon_days(observer=None, days=1., axe=None, horiz_range=1):

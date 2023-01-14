@@ -39,12 +39,19 @@ logger = logging.getLogger(__name__)
 
 CHOOSING, TYPING_REPLY, TYPING_CHOICE = range(3)
 
+key_Geoloc = "Геолокація"
+key_Moment = "Інтервал"
+key_Notify = "Нагадування"
+key_Addition = "Додатково"
+
 reply_keyboard = [
-    ["Geo place", "Moment"],
-    ["Additional", "Description"],
-    ["Done"],
+    [key_Geoloc, key_Moment],
+    [key_Notify, key_Addition],
+    ["Готово"],
 ]
-markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True)
+markup = ReplyKeyboardMarkup(reply_keyboard,
+                             one_time_keyboard=True,
+                             )
 
 
 def facts_to_str(user_data: Dict[str, str]) -> str:
@@ -55,16 +62,8 @@ def facts_to_str(user_data: Dict[str, str]) -> str:
 
 async def observer(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """Start the conversation, display any stored data and ask user for input."""
-    reply_text = "Hi! Enter here geological place and unaware time there"
-    if context.user_data:
-        reply_text += (
-            f" You already told me your {', '.join(context.user_data.keys())}. Why don't you tell more?"
-        )
-    else:
-        reply_text += (
-            " I will hold a more complex conversation with you. Why don't you tell me "
-            "something about yourself?"
-        )
+    reply_text = "Вітаю! Потрібно задаті географічне місце та час (момент відліку для цього місця)"
+
     await update.message.reply_text(reply_text, reply_markup=markup)
 
     return CHOOSING
@@ -74,12 +73,12 @@ async def regular_choice(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
     """Ask the user for info about the selected predefined choice."""
     user = update.effective_user
 
-    text = update.message.text.lower()
+    text = update.message.text  # .lower()
     context.user_data["choice"] = text
     if context.user_data.get(text):
-        reply_text = f"Your {text}? I already know the following about that: {context.user_data[text]}"
+        reply_text = f'Параметер "{text}" має значення: {context.user_data[text]}'
     else:
-        reply_text = f"Your {text}? Yes, I would love to hear about that!"
+        reply_text = f'Параметер "{text}" не був заданий'
 
     logger.info("%s: text=%s context.user_data=%s", user.first_name, text, context.user_data)
     await update.message.reply_text(reply_text)
@@ -90,16 +89,6 @@ async def regular_choice(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
 async def custom_choice(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """Create a new observer object and save to context"""
     user = update.effective_user
-
-    # try:
-    #     context.user_data["object"]
-    # except NameError:
-    #     print("var_exists = False")
-    # else:
-    #     print("var_exists = True")
-
-    # observer_obj = geo.Observer(geo_name="London")
-    # context.user_data["object"] = observer_obj
 
     logger.info("%s: context.user_data=%s", user.first_name, context.user_data)
     await update.message.reply_text(
@@ -116,10 +105,12 @@ async def received_information(update: Update, context: ContextTypes.DEFAULT_TYP
     context.user_data[category] = text.upper()
     del context.user_data["choice"]
 
+    context.chat_data.update(context.user_data)     # !!!
+
     await update.message.reply_text(
-        "Neat! Just so you know, this is what you already told me:"
-        f"{facts_to_str(context.user_data)}"
-        "You can tell me more, or change your opinion on something.",
+        "Задані параметри:"
+        f"{facts_to_str(context.chat_data)}"
+        "Можна змінювати ці параметри.",
         reply_markup=markup,
     )
 
@@ -129,9 +120,9 @@ async def received_information(update: Update, context: ContextTypes.DEFAULT_TYP
 async def show_data(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Display the gathered info."""
 
-    context.chat_data.update(context.user_data)
+    # context.chat_data.update(context.user_data)
     await update.message.reply_text(
-        f"This is what you already told me: {facts_to_str(context.user_data)}"
+        f"Збережені параметри: {facts_to_str(context.chat_data)}"
     )
 
 
@@ -140,8 +131,10 @@ async def done(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     if "choice" in context.user_data:
         del context.user_data["choice"]
 
+    context.chat_data.update(context.user_data)  # !!!
+
     await update.message.reply_text(
-        f"I learned these facts about you: {facts_to_str(context.user_data)}Until next time!",
+        f"Задані параметри: {facts_to_str(context.chat_data)}",
         reply_markup=ReplyKeyboardRemove(),
     )
     return ConversationHandler.END
@@ -165,17 +158,17 @@ async def done(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
 #             ],
 #             TYPING_CHOICE: [
 #                 MessageHandler(
-#                     filters.TEXT & ~(filters.COMMAND | filters.Regex("^Done$")), regular_choice
+#                     filters.TEXT & ~(filters.COMMAND | filters.Regex("^Готово$")), regular_choice
 #                 )
 #             ],
 #             TYPING_REPLY: [
 #                 MessageHandler(
-#                     filters.TEXT & ~(filters.COMMAND | filters.Regex("^Done$")),
+#                     filters.TEXT & ~(filters.COMMAND | filters.Regex("^Готово$")),
 #                     received_information,
 #                 )
 #             ],
 #         },
-#         fallbacks=[MessageHandler(filters.Regex("^Done$"), done)],
+#         fallbacks=[MessageHandler(filters.Regex("^Готово$"), done)],
 #         name="my_conversation",
 #         persistent=True,
 #     )
@@ -196,21 +189,22 @@ observer_conversation_handler = ConversationHandler(
     entry_points=[CommandHandler("obs", observer)],
     states={
         CHOOSING: [
-            # Geo place", "Moment" "Additional", "Description
-            MessageHandler(filters.Regex("^(Geo place|Moment|Additional)$"), regular_choice),
-            MessageHandler(filters.Regex("^Description$"), custom_choice),
+            # key_Geoloc, key_Moment, key_Notify, key_Addition
+            MessageHandler(filters.Regex(f"^({key_Geoloc}|{key_Moment}|{key_Notify})$"), regular_choice),
+            MessageHandler(filters.Regex(f"^{key_Addition}$"), custom_choice),
         ],
         TYPING_CHOICE: [
-            MessageHandler(filters.TEXT & ~(filters.COMMAND | filters.Regex("^Done$")), regular_choice)
+            MessageHandler(filters.TEXT & ~(filters.COMMAND | filters.Regex("^Готово$")), regular_choice)
         ],
         TYPING_REPLY: [
-            MessageHandler(filters.TEXT & ~(filters.COMMAND | filters.Regex("^Done$")), received_information)
+            MessageHandler(filters.TEXT & ~(filters.COMMAND | filters.Regex("^Готово$")), received_information)
         ],
     },
-    fallbacks=[MessageHandler(filters.Regex("^Done$"), done)],
-    name="my_conversation",
+    fallbacks=[MessageHandler(filters.Regex("^Готово$"), done)],
+    name="astro_conversation",
     persistent=True,
 )
 
 show_data_handler = CommandHandler("show_data", show_data)
+
 

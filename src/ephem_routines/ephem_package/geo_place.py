@@ -75,10 +75,10 @@ class Observer:
 
         if not self._set_noon:
             str_obj += f'\n{self._aware.strftime(dt_format)}'
-            str_obj += f'\n{self._utc.strftime(dt_format)}'
+            # str_obj += f'\n{self._utc.strftime(dt_format)}'
         else:
             str_obj += f'\n{self._aware12.strftime(dt_format)}'
-            str_obj += f'\n{self._utc12.strftime(dt_format)}'
+            # str_obj += f'\n{self._utc12.strftime(dt_format)}'
 
         return str_obj
 
