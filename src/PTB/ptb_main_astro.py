@@ -30,6 +30,8 @@ import src.ephem_routines.ephem_package.zodiac_phase as zd
 import src.weather_package.main_openweathermap as wt
 import src.PTB._ptb_observer_persist_conversation as opc
 import src.mathplot_package.plot_astro_summary as mp
+import src.boto3_package.mainDB_moon_zodiac as dbmz
+
 
 
 
@@ -188,18 +190,6 @@ async def sun_rise(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     user = update.effective_user
 
     geo_name, moment = parse_args(context)
-    # if len(context.args) > 0:
-    #     geo_name = str(context.args[0])
-    # else:
-    #     if opc.key_Geoloc in context.chat_data:
-    #         geo_name = context.chat_data[opc.key_Geoloc]
-    #     else:
-    #         geo_name = "Mragowo"
-    #
-    # if opc.key_Moment in context.chat_data:
-    #     moment = context.chat_data[opc.key_Moment]
-    # else:
-    #     moment = "5"
     logger.info("sun rise for geo_name: %s at %s", geo_name, moment)
 
     observer_obj = geo.Observer(geo_name=geo_name, unaware_datetime=datetime.today())
@@ -218,19 +208,7 @@ async def zodiac(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     user = update.effective_user
 
     geo_name, moment = parse_args(context)
-    # if len(context.args) > 0:
-    #     geo_name = str(context.args[0])
-    # else:
-    #     if opc.key_Geoloc in context.chat_data:
-    #         geo_name = context.chat_data[opc.key_Geoloc]
-    #     else:
-    #         geo_name = "Mragowo"
-    #
-    # if opc.key_Moment in context.chat_data:
-    #     moment = context.chat_data[opc.key_Moment]
-    # else:
-    #     moment = "5"
-    logger.info("zodiac at %s", moment)
+    logger.info("zodiac for geo_name: %s at %s", geo_name, moment)
 
     observer_obj = geo.Observer(geo_name=geo_name, unaware_datetime=datetime.today())
     text = ""
@@ -238,6 +216,11 @@ async def zodiac(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     # ++++++++++++++++++++++
     zodiac_dict, zodiac_text = zd.main_zodiac_sun_moon(observer=observer_obj)
     text += zodiac_text
+
+    zod_id = int((zodiac_dict['moon_lon'] % 360) / 30) + 1
+    list_of_items = dbmz.moonZodiac_table.table_query(partition_key=zod_id)
+    # item_dict, text = dbmz.main_get_item_moon_zodiac(partition_key=zod_id)
+    text += "\n" + list_of_items[0]["description"]
 
     logger.info("moon_zodiac of %s: %s", user.first_name, text)
     await update.message.reply_text(text)
@@ -312,6 +295,9 @@ async def summary(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     # ++++++++++++++++++++++
     zodiac_dict, zodiac_text = zd.main_zodiac_sun_moon(observer=observer_obj)
     text += zodiac_text
+    zod_id = int((zodiac_dict['moon_lon'] % 360) / 30) + 1
+    # item_dict, text = dbmz.main_get_item_moon_zodiac(partition_key=zod_id)
+    # text += item_dict[0]["description"]
     # ++++++++++++++++++++++
     wt_dict, wt_text = wt.main_weather_now(observer=observer_obj)
     text += wt_text

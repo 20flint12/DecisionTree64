@@ -5,7 +5,6 @@
 # https://boto3.amazonaws.com/v1/documentation/api/latest/guide/dynamodb.html
 
 import pandas as pd
-import os
 
 try:
     import os
@@ -28,7 +27,7 @@ class dynamoDB_table(object):
 
     def __init__(self, path_file_csv=''):
 
-        # import os
+        import os
 
         self._df = pd.read_csv(path_file_csv)
 
@@ -145,13 +144,6 @@ class dynamoDB_table(object):
         return text
 
 
-file_name = "moon_zodiac.csv"
-script_dir = os.path.dirname(os.path.abspath(__file__))
-file_path = os.path.join(script_dir, file_name)
-print(file_path)
-
-moonZodiac_table = dynamoDB_table(path_file_csv=file_path)
-print(moonZodiac_table)
 
 
 def main_create_populate_moon_zodiac():
@@ -189,10 +181,12 @@ def main_get_item_moon_zodiac(partition_key=1):
     return list_of_items, text
 
 
+moonZodiac_table = dynamoDB_table(path_file_csv='moon_zodiac.csv')
+
+
 if __name__ == '__main__':
 
-    text = main_create_populate_moon_zodiac()
-    print(text)
+    # text = main_create_populate_moon_zodiac()
 
-    # item_dict, text = main_get_item_moon_zodiac(partition_key=3)
-    # print(item_dict[0]["description"], text)
+    item_dict, text = main_get_item_moon_zodiac(partition_key=3)
+    print(item_dict[0]["description"], text)
