@@ -5,6 +5,7 @@
 # https://boto3.amazonaws.com/v1/documentation/api/latest/guide/dynamodb.html
 
 import pandas as pd
+import os
 
 try:
     import os
@@ -27,7 +28,7 @@ class dynamoDB_table(object):
 
     def __init__(self, path_file_csv=''):
 
-        import os
+        # import os
 
         self._df = pd.read_csv(path_file_csv)
 
@@ -132,61 +133,92 @@ class dynamoDB_table(object):
         return items
 
     def populate_from_csv(self):
+        import time
+
         text = ""
 
         for i in range(0, len(self._df)):
             moon_zodiac_dict = self._df.loc[i].to_dict()
 
-            resp = moonZodiac_table.put(moon_zodiac_dict)
+            resp = moonDay_table.put(moon_zodiac_dict)
             # print(".")
-            text += str(resp) + "\n"
+            text += str(i) + ": " + str(resp) + "\n"
+
+            time.sleep(0.1)
 
         return text
 
 
+file_name = "moon_day.csv"
+script_dir = os.path.dirname(os.path.abspath(__file__))
+file_path = os.path.join(script_dir, file_name)
+print(file_path)
+
+moonDay_table = dynamoDB_table(path_file_csv=file_path)
+print(moonDay_table)
 
 
-def main_create_populate_moon_zodiac():
+def main_create_populate_moon_day_table():
 
     text = ""
 
-    result, responce = moonZodiac_table.describe_table()
+    result, responce = moonDay_table.describe_table()
 
     if result:
         text += "\n*** Table already exists!"
         text += "\n" + str(responce)
     else:
         text += "\n--- " + str(responce)
-        text += "\n*** Create table '" + moonZodiac_table._table_name + "' ..."
-        table = moonZodiac_table.create_table()
+        text += "\n*** Create table '" + moonDay_table._table_name + "' ..."
+        table = moonDay_table.create_table()
         text += "\n*** Table created successfully!"
         text += "\n--- " + str(table)
 
     text += "\n*** Populate table from csv"
-    text += "\n" + moonZodiac_table.populate_from_csv()
+    text += "\n" + moonDay_table.populate_from_csv()
 
     return text
 
 
-def main_get_item_moon_zodiac(partition_key=1):
+def main_get_item_moon_day(partition_key=1):
 
     text = ""
 
-    # res_item = obj.get(2, 2)
-    list_of_items = moonZodiac_table.table_query(partition_key=partition_key)
+    list_of_items = moonDay_table.table_query(partition_key=partition_key)
     # print(list_of_items)
-    # print(list_of_items["Item"])
     text += "\nlen=" + str(len(list_of_items)) + "\n"
 
     return list_of_items, text
 
 
-moonZodiac_table = dynamoDB_table(path_file_csv='moon_zodiac.csv')
+def string_between_tags(input_string='', tag_index=0):
+    '''
+    #MAIN
+    #RELATION	Любовь и отношения
+    #HOME		Домашние дела
+    #HEALTH		Здоровье
+    #BUSINESS	Бизнес и деньги
+    #MYSTIC
+    '''
+    tags = ('#MAIN', '#RELATION', '#HOME', '#HEALTH', '#BUSINESS', '#MYSTIC')
+
+    # idx_begin = input_string.find(tag_begin) + len(tag_begin)
+    idx_begin = input_string.find(tags[tag_index]) + len(tags[tag_index])
+    idx_end = input_string.find(tags[tag_index+1])
+
+    res_substring = input_string[idx_begin:idx_end].strip()
+    # print(idx_begin, idx_end, '\n=====\n')
+
+    return res_substring
 
 
 if __name__ == '__main__':
 
-    # text = main_create_populate_moon_zodiac()
+    # text = main_create_populate_moon_day_table()
+    # print(text)
 
-    item_dict, text = main_get_item_moon_zodiac(partition_key=3)
-    print(item_dict[0]["description"], text)
+    item_dict, text = main_get_item_moon_day(partition_key=3)
+    descr_str = item_dict[0]["description_0"]
+    # print(res_str)
+
+    print(string_between_tags(input_string=descr_str, tag_index=0))

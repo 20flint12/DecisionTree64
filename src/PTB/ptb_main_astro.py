@@ -31,6 +31,7 @@ import src.weather_package.main_openweathermap as wt
 import src.PTB._ptb_observer_persist_conversation as opc
 import src.mathplot_package.plot_astro_summary as mp
 import src.boto3_package.mainDB_moon_zodiac as dbmz
+import src.boto3_package.mainDB_moon_day as dbmd
 
 
 
@@ -180,6 +181,11 @@ async def moon_day(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     md_dict, md_text = md.main_moon_day(observer=observer_obj)
     text += md_text[0]
     text += md_text[2]
+
+    item_dict = dbmd.moonDay_table.table_query(partition_key=md_dict['moon_day'])
+    descr_str = item_dict[0]["description_0"]
+
+    text += "\n\n" + dbmd.string_between_tags(input_string=descr_str, tag_index=0)
 
     logger.info("moon_day of %s: %s", user.first_name, text)
     await update.message.reply_text(text)
