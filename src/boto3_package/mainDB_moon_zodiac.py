@@ -189,10 +189,35 @@ def main_get_item_moon_zodiac(partition_key=1):
     return list_of_items, text
 
 
+def string_between_tags(input_string='', tag_index=0):
+    '''
+    #MAIN
+    #RELATION	Любовь и отношения
+    #HOME		Домашние дела
+    #HEALTH		Здоровье
+    #BUSINESS	Бизнес и деньги
+    #MYSTIC
+    '''
+    tags = ('#MAIN', '#END',)
+
+    # idx_begin = input_string.find(tag_begin) + len(tag_begin)
+    idx_begin = input_string.find(tags[tag_index]) + len(tags[tag_index])
+    idx_end = input_string.find(tags[tag_index+1])
+
+    res_substring = input_string[idx_begin:idx_end].strip()
+    # print(idx_begin, idx_end, '\n=====\n')
+
+    return res_substring
+
+
 if __name__ == '__main__':
 
-    text = main_create_populate_moon_zodiac()
-    print(text)
+    # text = main_create_populate_moon_zodiac()
+    # print(text)
 
-    # item_dict, text = main_get_item_moon_zodiac(partition_key=3)
-    # print(item_dict[0]["description"], text)
+
+    item_dict, text = main_get_item_moon_zodiac(partition_key=3)
+    descr_str = item_dict[0]["description_0"]
+    print(descr_str)
+
+    print(string_between_tags(input_string=descr_str, tag_index=0))

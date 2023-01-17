@@ -217,8 +217,15 @@ if __name__ == '__main__':
     # text = main_create_populate_moon_day_table()
     # print(text)
 
+    # item_dict, text = main_get_item_moon_day(partition_key=3)
+    # descr_str = item_dict[0]["description_0"]
+    # # print(res_str)
+    #
+    # print(string_between_tags(input_string=descr_str, tag_index=0))
+
+
     item_dict, text = main_get_item_moon_day(partition_key=3)
-    descr_str = item_dict[0]["description_0"]
+    descr_str = item_dict[0]["description_1"]
     # print(res_str)
 
     print(string_between_tags(input_string=descr_str, tag_index=0))

@@ -160,18 +160,6 @@ async def moon_day(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     user = update.effective_user
 
     geo_name, moment = parse_args(context)
-    # if len(context.args) > 0:
-    #     geo_name = str(context.args[0])
-    # else:
-    #     if opc.key_Geoloc in context.chat_data:
-    #         geo_name = context.chat_data[opc.key_Geoloc]
-    #     else:
-    #         geo_name = "Mragowo"
-    #
-    # if opc.key_Moment in context.chat_data:
-    #     moment = context.chat_data[opc.key_Moment]
-    # else:
-    #     moment = "5"
     logger.info("moon day for geo_name:  %s at %s", geo_name, moment)
 
     observer_obj = geo.Observer(geo_name=geo_name, unaware_datetime=datetime.today())
@@ -183,8 +171,11 @@ async def moon_day(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     text += md_text[2]
 
     item_dict = dbmd.moonDay_table.table_query(partition_key=md_dict['moon_day'])
-    descr_str = item_dict[0]["description_0"]
 
+    descr_str = item_dict[0]["description_0"]
+    text += "\n\n" + dbmd.string_between_tags(input_string=descr_str, tag_index=0)
+
+    descr_str = item_dict[0]["description_1"]
     text += "\n\n" + dbmd.string_between_tags(input_string=descr_str, tag_index=0)
 
     logger.info("moon_day of %s: %s", user.first_name, text)
@@ -225,8 +216,8 @@ async def zodiac(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
     zod_id = int((zodiac_dict['moon_lon'] % 360) / 30) + 1
     list_of_items = dbmz.moonZodiac_table.table_query(partition_key=zod_id)
-    # item_dict, text = dbmz.main_get_item_moon_zodiac(partition_key=zod_id)
-    text += "\n" + list_of_items[0]["description"]
+    descr_str = list_of_items[0]["description_0"]
+    text += "\n\n" + dbmz.string_between_tags(input_string=descr_str, tag_index=0)
 
     logger.info("moon_zodiac of %s: %s", user.first_name, text)
     await update.message.reply_text(text)
