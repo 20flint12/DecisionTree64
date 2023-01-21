@@ -6,9 +6,10 @@
 # https://docs.python-telegram-bot.org/en/v20.0a6/telegram.ext.jobqueue.html
 # https://github.com//python-telegram-bot/python-telegram-bot/wiki/Storing-bot%2C-user-and-chat-related-data
 
-from datetime import datetime
+from datetime import datetime, time
 from pprint import pprint
 
+import src.ephem_routines.ephem_package.geo_place as geo
 import src.boto3_package.mainDB_weather as mr
 import src.mathplot_package.plot_DB_attr as mp
 
@@ -137,7 +138,9 @@ async def callback_repeating(context: ContextTypes.DEFAULT_TYPE):
     job = context.job
     text = job.name + ' @ ' + str(job.next_t)[:19] + "\n" + str(context.job_queue.jobs())[25:]
     # logger.info(text)
-    init_id, out_str = mr.main_put_record(_chat_job=job.name)
+    # init_id, out_str = mr.main_put_record(_chat_job=job.name)
+
+    init_id, out_str = mr.main_put_record(observer=observer_obj, _chat_job=job.name)
     text += out_str
     await context.bot.send_message(chat_id=job.chat_id, text=text)
 
@@ -243,7 +246,7 @@ async def reply_photo(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
 
     list_of_items, text = mr.main_query_range(job_name, "2022-12-11 21:11:17", "2023-12-13 07:00:17")
     # pprint(list_of_items)
-    data_list = mr.main_query_filter(list_of_items, attr="weather", field="T")
+    data_list = mr.main_query_filter(list_of_items, attr="weather", field="P")
     # print(data_list)
 
     mp.plot_list(data_list, file_name=photo_name)
@@ -288,4 +291,9 @@ def main() -> None:
 
 
 if __name__ == "__main__":
+
+    geo_name = 'Mragowo'
+    local_unaware_datetime = datetime.now()
+    observer_obj = geo.Observer(geo_name=geo_name, unaware_datetime=local_unaware_datetime)
+
     main()

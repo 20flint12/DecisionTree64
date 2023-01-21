@@ -41,9 +41,9 @@ cmaps = [('Perceptually Uniform Sequential', [
             'gist_rainbow', 'rainbow', 'jet', 'turbo', 'nipy_spectral',
             'gist_ncar'])]
 
-gradient = np.linspace(0, 1, 10)
+gradient = np.linspace(0, 1, 100)
 gradient = np.vstack((gradient, gradient))
-print(gradient)
+# print(gradient)
 
 
 def plot_color_gradients(cmap_category, cmap_list):

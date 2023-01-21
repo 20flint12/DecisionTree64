@@ -29,11 +29,10 @@ import src.ephem_routines.ephem_package.sun_rise_sett as sr
 import src.ephem_routines.ephem_package.zodiac_phase as zd
 import src.weather_package.main_openweathermap as wt
 import src.PTB._ptb_observer_persist_conversation as opc
+import src.PTB._ptb_timer_weather as rwt
 import src.mathplot_package.plot_astro_summary as mp
 import src.boto3_package.mainDB_moon_zodiac as dbmz
 import src.boto3_package.mainDB_moon_day as dbmd
-
-
 
 
 import socket
@@ -486,6 +485,11 @@ def main() -> None:
 
     application.add_handler(opc.observer_conversation_handler)      # /obs
     application.add_handler(opc.show_data_handler)
+
+    application.add_handler(CommandHandler("rep", rwt.set_repeat_timer))
+    application.add_handler(CommandHandler("pause", rwt.pause_repeat_timer))
+    application.add_handler(CommandHandler("run", rwt.run_repeat_timer))
+    application.add_handler(CommandHandler("urep", rwt.unset_repeat_timer))
 
     # on non command i.e message - echo the message on Telegram
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, echo))

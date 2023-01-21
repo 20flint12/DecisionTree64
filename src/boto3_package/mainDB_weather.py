@@ -9,7 +9,7 @@ import src.ephem_routines.ephem_package.moon_day as md
 import src.ephem_routines.ephem_package.sun_rise_sett as sr
 import src.ephem_routines.ephem_package.zodiac_phase as zd
 import src.weather_package.main_openweathermap as wt
-import src.mathplot_package.plot_DB_attr as mt
+import src.mathplot_package._plot_recordWeather as pw
 
 
 try:
@@ -23,102 +23,6 @@ except Exception as e:
     print("Error {}".format(e))
 
 
-# class MyDb(object):
-#
-#     def __init__(self, table_name='DHT'):
-#         self.Table_Name = table_name
-#         self.db = boto3.resource('dynamodb', region_name='eu-west-1')
-#         self.table = self.db.Table(table_name)
-#         self.client = boto3.client('dynamodb')
-#
-#     # @property
-#     def get(self, _pk=1, _sr=1):
-#         response = self.table.get_item(
-#             Key={
-#                 "CHAT": _pk,    # CHAT with suffix (#REP, #ONCE, ...)
-#                 "UTC": _sr      # UTC  yyyy-MM-dd HH:mm:ss,Z
-#             }
-#         )
-#         return response
-#
-#     def put(self, data_dict):
-#         response = self.table.put_item(
-#             Item={
-#                 "CHAT": data_dict["CHAT"],
-#                 "UTC": data_dict["UTC"],
-#                 # Attributes
-#                 "location": str(data_dict["location"]),
-#                 "weather": str(data_dict["weather"]),
-#                 "zodiac": str(data_dict["zodiac"])
-#             }
-#         )
-#         return response
-#
-#     def delete(self, _pk=1):
-#         self.table.delete_item(
-#             Key={
-#                 "CHAT": _pk
-#             }
-#         )
-#
-#     def describe_table(self):
-#
-#         from botocore.exceptions import ClientError
-#
-#         # Assumes client is already initialized as DynamoDB client
-#         try:
-#             response = self.client.describe_table(TableName=self.Table_Name)
-#             return response
-#         except ClientError as err:
-#             # This will not result in a failed assertion
-#             assert err.response['Error']['Code'] == 'ResourceNotFoundException'
-#             return err.response['Error']['Code']
-#
-#         # response = self.client.describe_table(TableName=self.Table_Name)
-#         # return response
-#
-#     def create_table(self):
-#         """
-#         Creates a DynamoDB table.
-#         """
-#         str_info = "\nCreates a DynamoDB table."
-#
-#         # if self.table is not None:
-#         #     str_info += "\n{self.Table_Name} ready..."
-#         #     return self.table, str_info
-#
-#         params = {
-#             'TableName': self.Table_Name,
-#             'KeySchema': [
-#                 {'AttributeName': 'CHAT', 'KeyType': 'HASH'},
-#                 {'AttributeName': 'UTC', 'KeyType': 'RANGE'}
-#             ],
-#             'AttributeDefinitions': [
-#                 {'AttributeName': 'CHAT', 'AttributeType': 'S'},
-#                 {'AttributeName': 'UTC', 'AttributeType': 'S'}
-#             ],
-#             'ProvisionedThroughput': {
-#                 'ReadCapacityUnits': 12,
-#                 'WriteCapacityUnits': 12
-#             }
-#         }
-#         self.table = self.db.create_table(**params)
-#         str_info += f"\nCreating {self.Table_Name}..."
-#         self.table.wait_until_exists()
-#
-#         return self.table, str_info
-#
-#     def table_query(self, _pk="", _between_low="", _between_high=""):
-#
-#         from boto3.dynamodb.conditions import Key, Attr
-#
-#         response = self.table.query(
-#             KeyConditionExpression=Key('CHAT').eq(_pk) & Key('UTC').between(_between_low, _between_high)
-#         )
-#         items = response['Items']
-#         return items
-
-
 class dynamoDB_table(object):
 
     _table_name = "table_name"
@@ -128,8 +32,6 @@ class dynamoDB_table(object):
     _df = None
 
     def __init__(self, path_file_csv=''):
-
-        # import os
 
         self._df = pd.read_csv(path_file_csv)
 
@@ -157,7 +59,7 @@ class dynamoDB_table(object):
         )
         return response
 
-    def put(self, chat_job='', data_dict=None):
+    def put(self, chat_job='', data_dict=None):     # at a current time
 
         from decimal import Decimal
         import json
@@ -231,17 +133,6 @@ class dynamoDB_table(object):
         # init_id = int(table_dict["Table"]["ItemCount"])
         # init_id = int(table_dict["Table"]["TableSizeBytes"] / 2)
 
-    # def table_query(self, partition_key=1):
-    #
-    #     from boto3.dynamodb.conditions import Key, Attr
-    #
-    #     response = self.table.query(
-    #         KeyConditionExpression=Key(self._partition_key).eq(partition_key)
-    #     )
-    #     items = response['Items']
-    #     # print(items)
-    #     return items
-
     def table_query(self, _pk="", _between_low="", _between_high=""):
 
         from boto3.dynamodb.conditions import Key, Attr
@@ -259,7 +150,7 @@ class dynamoDB_table(object):
             moon_zodiac_dict = self._df.loc[i].to_dict()
             # print(moon_zodiac_dict)
 
-            resp = recordWeather_table.put(moon_zodiac_dict)
+            resp = self.put(moon_zodiac_dict)
             # print(".")
             text += str(resp) + "\n"
 
@@ -323,32 +214,6 @@ def main_put_record(observer=None, _chat_job="12345678#REP1"):
     return data_dict, text
 
 
-# def main_get_record(_chat_job="12345678#REP"):
-#
-#     text = ""
-#     list_of_items = obj.table_query(_pk=_chat_job, )
-#     # print(res_item1["Item"])
-#     text += "\n" + str(list_of_items) + "\n"
-#
-#     return list_of_items[0], text
-
-
-def main_query_range(_chat_job="442763659#REP", _between_low="2022-12-11 21:11:17", _between_high="2022-12-11 21:13:17"):
-
-    text = ""
-    list_of_items = recordWeather_table.table_query(_pk=_chat_job, _between_low=_between_low, _between_high=_between_high)
-
-    if len(list_of_items) > 0:
-
-        text += "\n" + str(list_of_items) + "\n"
-        return list_of_items, text
-
-    else:
-
-        text += "\nempty list"
-        return [], text
-
-
 def main_query_filter(lists_of_items, attr="weather", field="T"):
 
     import json
@@ -397,14 +262,13 @@ if __name__ == '__main__':
 
 
 
-    # list_of_items, text = main_query_range("442763659#REP", "2022-12-11 21:11:17", "2023-12-13 07:00:17")
-    list_of_items = recordWeather_table.table_query(_pk="12345678#REP1",
-                                                    _between_low="2023-01-21 11:19:46",
-                                                    _between_high="2023-01-21 12:37:00")
+    list_of_items = recordWeather_table.table_query(_pk="442763659#REP",
+                                                    _between_low="2021-01-21 14:41:49",
+                                                    _between_high="2024-01-21 12:37:00")
 
     # pprint(list_of_items)
     # # print(text)
     data_list = main_query_filter(list_of_items, attr="weather", field="P")
-    print(data_list)
+    # print(data_list)
 
-    # mt.plot_list(data_list, file_name="user_photo2.jpg")
+    pw.plot_weather(data_list, file_name="user_photo2.jpg")
