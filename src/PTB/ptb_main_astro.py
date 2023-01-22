@@ -93,9 +93,11 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
                 "\n/sum <CITY> - summarize info for geoplace" \
                 "\n/obs - specify Observer and moment time" \
                 "\n/set [HHMM] - set notification time" \
+                "\n/rep [SS] - run weather recorder timer" \
+                "\n/urep - reset weather recorder timer" \
                 "\n/cod - colors of days" \
                 "\n" \
-                "\ndeveloped by Serhii Surmylo (Ukraine)"
+                "\ndeveloped by Serhii Surmylo (Ukraine), 2023"
     await update.message.reply_text(help_text)
 
 
@@ -129,18 +131,6 @@ async def moon_phase(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None
     user = update.effective_user
 
     geo_name, moment = parse_args(context)
-    # if len(context.args) > 0:
-    #     geo_name = str(context.args[0])
-    # else:
-    #     if opc.key_Geoloc in context.chat_data:
-    #         geo_name = context.chat_data[opc.key_Geoloc]
-    #     else:
-    #         geo_name = "Mragowo"
-    #
-    # if opc.key_Moment in context.chat_data:
-    #     moment = context.chat_data[opc.key_Moment]
-    # else:
-    #     moment = "5"
     logger.info("moon day for geo_name: %s at %s", geo_name, moment)
 
     observer_obj = geo.Observer(geo_name=geo_name, unaware_datetime=datetime.today())
@@ -227,18 +217,6 @@ async def weather(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     user = update.effective_user
 
     geo_name, moment = parse_args(context)
-    # if len(context.args) > 0:
-    #     geo_name = str(context.args[0])
-    # else:
-    #     if opc.key_Geoloc in context.chat_data:
-    #         geo_name = context.chat_data[opc.key_Geoloc]
-    #     else:
-    #         geo_name = "Mragowo"
-    #
-    # if opc.key_Moment in context.chat_data:
-    #     moment = context.chat_data[opc.key_Moment]
-    # else:
-    #     moment = "5"
     logger.info("weather for geo_name %s at %s", geo_name, moment)
 
     observer_obj = geo.Observer(geo_name=geo_name, unaware_datetime=datetime.today())
@@ -257,18 +235,6 @@ async def summary(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     user = update.effective_user
 
     geo_name, moment = parse_args(context)
-    # if len(context.args) > 0:
-    #     geo_name = str(context.args[0])
-    # else:
-    #     if opc.key_Geoloc in context.chat_data:
-    #         geo_name = context.chat_data[opc.key_Geoloc]
-    #     else:
-    #         geo_name = "Mragowo"
-    #
-    # if opc.key_Moment in context.chat_data:
-    #     moment = context.chat_data[opc.key_Moment]
-    # else:
-    #     moment = "5"
     logger.info("summary -> geo_name=%s moment=%s", geo_name, moment)
 
     observer_obj = geo.Observer(geo_name=geo_name, unaware_datetime=datetime.today())
@@ -433,18 +399,6 @@ async def color_of_the_days(update: Update, context: ContextTypes.DEFAULT_TYPE) 
     photo_name = str(chat_id) + "_photo.png"    # 442763659_photo.jpg
 
     geo_name, moment = parse_args(context)
-    # if len(context.args) > 0:
-    #     geo_name = str(context.args[0])
-    # else:
-    #     if opc.key_Geoloc in context.chat_data:
-    #         geo_name = context.chat_data[opc.key_Geoloc]
-    #     else:
-    #         geo_name = "Mragowo"
-    #
-    # if opc.key_Moment in context.chat_data:
-    #     moment = context.chat_data[opc.key_Moment]
-    # else:
-    #     moment = "5"
     logger.info("summary at %s", moment)
 
     observer_obj = geo.Observer(geo_name=geo_name, unaware_datetime=datetime.today())

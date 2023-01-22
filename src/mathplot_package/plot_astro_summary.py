@@ -18,6 +18,8 @@ import src.mathplot_package._plot_Sun_Moon as ps
 import src.mathplot_package._plot_Zodiac as pz
 import src.mathplot_package._plot_Lunation as pl
 import src.mathplot_package._plot_recordWeather as pe
+import src.boto3_package.mainDB_weather as b3w
+
 
 from babel.dates import format_datetime
 
@@ -130,29 +132,27 @@ def plot_color_of_the_days(observer=None, days=1., file_name="plot_astro_summary
     fig.subplots_adjust(top=0.975, bottom=.025, left=0.0, right=1., wspace=0.00)
 
     axe0 = plt.subplot2grid((1, 10), (0, 0), colspan=1)
+    axe0.set_title(f'Тиск', fontsize=10)
 
     axe1 = plt.subplot2grid((1, 10), (0, 1), colspan=1)
     axe1.set_title(f'Стихії', fontsize=10)
-    # axe1.grid(axis='y', color='white', linestyle='-', linewidth=0.2)
 
     axe2 = plt.subplot2grid((1, 10), (0, 2), colspan=1)
     axe2.set_title(f'Фази', fontsize=10)
-    # axe2.grid(axis='y', color='white', linestyle='-', linewidth=0.2)
 
     axe3 = plt.subplot2grid((1, 10), (0, 3), colspan=4)
     axe3.set_title(f'Сонце   ===   Місяць', loc='center', fontsize=10)
-    # axe3.grid(axis='y', color='white', linestyle='-', linewidth=0.3)
 
     axe4 = plt.subplot2grid((1, 10), (0, 7), colspan=2)
     axe4.set_title(f'Зодіак', fontsize=10)
-    # axe4.grid(axis='y', color='white', linestyle='-', linewidth=0.2)
 
     axe5 = plt.subplot2grid((1, 10), (0, 9), colspan=1)
-    # axe5.grid(axis='y', color='white', linestyle='-', linewidth=0.2)
+    axe5.set_title(f'-', fontsize=10)
+
 
     axes = (axe0, axe1, axe2, axe3, axe4, axe5)
     for axe in axes:
-        print(str(axe), (axe.bbox.width, axe.bbox.height))
+        # print(str(axe), (axe.bbox.width, axe.bbox.height))
         axe.grid(axis='y', color='white', linestyle='-', linewidth=0.2)
         # axe.axis('off')
         axe.set_xticks([])
@@ -170,13 +170,68 @@ def plot_color_of_the_days(observer=None, days=1., file_name="plot_astro_summary
     vert_range = days * 2
 
 
+    # ///////////////////////  WEATHER  /////////////////////////////////////
+
+    print(begin_unaware, " - ", end_unaware)            # 2023-01-18 10:22:27.276605  -  2023-01-25 10:22:27.276605
+
+    list_of_items = b3w.recordWeather_table.table_query(_pk="442763659#REP",
+                                                        _between_low=str(begin_unaware),    # "2021-01-21 14:41:49"
+                                                        _between_high=str(end_unaware)
+                                                        )
+    # pprint(list_of_items)
+
+
+    data_dict, avg = b3w.main_query_filter(list_of_items, attr="weather", field="P")
+    data_len = len(data_dict)
+    print('len=', data_len, data_dict)
+
+
+    # Create avg array of weather data
+    # avg = 770    # np.average(ycolors)
+    weather_array = np.full(arr_size, avg)
+
+
+    # Modify avg array with weather data
+    for item in data_dict:
+
+        dt_cur = datetime.strptime(item, geo.dt_format_rev)
+
+        # Find and replace origin element
+        desired_date = mdates.date2num(dt_cur)
+        idx = min(range(len(lbl_dates)), key=lambda i: abs(lbl_dates[i] - desired_date))
+
+        value = data_dict[item]
+        # print(item, dt_cur, desired_date, idx, value)
+
+        # Replace value
+        # weather_array[idx] = value
+        weather_array[idx:idx+8] = value
+        # weather_array[idx] = np.full(10, value)
+
+    # print(weather_array)
+
+    Z = np.zeros(arr_size).reshape(arr_size, 1)
+    Z[:, 0] = weather_array
+
+    horiz_half = vert_range / axe1.bbox.height * axe1.bbox.width / 2
+
+    im = axe0.imshow(Z,
+                     interpolation='bicubic',
+                     aspect='auto',
+                     cmap='summer',
+                     origin='upper',
+                     extent=[-horiz_half, horiz_half, lbl_dates[-1], lbl_dates[0]],
+                     vmax=Z.max(), vmin=Z.min()
+                     )
+
+
 
     # //////////////////////  ELEMENTS  /////////////////////////////////////
-    moon_elem = np.mod(moon_lon, 120)
+    elements_array = np.mod(moon_lon, 120)
 
     gcolumn = 1
     Z = np.zeros(arr_size * gcolumn).reshape(arr_size, gcolumn)
-    Z[:, 0] = moon_elem
+    Z[:, 0] = elements_array
 
     horiz_half = vert_range / axe1.bbox.height * axe1.bbox.width / 2
 
@@ -221,9 +276,6 @@ def plot_color_of_the_days(observer=None, days=1., file_name="plot_astro_summary
 
 
     # ////////////////////  SUN MOON DAYS  //////////////////////////////////
-    # print(lbl_dates)
-    # print(annot_moon_zod)
-    # print(moon_lon)
 
     s_angle = np.array(sun_angle)
     ycolors = ps.convert_colors(in_y_list=s_angle, thresh=0.3)
@@ -256,6 +308,7 @@ def plot_color_of_the_days(observer=None, days=1., file_name="plot_astro_summary
 
 
     # ///////////////////////  ZODIAC  //////////////////////////////////////
+
     moon_zod = np.array(moon_lon)
     sun_zod = np.array(sun_lon)
 
@@ -472,8 +525,8 @@ if __name__ == '__main__':
     # observer_obj.unaware_update_utc(in_unaware_datetime)
     # plot_color_of_the_days(observer=observer_obj, days=3, file_name="plot_astro_summary.png")
     #
-    observer_obj.unaware_update_utc(in_unaware_datetime)
-    plot_color_of_the_days(observer=observer_obj, days=5, file_name="plot_astro_summary.png")
+    # observer_obj.unaware_update_utc(in_unaware_datetime)
+    # plot_color_of_the_days(observer=observer_obj, days=5, file_name="plot_astro_summary.png")
     #
     # observer_obj.unaware_update_utc(in_unaware_datetime)
     # plot_color_of_the_days(observer=observer_obj, days=6, file_name="plot_astro_summary.png")

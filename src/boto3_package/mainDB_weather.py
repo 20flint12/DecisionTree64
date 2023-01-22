@@ -49,6 +49,11 @@ class dynamoDB_table(object):
         self.table = self.db.Table(self._table_name)
         self.client = boto3.client('dynamodb')
 
+    @property
+    def sort_key(self):
+
+        return self._sort_key
+
     # @property
     def get(self, pk=1, sr=1):
         response = self.table.get_item(
@@ -216,23 +221,25 @@ def main_put_record(observer=None, _chat_job="12345678#REP1"):
 
 def main_query_filter(lists_of_items, attr="weather", field="T"):
 
-    import json
-    import ast
-
     value_list = []
+    value_dict = {}
 
     for item in lists_of_items:
-        # print(item[attr])
-        # print(item[attr][field])
-        # weather_dict = json.loads(str(item["weather"]))
-        # weather_dict = ast.literal_eval(item[attr])
-        # print(weather_dict)
+
+        sort_key = item[recordWeather_table.sort_key]
+        # print(sort_key, item[attr])
 
         value = item[attr][field]
         # print(value)
+
+        # value_dict[res_sun_str] = mdates.date2num(observer.get_unaware)
+        value_dict[sort_key] = float(value)
+
         value_list.append(float(value))
 
-    return value_list
+    average = sum(value_list) / len(value_list)
+
+    return value_dict, average
 
 
 if __name__ == '__main__':
@@ -268,7 +275,7 @@ if __name__ == '__main__':
 
     # pprint(list_of_items)
     # # print(text)
-    data_list = main_query_filter(list_of_items, attr="weather", field="P")
-    # print(data_list)
+    data_dict, avg = main_query_filter(list_of_items, attr="weather", field="P")
+    pprint(data_dict)
 
-    pw.plot_weather(data_list, file_name="user_photo2.jpg")
+    # pw.plot_weather(data_list=data_list, file_name="user_photo2.jpg")

@@ -1,3 +1,4 @@
+
 import matplotlib.pyplot as plt
 from matplotlib.colors import ListedColormap, LinearSegmentedColormap
 import matplotlib.cm as cm
@@ -6,16 +7,13 @@ import ephem
 import matplotlib.colors as mcolors
 
 
-# Create Zodiac colormap
+# Create colormap
 colors = [
-
     '#ba1b1b', '#e75321', '#e75321', '#e75321', '#ba1b1b',  # AR    красный
     '#073763', '#0c343d', '#0c343d', '#0c343d', '#073763',  # TA    пастельные тона розового и зеленого
-    '#ffdb00', '#fdff14', '#fdff14', '#fdff14', '#ffdb00',  # GE    желтый
-    '#cec9c9', '#ee68db', '#ee68db', '#ee68db', '#cec9c9',  # CN    серебристый, фиолетовый
 ]
 
-elements_cmap = LinearSegmentedColormap.from_list('elements_cmap', colors, N=960)
+weather_cmap = LinearSegmentedColormap.from_list('elements_cmap', colors, N=960)
 
 
 def plot_weather(data_list=None, file_name="user_photo2.jpg"):
@@ -26,18 +24,20 @@ def plot_weather(data_list=None, file_name="user_photo2.jpg"):
     # ************************************************************************
 
     len_arr = len(data_list)
+    len_append = len_arr
     print("len_arr=", len_arr)
-    xs = np.linspace(0, len_arr, len_arr)
-    # xs = np.array(data_list)
     # ***********************************************************
 
+    xs = np.linspace(0, len_arr+len_append, len_arr+len_append)
+
     ycolors = np.array(data_list)
-    ys = ycolors
+    ys = np.append(ycolors, np.full(len_append, np.average(ycolors)))
+
 
     axes[0].set_title(f'ypoints', fontsize=10)
     axes[0].grid()
 
-    axes[0].axis(ymin=len_arr, ymax=0)
+    axes[0].axis(ymin=len_arr+len_append, ymax=0)
     axes[0].plot(ys, xs, linestyle='dotted')
 
 
@@ -56,7 +56,6 @@ def plot_weather(data_list=None, file_name="user_photo2.jpg"):
 
     axes[1].imshow(Z, interpolation='bicubic',  # 'nearest', 'bilinear', 'bicubic'
                    aspect='auto',
-                   # cmap=elements_cmap,
                    cmap='summer',
                    origin='upper',
                    extent=[-horiz_half, horiz_half, vert_range, 0],
