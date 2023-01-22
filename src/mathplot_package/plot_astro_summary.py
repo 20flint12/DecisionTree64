@@ -180,8 +180,7 @@ def plot_color_of_the_days(observer=None, days=1., file_name="plot_astro_summary
                                                         )
     # pprint(list_of_items)
 
-
-    data_dict, avg = b3w.main_query_filter(list_of_items, attr="weather", field="P")
+    data_dict, avg = b3w.main_query_filter(list_of_items, geo_name=geo_name, attr="weather", field="P")
     data_len = len(data_dict)
     print('len=', data_len, data_dict)
 

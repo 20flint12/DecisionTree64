@@ -219,7 +219,16 @@ def main_put_record(observer=None, _chat_job="12345678#REP1"):
     return data_dict, text
 
 
-def main_query_filter(lists_of_items, attr="weather", field="T"):
+def main_query_filter(lists_of_items, geo_name="", attr="weather", field="T"):
+    '''
+    :param lists_of_items:
+    :param geo_name:
+    :param attr:
+    :param field:
+    :return:
+
+    'location': {"geo":{"S":"KREMENCHUK"},"tz":{"S":"Europe/Kyiv"}}
+    '''
 
     value_list = []
     value_dict = {}
@@ -227,17 +236,21 @@ def main_query_filter(lists_of_items, attr="weather", field="T"):
     for item in lists_of_items:
 
         sort_key = item[recordWeather_table.sort_key]
-        # print(sort_key, item[attr])
-
+        city = item['location']['geo']
         value = item[attr][field]
-        # print(value)
+        # print(">", sort_key, city, item[attr], value)
 
-        # value_dict[res_sun_str] = mdates.date2num(observer.get_unaware)
-        value_dict[sort_key] = float(value)
+        # Filter by city
+        if geo_name.upper() == city:
 
-        value_list.append(float(value))
+            # value_dict[res_sun_str] = mdates.date2num(observer.get_unaware)
+            value_dict[sort_key] = float(value)
 
-    average = sum(value_list) / len(value_list)
+            value_list.append(float(value))
+
+    average = 0
+    if len(value_list) > 0:
+        average = sum(value_list) / len(value_list)
 
     return value_dict, average
 
@@ -248,12 +261,13 @@ if __name__ == '__main__':
     # print(text)
 
 
-    # geo_name = 'Mragowo'
-    # local_unaware_datetime = datetime.datetime.now()
-    # observer_obj = geo.Observer(geo_name=geo_name, unaware_datetime=local_unaware_datetime)
-    # text = ""
-    # text += str(observer_obj)
-    # # ###########################################################################
+    geo_name = 'Mragowo'
+    # geo_name = 'Kremenchuk'
+    local_unaware_datetime = datetime.datetime.now()
+    observer_obj = geo.Observer(geo_name=geo_name, unaware_datetime=local_unaware_datetime)
+    text = ""
+    text += str(observer_obj)
+    # ###########################################################################
 
     # data_dict, text = main_put_record(observer=observer_obj, _chat_job="12345678#REP1")
     # print(data_dict)
@@ -275,7 +289,7 @@ if __name__ == '__main__':
 
     # pprint(list_of_items)
     # # print(text)
-    data_dict, avg = main_query_filter(list_of_items, attr="weather", field="P")
+    data_dict, avg = main_query_filter(list_of_items, geo_name=geo_name, attr="weather", field="P")
     pprint(data_dict)
 
     # pw.plot_weather(data_list=data_list, file_name="user_photo2.jpg")
