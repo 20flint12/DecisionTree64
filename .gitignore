@@ -14,9 +14,6 @@ __pycache__/
 /src/ephem_routines/__pycache__/
 /src/ephem_routines/ephem_package/__pycache__/
 
-/.idea/csv-editor.xml
-/.idea/misc.xml
-
 key_win64-20flint12-London.pem
 win-20flint12-London.rdp
 
@@ -27,3 +24,8 @@ win-20flint12-London.rdp
 /src/PTB/ptb_main_recorder_prod
 
 
+/.idea/workspace.xml
+/.idea/csv-editor.xml
+git rm --cached /.idea/misc.xml
+
+/src/PTB/442763659_photo.png

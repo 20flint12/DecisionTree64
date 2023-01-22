@@ -82,3 +82,4 @@ tmux a -t recorder
  BOT_TOKEN "345369460:AAEjHUhRMdT-E44Xbd82YG_I2C5-uCjR8Wg"  // @scsdvwervdbot astro_bot         prod remote astro
 
 
+git rm --cached /.idea/misc.xml
