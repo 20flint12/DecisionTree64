@@ -271,6 +271,8 @@ async def summary(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 async def alarm(context: ContextTypes.DEFAULT_TYPE) -> None:
     """Send the alarm message."""
     job = context.job
+    chat_id = job.chat_id
+    job_name = str(chat_id) + "#REP"
     photo_name = str(job.chat_id) + "_photo.png"  # 442763659_photo.jpg
     # logger.info("photo: %s === %s --- %s", photo_name, str(context.chat_data), str(context.chat_data))
 
@@ -309,7 +311,7 @@ async def alarm(context: ContextTypes.DEFAULT_TYPE) -> None:
     await context.bot.send_message(chat_id=job.chat_id, text=text)
 
     # ++++++++++++++++++++++
-    mp.plot_color_of_the_days(observer=observer_obj, days=5, file_name=photo_name)
+    mp.plot_color_of_the_days(observer=observer_obj, days=5, file_name=photo_name, chat_job=job_name)
 
     logger.info("send_photo %s", photo_name)
     await context.bot.send_photo(chat_id=job.chat_id, photo=open(photo_name, 'rb'))
@@ -405,7 +407,7 @@ async def color_of_the_days(update: Update, context: ContextTypes.DEFAULT_TYPE) 
     text = ""
     text += str(observer_obj)
     # ++++++++++++++++++++++
-    mp.plot_color_of_the_days(observer=observer_obj, days=5, file_name=photo_name)
+    mp.plot_color_of_the_days(observer=observer_obj, days=5, file_name=photo_name, chat_job=job_name)
 
     text = "reply_photo"
     logger.info("%s", text)
