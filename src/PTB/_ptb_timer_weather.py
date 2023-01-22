@@ -78,7 +78,7 @@ async def callback_repeating(context: ContextTypes.DEFAULT_TYPE):
 
 
     data_dict, out_text = mr.main_put_record(observer=observer_obj, _chat_job=job.name)
-    text += str(data_dict)
+    text += "\n" + str(data_dict)
     text += out_text
     await context.bot.send_message(chat_id=job.chat_id, text=text)
 

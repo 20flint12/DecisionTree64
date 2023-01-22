@@ -137,6 +137,10 @@ class Observer:
         self._set_noon = False
 
     @property
+    def get_geo_name(self):                     # currently set place of observer
+        return self._geo_name
+
+    @property
     def get_place(self):                        # currently set place of observer
         return self._place
 
