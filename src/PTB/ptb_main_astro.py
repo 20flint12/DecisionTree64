@@ -114,15 +114,32 @@ def parse_args(context: ContextTypes.DEFAULT_TYPE):
     if len(context.args) > 0:
         geo_name = str(context.args[0])
     else:
-        if opc.key_Geoloc in context.chat_data:
-            geo_name = context.chat_data[opc.key_Geoloc]
+        if opc.key_Geolocation in context.chat_data:
+            geo_name = context.chat_data[opc.key_Geolocation]
         else:
             geo_name = "Mragowo"
 
-    if opc.key_Moment in context.chat_data:
-        moment = context.chat_data[opc.key_Moment]
+    if opc.key_Interval in context.chat_data:
+        moment = context.chat_data[opc.key_Interval]
     else:
         moment = "5"
+
+    return geo_name, moment
+
+
+def get_chat_params(param_dict=None):
+    if param_dict is None:
+        return
+
+    if opc.key_Geolocation in param_dict:
+        geo_name = param_dict[opc.key_Geolocation]
+    else:
+        geo_name = "Mragowo"
+
+    if opc.key_Interval in param_dict:
+        moment = param_dict[opc.key_Interval]
+    else:
+        moment = "5.0"
 
     return geo_name, moment
 
@@ -278,13 +295,13 @@ async def alarm(context: ContextTypes.DEFAULT_TYPE) -> None:
     # logger.info("photo: %s === %s --- %s", photo_name, str(context.chat_data), str(context.chat_data))
 
     # geo_name, moment = parse_args(context)
-    if opc.key_Geoloc in context.chat_data:
-        geo_name = context.chat_data[opc.key_Geoloc]
+    if opc.key_Geolocation in context.chat_data:
+        geo_name = context.chat_data[opc.key_Geolocation]
     else:
         geo_name = "Mragowo"
 
-    if opc.key_Moment in context.chat_data:
-        moment = context.chat_data[opc.key_Moment]
+    if opc.key_Interval in context.chat_data:
+        moment = context.chat_data[opc.key_Interval]
     else:
         moment = "5"
     logger.info("summary -> geo_name=%s moment=%s", geo_name, moment)
@@ -341,7 +358,7 @@ async def set_daily_timer(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
         hhmm = context.args[0]
         try:
             dt_hhmm = datetime.strptime("2000-01-01 " + hhmm, "%Y-%m-%d %H%M")
-            context.chat_data[opc.key_Notify] = hhmm
+            context.chat_data[opc.key_Reminder] = hhmm
             text += "Заданий час: " + str(dt_hhmm.time())
             logger.info(text)
         except ValueError:
@@ -351,8 +368,8 @@ async def set_daily_timer(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
             return
 
     except (IndexError, ValueError):
-        if opc.key_Notify in context.chat_data.keys():
-            hhmm = context.chat_data[opc.key_Notify]
+        if opc.key_Reminder in context.chat_data.keys():
+            hhmm = context.chat_data[opc.key_Reminder]
             dt_hhmm = datetime.strptime("2000-01-01 " + hhmm, "%Y-%m-%d %H%M")
             text += "Збережені настройки часу нагадування [" + hhmm + "]"
             logger.info(text)
@@ -421,13 +438,35 @@ initial_pass = False
 async def maintenance_service(context: ContextTypes.DEFAULT_TYPE):
     global initial_pass
 
+    chat_data = context.application.chat_data
+    # print('.', len(chat_data), chat_data)
+
     if not initial_pass:
         initial_pass = True
 
-        print('.', context)
-        text = 'Bot restarted!'
+        print('.', len(chat_data), chat_data)
 
-        await context.bot.send_message(chat_id="442763659", text=text)
+        if len(chat_data) > 0:
+
+            for itm in chat_data:
+
+                chat_id = str(itm)
+                staff = chat_data[itm]
+                print(chat_id, staff)
+                text = chat_id + ': bot restarted! \n' + str(staff)
+                # print('.', text)
+
+                # job = context.job_queue.run_repeating(
+                #     rwt.callback_repeating,
+                #     interval=36,
+                #     name=chat_id + "#REP",
+                #     chat_id=chat_id,
+                #     first=10
+                # )
+                #
+                # text += "\n" + str(job)
+
+                await context.bot.send_message(chat_id=chat_id, text=text)
 
 
 def main() -> None:

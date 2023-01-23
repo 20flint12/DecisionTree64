@@ -39,14 +39,14 @@ logger = logging.getLogger(__name__)
 
 CHOOSING, TYPING_REPLY, TYPING_CHOICE = range(3)
 
-key_Geoloc = "Геолокація"
-key_Moment = "Інтервал"
-key_Notify = "Нагадування"
+key_Geolocation = "Геолокація"
+key_Interval = "Інтервал"
+key_Reminder = "Нагадування"
 key_Addition = "Додатково"
 
 reply_keyboard = [
-    [key_Geoloc, key_Moment],
-    [key_Notify, key_Addition],
+    [key_Geolocation, key_Interval],
+    [key_Reminder, key_Addition],
     ["Готово"],
 ]
 markup = ReplyKeyboardMarkup(reply_keyboard,
@@ -190,7 +190,7 @@ observer_conversation_handler = ConversationHandler(
     states={
         CHOOSING: [
             # key_Geoloc, key_Moment, key_Notify, key_Addition
-            MessageHandler(filters.Regex(f"^({key_Geoloc}|{key_Moment}|{key_Notify})$"), regular_choice),
+            MessageHandler(filters.Regex(f"^({key_Geolocation}|{key_Interval}|{key_Reminder})$"), regular_choice),
             MessageHandler(filters.Regex(f"^{key_Addition}$"), custom_choice),
         ],
         TYPING_CHOICE: [
