@@ -58,8 +58,6 @@ async def callback_repeating(context: ContextTypes.DEFAULT_TYPE):
     job = context.job
     text = job.name + ' @ ' + str(job.next_t)[:19] + "\n" + str(context.job_queue.jobs())[25:]
     # logger.info(text)
-    # init_id, out_str = mr.main_put_record(_chat_job=job.name)
-
 
     if opc.key_Geoloc in context.chat_data:
         geo_name = context.chat_data[opc.key_Geoloc]

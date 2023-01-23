@@ -63,6 +63,7 @@ from telegram.ext import (
     MessageHandler,
     PicklePersistence,
     filters,
+    JobQueue
 )
 
 
@@ -272,7 +273,7 @@ async def alarm(context: ContextTypes.DEFAULT_TYPE) -> None:
     """Send the alarm message."""
     job = context.job
     chat_id = job.chat_id
-    job_name = str(chat_id) + "#REP"
+    chat_job_name = str(chat_id) + "#REP"
     photo_name = str(job.chat_id) + "_photo.png"  # 442763659_photo.jpg
     # logger.info("photo: %s === %s --- %s", photo_name, str(context.chat_data), str(context.chat_data))
 
@@ -311,7 +312,7 @@ async def alarm(context: ContextTypes.DEFAULT_TYPE) -> None:
     await context.bot.send_message(chat_id=job.chat_id, text=text)
 
     # ++++++++++++++++++++++
-    mp.plot_color_of_the_days(observer=observer_obj, days=5, file_name=photo_name, chat_job=job_name)
+    mp.plot_color_of_the_days(observer=observer_obj, days=5, file_name=photo_name, chat_job=chat_job_name)
 
     logger.info("send_photo %s", photo_name)
     await context.bot.send_photo(chat_id=job.chat_id, photo=open(photo_name, 'rb'))
@@ -397,21 +398,36 @@ async def set_daily_timer(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
 async def color_of_the_days(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
     chat_id = update.message.chat_id
-    job_name = str(chat_id) + "#REP"            # 442763659#REP
-    photo_name = str(chat_id) + "_photo.png"    # 442763659_photo.jpg
+    chat_job_name = str(chat_id) + "#REP"           # 442763659#REP
+    photo_name = str(chat_id) + "_photo.png"        # 442763659_photo.jpg
 
     geo_name, moment = parse_args(context)
-    logger.info("summary at %s", moment)
+    logger.info("color_of_the_days -> geo_name=%s moment=%s", geo_name, moment)
 
     observer_obj = geo.Observer(geo_name=geo_name, unaware_datetime=datetime.today())
     text = ""
     text += str(observer_obj)
     # ++++++++++++++++++++++
-    mp.plot_color_of_the_days(observer=observer_obj, days=5, file_name=photo_name, chat_job=job_name)
+    mp.plot_color_of_the_days(observer=observer_obj, days=5, file_name=photo_name, chat_job=chat_job_name)
 
-    text = "reply_photo"
-    logger.info("%s", text)
+    logger.info("color_of_the_days - %s", photo_name)
     await update.message.reply_photo(photo=open(photo_name, 'rb'))
+
+
+initial_pass = False
+
+
+# Define a function to send a message
+async def maintenance_service(context: ContextTypes.DEFAULT_TYPE):
+    global initial_pass
+
+    if not initial_pass:
+        initial_pass = True
+
+        print('.', context)
+        text = 'Bot restarted!'
+
+        await context.bot.send_message(chat_id="442763659", text=text)
 
 
 def main() -> None:
@@ -449,6 +465,10 @@ def main() -> None:
 
     # on non command i.e message - echo the message on Telegram
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, echo))
+
+    # Schedule the function to run every 10 seconds
+    # job = context.job_queue.run_repeating(callback_repeating, interval=due, name=job_name, chat_id=chat_id, first=10)
+    application.job_queue.run_repeating(maintenance_service, interval=13, first=3)
 
     # Run the bot until the user presses Ctrl-C
     application.run_polling()
