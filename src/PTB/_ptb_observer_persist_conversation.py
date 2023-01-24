@@ -105,7 +105,7 @@ async def received_information(update: Update, context: ContextTypes.DEFAULT_TYP
     context.user_data[category] = text.upper()
     del context.user_data["choice"]
 
-    context.chat_data.update(context.user_data)     # !!!
+    # context.chat_data.update(context.user_data)     # !!!
 
     await update.message.reply_text(
         "Задані параметри:"
@@ -131,7 +131,7 @@ async def done(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     if "choice" in context.user_data:
         del context.user_data["choice"]
 
-    context.chat_data.update(context.user_data)  # !!!
+    # context.chat_data.update(context.user_data)  # !!!
 
     await update.message.reply_text(
         f"Задані параметри: {facts_to_str(context.chat_data)}",

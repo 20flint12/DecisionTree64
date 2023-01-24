@@ -9,7 +9,7 @@ import src.ephem_routines.ephem_package.moon_day as md
 import src.ephem_routines.ephem_package.sun_rise_sett as sr
 import src.ephem_routines.ephem_package.zodiac_phase as zd
 import src.weather_package.main_openweathermap as wt
-import src.mathplot_package._plot_recordWeather as pw
+import src.PTB._ptb_observer_persist_conversation as opc
 
 
 try:
@@ -28,6 +28,7 @@ class dynamoDB_table(object):
     _table_name = "table_name"
     _partition_key = 'part_key'
     _sort_key = 'sort_key'
+    _last_time_key = '_last_time_key'
 
     _df = None
 
@@ -44,6 +45,7 @@ class dynamoDB_table(object):
         self._table_name = file_name
         self._partition_key = self._df.columns[0]
         self._sort_key = self._df.columns[1]
+        self._last_time_key = self._df.columns[2]
 
         self.db = boto3.resource('dynamodb', region_name='eu-west-1')
         self.table = self.db.Table(self._table_name)
@@ -53,6 +55,11 @@ class dynamoDB_table(object):
     def sort_key(self):
 
         return self._sort_key
+
+    @property
+    def table_name(self):
+
+        return self._table_name
 
     # @property
     def get(self, pk=1, sr=1):
@@ -64,27 +71,32 @@ class dynamoDB_table(object):
         )
         return response
 
-    def put(self, chat_job='', data_dict=None):     # at a current time
+    def put(self, user_data_dict=None):     # at a current UTC time
 
         from decimal import Decimal
         import json
 
-        utc_str = datetime.datetime.utcnow().strftime(geo.dt_format_rev)
+        # # Partition and Sorting keys
+        # rec_items_dict = {
+        #         self._partition_key: chat_id,
+        #         self._sort_key: utc_str
+        # }
+        rec_items_dict = {}
 
-        # Partition and Sorting keys
-        rec_items_dict = {
-                self._partition_key: chat_job,
-                self._sort_key: utc_str
-        }
+        # print("data_csv_dict=", user_data_dict)
 
-        # print("data_dict=", data_dict)
-        ddb_data = json.loads(json.dumps(data_dict), parse_float=Decimal)  # get rid of float
-        rec_items_dict.update(ddb_data)  # !!!
+        if user_data_dict is not None:
+            ddb_data = json.loads(json.dumps(user_data_dict), parse_float=Decimal)  # get rid of float
+            rec_items_dict.update(ddb_data)  # !!!
 
-        # print(self._partition_key, self._sort_key, rec_items_dict)
-        response = self.table.put_item(Item=rec_items_dict)
+            # Update last_time_key current UTC now
+            utc_str = datetime.datetime.utcnow().strftime(geo.dt_format_rev)
+            rec_items_dict[self._last_time_key] = utc_str
 
-        return response
+            # print(self._partition_key, self._sort_key, rec_items_dict)
+            response = self.table.put_item(Item=rec_items_dict)
+
+            return response
 
     def delete(self, partition_key=''):
         self.table.delete_item(
@@ -152,82 +164,91 @@ class dynamoDB_table(object):
         text = ""
 
         for i in range(0, len(self._df)):
-            weather_dict = self._df.loc[i].to_dict()
-            # print(weather_dict)
+            data_csv_dict = self._df.loc[i].to_dict()
+            # print("> ", data_csv_dict)
+            # {'chat_pk': 4774374724, 'name_sk': '2022-12-11 21:11:17', 'last_action': '2022-12-11 21:11:17', 'setting': '{'Геолокація': 'WARSAW', 'Інтервал': '1.111', 'Нагадування': '2331'}'}
 
-            resp = self.put(chat_job="chat_job", data_dict=weather_dict)
-            # print(".")
+            resp = self.put(user_data_dict=data_csv_dict)
+
             text += str(resp) + "\n"
 
         return text
 
 
-file_name = "record_weather.csv"
+file_name = "bot_Users.csv"
 script_dir = os.path.dirname(os.path.abspath(__file__))
 file_path = os.path.join(script_dir, file_name)
 print(file_path)
 
-recordWeather_table = dynamoDB_table(path_file_csv=file_path)
-print(recordWeather_table)
+botUsers_table = dynamoDB_table(path_file_csv=file_path)
+print(botUsers_table)
 
 
-def main_create_populate_record_weather():
+def main_create_populate_bot_users():
 
     text = ""
 
-    result, responce = recordWeather_table.describe_table()
+    result, response = botUsers_table.describe_table()
 
     if result:
         text += "\n*** Table already exists!"
-        text += "\n" + str(responce)
+        text += "\n" + str(response)
     else:
-        text += "\n--- " + str(responce)
-        text += "\n*** Create table '" + recordWeather_table._table_name + "' ..."
-        table = recordWeather_table.create_table()
+        text += "\n--- " + str(response)
+        text += "\n*** Create table '" + botUsers_table.table_name + "' ..."
+        table = botUsers_table.create_table()
         text += "\n*** Table created successfully!"
         text += "\n--- " + str(table)
 
     text += "\n*** Populate table from csv"
-    text += "\n" + recordWeather_table.populate_from_csv()
+    text += "\n" + botUsers_table.populate_from_csv()
 
     return text
 
 
-def main_put_record(observer=None, _chat_job="12345678#REP1"):
+def update_user_record(chat_id="", user_name="Noname", sett_dict=None, payment_dict=None):
 
     text = ""
 
-    data_dict = {}
+    user_data_dict = {
+        'pk_chat_id': chat_id,      # "4774374724",
+        'sk_user_name': user_name,  # 'Serhii Surmylo',
+        # 'last_time': '2022-12-11 21:11:17'
+        }
 
-    # Location and timezone
-    observer.get_coords_by_name()
-    observer.get_tz_by_coord()
-    data_dict["location"] = {"geo": observer._geo_name,
-                             "tz": observer.timezone_name
-                             }
+    upd_data_dict = {}
 
-    # Weather data
-    wth_dict, str_head = wt.main_weather_now(observer)
-    # data_dict["weather"] = {'erwe': 32.34}
-    data_dict["weather"] = wth_dict
+    # User settings for chat
+    # upd_data_dict['user_setting'] = {
+    #     f'{opc.key_Geolocation}': 'WARSAW4',
+    #     f'{opc.key_Interval}': '3.21',
+    #     f'{opc.key_Reminder}': '0034'
+    # }
+    upd_data_dict['user_setting'] = sett_dict
 
-    resp = recordWeather_table.put(chat_job=_chat_job, data_dict=data_dict)
+    # User permition and payments
+    # upd_data_dict['permition'] = {
+    #     'payment': 32.37
+    # }
+    upd_data_dict['permition'] = payment_dict
+
+    user_data_dict.update(upd_data_dict)
+
+    resp = botUsers_table.put(user_data_dict=user_data_dict)
 
     text += "\n" + str(resp["ResponseMetadata"]["RequestId"])[:12] + "... "
     text += "" + str(resp["ResponseMetadata"]["HTTPStatusCode"]) + "/" + str(resp["ResponseMetadata"]["RetryAttempts"])
 
-    return data_dict, text
+    return user_data_dict, text
 
 
-def main_query_filter(lists_of_items, geo_name="", attr="weather", field="T"):
+def user_query_filter(lists_of_items, geo_name="", attr="weather", field="T"):
     '''
     :param lists_of_items:
     :param geo_name:
     :param attr:
     :param field:
     :return:
-
-    'location': {"geo":{"S":"KREMENCHUK"},"tz":{"S":"Europe/Kyiv"}}
     '''
 
     value_list = []
@@ -235,7 +256,8 @@ def main_query_filter(lists_of_items, geo_name="", attr="weather", field="T"):
 
     for item in lists_of_items:
 
-        sort_key = item[recordWeather_table.sort_key]
+        print(">",  item)
+        sort_key = item[botUsers_table.sort_key]
         city = item['location']['geo']
         value = item[attr][field]
         # print(">", sort_key, city, item[attr], value)
@@ -257,39 +279,28 @@ def main_query_filter(lists_of_items, geo_name="", attr="weather", field="T"):
 
 if __name__ == '__main__':
 
-    # text = main_create_populate_record_weather()
+    # text = main_create_populate_bot_users()
     # print(text)
+    # # ###########################################################################
 
 
-    geo_name = 'Mragowo'
-    # geo_name = 'Kremenchuk'
-    local_unaware_datetime = datetime.datetime.now()
-    observer_obj = geo.Observer(geo_name=geo_name, unaware_datetime=local_unaware_datetime)
-    text = ""
-    text += str(observer_obj)
-    # ###########################################################################
-
-    # data_dict, text = main_put_record(observer=observer_obj, _chat_job="12345678#REP1")
-    # print(data_dict)
-    # print(text)
+    # setting_dict = {
+    #     f'{opc.key_Geolocation}': 'WARSsdfAW4',
+    #     f'{opc.key_Interval}': '3.212',
+    #     f'{opc.key_Reminder}': '1134'
+    # }
     #
-    # data_dict, text = main_put_record(observer=observer_obj, _chat_job="12345678#REP1")
-    # print(data_dict)
-    # print(text)
-    #
-    # data_dict, text = main_put_record(observer=observer_obj, _chat_job="12345678#REP1")
+    # data_dict, text = update_user_record(chat_id="333344452", user_name="Vasiya", sett_dict=setting_dict, payment_dict=None)
     # print(data_dict)
     # print(text)
 
 
 
-    list_of_items = recordWeather_table.table_query(_pk="442763659#REP",
-                                                    _between_low="2021-01-21 14:41:49",
-                                                    _between_high="2024-01-21 12:37:00")
+    list_of_items = botUsers_table.table_query(_pk="442763659#REP",
+                                               _between_low="2021-01-21 14:41:49",
+                                               _between_high="2024-01-21 12:37:00")
 
     # pprint(list_of_items)
-    # # print(text)
-    data_dict, avg = main_query_filter(list_of_items, geo_name=geo_name, attr="weather", field="P")
-    pprint(data_dict)
-
-    # pw.plot_weather(data_list=data_list, file_name="user_photo2.jpg")
+    # # # print(text)
+    # data_dict, avg = main_query_filter(list_of_items, geo_name=geo_name, attr="weather", field="P")
+    # pprint(data_dict)

@@ -33,6 +33,7 @@ import src.PTB._ptb_timer_weather as rwt
 import src.mathplot_package.plot_astro_summary as mp
 import src.boto3_package.mainDB_moon_zodiac as dbmz
 import src.boto3_package.mainDB_moon_day as dbmd
+import src.boto3_package.botDB_users as bdbu
 
 
 import socket
@@ -147,6 +148,10 @@ def get_chat_params(param_dict=None):
 async def moon_phase(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Return moon_phase to the user message."""
     user = update.effective_user
+    username = str(user.first_name) + " " + str(user.last_name) + " - " + str(user.username)
+    # User(first_name='Serhii', id=442763659, is_bot=False, language_code='en', last_name='Surmylo', username='Serhii_Surmylo')
+    bdbu.update_user_record(chat_id=str(user.id), user_name=username,
+                            sett_dict=context.chat_data, payment_dict=context.user_data)
 
     geo_name, moment = parse_args(context)
     logger.info("moon day for geo_name: %s at %s", geo_name, moment)
@@ -165,6 +170,9 @@ async def moon_phase(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None
 async def moon_day(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Return moon_day to the user message."""
     user = update.effective_user
+    username = str(user.first_name) + " " + str(user.last_name) + " - " + str(user.username)
+    bdbu.update_user_record(chat_id=str(user.id), user_name=username,
+                            sett_dict=context.chat_data, payment_dict=context.user_data)
 
     geo_name, moment = parse_args(context)
     logger.info("moon day for geo_name:  %s at %s", geo_name, moment)
@@ -192,6 +200,9 @@ async def moon_day(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 async def sun_rise(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Return moon_day to the user message."""
     user = update.effective_user
+    username = str(user.first_name) + " " + str(user.last_name) + " - " + str(user.username)
+    bdbu.update_user_record(chat_id=str(user.id), user_name=username,
+                            sett_dict=context.chat_data, payment_dict=context.user_data)
 
     geo_name, moment = parse_args(context)
     logger.info("sun rise for geo_name: %s at %s", geo_name, moment)
@@ -210,6 +221,9 @@ async def sun_rise(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 async def zodiac(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Return moon_day to the user message."""
     user = update.effective_user
+    username = str(user.first_name) + " " + str(user.last_name) + " - " + str(user.username)
+    bdbu.update_user_record(chat_id=str(user.id), user_name=username,
+                            sett_dict=context.chat_data, payment_dict=context.user_data)
 
     geo_name, moment = parse_args(context)
     logger.info("zodiac for geo_name: %s at %s", geo_name, moment)
@@ -233,6 +247,9 @@ async def zodiac(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 async def weather(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Return current weather to the user message."""
     user = update.effective_user
+    username = str(user.first_name) + " " + str(user.last_name) + " - " + str(user.username)
+    bdbu.update_user_record(chat_id=str(user.id), user_name=username,
+                            sett_dict=context.chat_data, payment_dict=context.user_data)
 
     geo_name, moment = parse_args(context)
     logger.info("weather for geo_name %s at %s", geo_name, moment)
@@ -251,6 +268,9 @@ async def weather(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 async def summary(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Return summary info to the user message."""
     user = update.effective_user
+    username = str(user.first_name) + " " + str(user.last_name) + " - " + str(user.username)
+    bdbu.update_user_record(chat_id=str(user.id), user_name=username,
+                            sett_dict=context.chat_data, payment_dict=context.user_data)
 
     geo_name, moment = parse_args(context)
     logger.info("summary -> geo_name=%s moment=%s", geo_name, moment)
@@ -347,6 +367,11 @@ def remove_job_if_exists(name: str, context: ContextTypes.DEFAULT_TYPE) -> bool:
 
 async def set_daily_timer(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Add a job to the queue."""
+    user = update.effective_user
+    username = str(user.first_name) + " " + str(user.last_name) + " - " + str(user.username)
+    bdbu.update_user_record(chat_id=str(user.id), user_name=username,
+                            sett_dict=context.chat_data, payment_dict=context.user_data)
+
     chat_id = update.effective_message.chat_id
 
     # timezone = context.chat_data["time zone"]
@@ -414,6 +439,11 @@ async def set_daily_timer(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
 
 async def color_of_the_days(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
+    user = update.effective_user
+    username = str(user.first_name) + " " + str(user.last_name) + " - " + str(user.username)
+    bdbu.update_user_record(chat_id=str(user.id), user_name=username,
+                            sett_dict=context.chat_data, payment_dict=context.user_data)
+
     chat_id = update.message.chat_id
     chat_job_name = str(chat_id) + "#REP"           # 442763659#REP
     photo_name = str(chat_id) + "_photo.png"        # 442763659_photo.jpg
@@ -444,7 +474,7 @@ async def maintenance_service(context: ContextTypes.DEFAULT_TYPE):
     if not initial_pass:
         initial_pass = True
 
-        print('.', len(chat_data), chat_data)
+        # print('.', len(chat_data), chat_data)
 
         if len(chat_data) > 0:
 
@@ -452,7 +482,7 @@ async def maintenance_service(context: ContextTypes.DEFAULT_TYPE):
 
                 chat_id = str(itm)
                 staff = chat_data[itm]
-                print(chat_id, staff)
+                print("::", chat_id, staff)
                 text = chat_id + ': bot restarted! \n' + str(staff)
                 # print('.', text)
 
