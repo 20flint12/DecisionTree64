@@ -4,19 +4,9 @@
 
 
 import src.ephem_routines.ephem_package.geo_place as geo
+import src.boto3_package.botDB_users as bdbu
 
 
-"""
-First, a few callback functions are defined. Then, those functions are passed to
-the Application and registered at their respective places.
-Then, the bot is started and runs until we press Ctrl-C on the command line.
-
-Usage:
-Example of a bot-user conversation using ConversationHandler.
-Send /start to initiate the conversation.
-Press Ctrl-C on the command line or send a signal to the process to stop the
-bot.
-"""
 import logging
 from typing import Dict
 
@@ -49,9 +39,7 @@ reply_keyboard = [
     [key_Reminder, key_Addition],
     ["Готово"],
 ]
-markup = ReplyKeyboardMarkup(reply_keyboard,
-                             one_time_keyboard=True,
-                             )
+markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True,)
 
 
 def facts_to_str(user_data: Dict[str, str]) -> str:
@@ -62,6 +50,8 @@ def facts_to_str(user_data: Dict[str, str]) -> str:
 
 async def observer(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """Start the conversation, display any stored data and ask user for input."""
+    # bdbu.monitor_user_record(update=update, context=context)
+
     reply_text = "Вітаю! Потрібно задаті географічне місце та час (момент відліку для цього місця)"
 
     await update.message.reply_text(reply_text, reply_markup=markup)
@@ -71,6 +61,7 @@ async def observer(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
 
 async def regular_choice(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """Ask the user for info about the selected predefined choice."""
+    bdbu.monitor_user_record(update=update, context=context)
     user = update.effective_user
 
     text = update.message.text  # .lower()
@@ -88,6 +79,7 @@ async def regular_choice(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
 
 async def custom_choice(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """Create a new observer object and save to context"""
+    bdbu.monitor_user_record(update=update, context=context)
     user = update.effective_user
 
     logger.info("%s: context.user_data=%s", user.first_name, context.user_data)
@@ -100,7 +92,9 @@ async def custom_choice(update: Update, context: ContextTypes.DEFAULT_TYPE) -> i
 
 async def received_information(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """Store info provided by user and ask for the next category."""
+    bdbu.monitor_user_record(update=update, context=context)
     text = update.message.text
+
     category = context.user_data["choice"]
     context.user_data[category] = text.upper()
     del context.user_data["choice"]
@@ -109,7 +103,7 @@ async def received_information(update: Update, context: ContextTypes.DEFAULT_TYP
 
     await update.message.reply_text(
         "Задані параметри:"
-        f"{facts_to_str(context.chat_data)}"
+        f"{facts_to_str(context.user_data)}"
         "Можна змінювати ці параметри.",
         reply_markup=markup,
     )
@@ -119,22 +113,24 @@ async def received_information(update: Update, context: ContextTypes.DEFAULT_TYP
 
 async def show_data(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Display the gathered info."""
+    bdbu.monitor_user_record(update=update, context=context)
 
-    # context.chat_data.update(context.user_data)
     await update.message.reply_text(
-        f"Збережені параметри: {facts_to_str(context.chat_data)}"
+        f"Збережені параметри: {facts_to_str(context.user_data)}"
     )
 
 
 async def done(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """Display the gathered info and end the conversation."""
+    bdbu.monitor_user_record(update=update, context=context)
+
     if "choice" in context.user_data:
         del context.user_data["choice"]
 
     # context.chat_data.update(context.user_data)  # !!!
 
     await update.message.reply_text(
-        f"Задані параметри: {facts_to_str(context.chat_data)}",
+        f"Задані параметри: {facts_to_str(context.user_data)}",
         reply_markup=ReplyKeyboardRemove(),
     )
     return ConversationHandler.END
