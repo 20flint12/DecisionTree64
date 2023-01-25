@@ -347,9 +347,9 @@ if __name__ == '__main__':
     # # list_of_items = botUsers_table.table_query(_pk="442763659#REP",
     # #                                            _between_low="2021-01-21 14:41:49",
     # #                                            _between_high="2024-01-21 12:37:00")
-    # list_of_items = botUsers_table.table_scan()
-    # print(len(list_of_items))
-    # # pprint(list_of_items)
+    list_of_items = botUsers_table.table_scan()
+    print(len(list_of_items))
+    # pprint(list_of_items)
 
     # list_of_items = botUsers_table.table_query(_pk="442763659")
     # print(len(list_of_items), list_of_items[0])
