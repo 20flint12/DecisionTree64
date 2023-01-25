@@ -66,12 +66,11 @@ class dynamoDB_table(object):
 
         return self._table_name
 
-    # @property
-    def get(self, pk=1, sr=1):
+    def get(self, pk="", sr=1):
         response = self.table.get_item(
             Key={
                 self._partition_key: pk,
-                self._sort_key: sr
+                # self._sort_key: sr
             }
         )
         return response
@@ -166,12 +165,12 @@ class dynamoDB_table(object):
         items = response['Items']
         return items
 
-    def table_query(self, _pk="", _between_low="", _between_high=""):
+    def table_query(self, _pk=""):
 
         from boto3.dynamodb.conditions import Key, Attr
 
         response = self.table.query(
-            KeyConditionExpression=Key(self._partition_key).eq(_pk) & Key(self._sort_key).between(_between_low, _between_high)
+            KeyConditionExpression=Key(self._partition_key).eq(_pk)
         )
         items = response['Items']
         return items
@@ -273,7 +272,7 @@ def monitor_user_record(update=None, context=None):
     username = str(user.first_name) + " " + str(user.last_name) + " - " + str(user.username)
 
     sett_dict = context.user_data
-    payment_dict = context.user_data
+    payment_dict = {}
 
     user_data_dict = {
         'pk_chat_id': str(user.id),     # "4774374724",
@@ -319,6 +318,16 @@ def user_scan_filter(attr="weather", field="T"):
     return list_of_items, count
 
 
+def get_user_sett(pk=""):
+    '''
+    '''
+    list_of_items = botUsers_table.table_query(_pk=pk)
+
+    sett_dict = list_of_items[0]['user_setting']
+
+    return sett_dict
+
+
 
 
 
@@ -341,13 +350,15 @@ if __name__ == '__main__':
 
 
 
-    # list_of_items = botUsers_table.table_query(_pk="442763659#REP",
-    #                                            _between_low="2021-01-21 14:41:49",
-    #                                            _between_high="2024-01-21 12:37:00")
-    list_of_items = botUsers_table.table_scan()
-    print(len(list_of_items))
-    # pprint(list_of_items)
+    # # list_of_items = botUsers_table.table_query(_pk="442763659#REP",
+    # #                                            _between_low="2021-01-21 14:41:49",
+    # #                                            _between_high="2024-01-21 12:37:00")
+    # list_of_items = botUsers_table.table_scan()
+    # print(len(list_of_items))
+    # # pprint(list_of_items)
 
-    # # # print(text)
-    # data_dict, avg = main_query_filter(list_of_items, geo_name=geo_name, attr="weather", field="P")
-    # pprint(data_dict)
+    # list_of_items = botUsers_table.table_query(_pk="442763659")
+    # print(len(list_of_items), list_of_items[0])
+
+    sett_dict = get_user_sett(pk="442763659")
+    print(sett_dict[opc.key_Reminder])

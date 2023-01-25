@@ -6,8 +6,9 @@ from datetime import datetime, time
 from pprint import pprint
 
 import src.ephem_routines.ephem_package.geo_place as geo
-import src.boto3_package.mainDB_weather as mr
 import src.PTB._ptb_observer_persist_conversation as opc
+import src.boto3_package.mainDB_weather as mr
+import src.boto3_package.botDB_users as bdbu
 
 
 import logging
@@ -56,16 +57,19 @@ def remove_job_if_exists(name: str, context: ContextTypes.DEFAULT_TYPE) -> bool:
 
 async def callback_repeating(context: ContextTypes.DEFAULT_TYPE):
     job = context.job
+    chat_id = str(job.chat_id)
     text = job.name + ' @ ' + str(job.next_t)[:19] + "\n" + str(context.job_queue.jobs())[25:]
     # logger.info(text)
 
-    if opc.key_Geolocation in context.chat_data:
-        geo_name = context.chat_data[opc.key_Geolocation]
+    sett_dict = bdbu.get_user_sett(pk=chat_id)
+    # print("###", sett_dict, sett_dict[opc.key_Reminder])
+    if opc.key_Geolocation in sett_dict:
+        geo_name = sett_dict[opc.key_Geolocation]
     else:
         geo_name = "Mragowo"
 
-    if opc.key_Interval in context.chat_data:
-        moment = context.chat_data[opc.key_Interval]
+    if opc.key_Interval in sett_dict:
+        moment = sett_dict[opc.key_Interval]
     else:
         moment = "5"
     logger.info("callback_repeating -> geo_name=%s moment=%s", geo_name, moment)

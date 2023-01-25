@@ -8,16 +8,8 @@
 
 
 """
-Simple Bot to reply to Telegram messages.
-
-First, a few handler functions are defined. Then, those functions are passed to
-the Application and registered at their respective places.
-Then, the bot is started and runs until we press Ctrl-C on the command line.
-
 Usage:
-Basic Echobot example, repeats messages.
-Press Ctrl-C on the command line or send a signal to the process to stop the
-bot.
+Press Ctrl-C on the command line or send a signal to the process to stop the bot.
 """
 
 
@@ -64,7 +56,6 @@ from telegram.ext import (
     MessageHandler,
     PicklePersistence,
     filters,
-    JobQueue
 )
 
 
@@ -118,13 +109,13 @@ def parse_args(context: ContextTypes.DEFAULT_TYPE):
     if len(context.args) > 0:
         geo_name = str(context.args[0])
     else:
-        if opc.key_Geolocation in context.chat_data:
-            geo_name = context.chat_data[opc.key_Geolocation]
+        if opc.key_Geolocation in context.user_data:
+            geo_name = context.user_data[opc.key_Geolocation]
         else:
             geo_name = "Mragowo"
 
-    if opc.key_Interval in context.chat_data:
-        moment = context.chat_data[opc.key_Interval]
+    if opc.key_Interval in context.user_data:
+        moment = context.user_data[opc.key_Interval]
     else:
         moment = "5"
 
@@ -299,19 +290,20 @@ async def summary(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 async def alarm(context: ContextTypes.DEFAULT_TYPE) -> None:
     """Send the alarm message."""
     job = context.job
-    chat_id = job.chat_id
-    chat_job_name = str(chat_id) + "#REP"
-    photo_name = str(job.chat_id) + "_photo.png"  # 442763659_photo.jpg
-    # logger.info("photo: %s === %s --- %s", photo_name, str(context.chat_data), str(context.chat_data))
+    chat_id = str(job.chat_id)
+    chat_job_name = chat_id + "#REP"
+    photo_name = chat_id + "_photo.png"     # 442763659_photo.jpg
 
-    # geo_name, moment = parse_args(context)
-    if opc.key_Geolocation in context.chat_data:
-        geo_name = context.chat_data[opc.key_Geolocation]
+    sett_dict = bdbu.get_user_sett(pk=chat_id)
+    # logger.info("photo: %s === %s", photo_name, str(sett_dict))
+
+    if opc.key_Geolocation in sett_dict:
+        geo_name = sett_dict[opc.key_Geolocation]
     else:
         geo_name = "Mragowo"
 
-    if opc.key_Interval in context.chat_data:
-        moment = context.chat_data[opc.key_Interval]
+    if opc.key_Interval in sett_dict:
+        moment = sett_dict[opc.key_Interval]
     else:
         moment = "5"
     logger.info("summary -> geo_name=%s moment=%s", geo_name, moment)
@@ -356,7 +348,9 @@ def remove_job_if_exists(name: str, context: ContextTypes.DEFAULT_TYPE) -> bool:
 
 
 def get_dt_hhmm(hhmm=""):
+
     dt_hhmm = datetime.strptime("2000-01-01 0000", "%Y-%m-%d %H%M")
+
     try:
         dt_hhmm = datetime.strptime("2000-01-01 " + hhmm, "%Y-%m-%d %H%M")
 
@@ -370,11 +364,10 @@ def get_dt_hhmm(hhmm=""):
 async def set_daily_timer(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Add a job to the queue."""
     user = update.effective_user
-    bdbu.monitor_user_record(update=update, context=context)
 
     chat_id = update.effective_message.chat_id
 
-    # timezone = context.chat_data["time zone"]
+    # timezone = context.user_data["time zone"]
     # print(timezone)
 
     text = ""
@@ -392,22 +385,14 @@ async def set_daily_timer(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
             await update.effective_message.reply_text(text)
             return
 
-        # try:
-        #     dt_hhmm = datetime.strptime("2000-01-01 " + hhmm, "%Y-%m-%d %H%M")
-        #     context.chat_data[opc.key_Reminder] = hhmm
-        #     text += "Заданий час: " + str(dt_hhmm.time())
-        #     logger.info(text)
-        # except ValueError:
-        #     text += "Вибачте, задайте час в форматі [HHMM]"
-        #     logger.info(text)
-        #     await update.effective_message.reply_text(text)
-        #     return
-
     except (IndexError, ValueError):
-        if opc.key_Reminder in context.chat_data.keys():
-            hhmm = context.chat_data[opc.key_Reminder]
+
+        sett_dict = bdbu.get_user_sett(pk=str(chat_id))
+        # print("###", sett_dict, sett_dict[opc.key_Reminder])
+
+        if opc.key_Reminder in sett_dict.keys():
+            hhmm = sett_dict[opc.key_Reminder]
             result, dt_hhmm = get_dt_hhmm(hhmm=hhmm)
-            dt_hhmm = datetime.strptime("2000-01-01 " + hhmm, "%Y-%m-%d %H%M")
             text += "Збережені настройки часу нагадування: " + str(dt_hhmm.time())
             logger.info(text)
         else:
@@ -446,6 +431,8 @@ async def set_daily_timer(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
     if job_removed:
         text += "\nСтарий таймер видалено."
 
+    bdbu.monitor_user_record(update=update, context=context)
+
     await update.effective_message.reply_text(text)
 
 
@@ -475,11 +462,7 @@ initial_pass = False
 
 
 async def maintenance_service(context: ContextTypes.DEFAULT_TYPE):
-
     global initial_pass
-
-    # chat_data = context.application.chat_data
-    # print('.', len(chat_data), chat_data)
 
     if not initial_pass:
         initial_pass = True
@@ -491,23 +474,39 @@ async def maintenance_service(context: ContextTypes.DEFAULT_TYPE):
 
                 chat_id = item_dict[bdbu.botUsers_table.partition_key]      # string
                 user_setting = item_dict["user_setting"]
-                reminder_time = user_setting[opc.key_Reminder]
-                print("::", chat_id, reminder_time)
+                reminder_hhmm = user_setting[opc.key_Reminder]
+                print("::", chat_id, reminder_hhmm)
 
-                text = chat_id + ': bot restarted!'
+                text = chat_id + ': bot re-started...'
 
                 # Restore timer for weather grabber
-                job = context.job_queue.run_repeating(
+                job_rep = context.job_queue.run_repeating(
                     rwt.callback_repeating,
                     interval=3600,
                     name=chat_id + "#REP",
                     chat_id=chat_id,
                     first=10
                 )
+                text += "\n" + str(job_rep.name) + " " + str(job_rep.next_t)[:19]
 
                 # Restore timer for reminder
+                if opc.key_Reminder in user_setting.keys():
+                    reminder_hhmm = user_setting[opc.key_Reminder]
+                    result, dt_hhmm = get_dt_hhmm(hhmm=reminder_hhmm)
 
-                text += "\n" + str(job.name) + " " + str(job.next_t)[:19]
+                    job_daily = context.job_queue.run_daily(
+                        alarm,
+                        time=time(
+                            hour=dt_hhmm.hour,
+                            minute=dt_hhmm.minute,
+                            second=10,
+                            tzinfo=pytz.timezone('Europe/Warsaw')),
+                        days=(0, 1, 2, 3, 4, 5, 6),
+                        name=chat_id + "#DAILY",
+                        chat_id=chat_id,
+                        job_kwargs={},
+                    )
+                    text += "\n" + str(job_daily.name) + " " + str(job_daily.next_t)[:19]
 
                 await context.bot.send_message(chat_id=chat_id, text=text)
 
@@ -538,6 +537,7 @@ def main() -> None:
     application.add_handler(CommandHandler("cod", color_of_the_days))
 
     application.add_handler(opc.observer_conversation_handler)      # /obs
+    # application.add_handler(opc.observer_handler)
     application.add_handler(opc.show_data_handler)
 
     application.add_handler(CommandHandler("rep", rwt.set_repeat_timer))

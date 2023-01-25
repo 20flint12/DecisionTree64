@@ -29,10 +29,10 @@ logger = logging.getLogger(__name__)
 
 CHOOSING, TYPING_REPLY, TYPING_CHOICE = range(3)
 
-key_Geolocation = "Геолокація"
-key_Interval = "Інтервал"
-key_Reminder = "Нагадування"
-key_Addition = "Додатково"
+key_Geolocation = u"Геолокація"
+key_Interval = u"Інтервал"
+key_Reminder = u"Нагадування"
+key_Addition = u"Додатково"
 
 reply_keyboard = [
     [key_Geolocation, key_Interval],
@@ -50,20 +50,17 @@ def facts_to_str(user_data: Dict[str, str]) -> str:
 
 async def observer(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """Start the conversation, display any stored data and ask user for input."""
-    # bdbu.monitor_user_record(update=update, context=context)
+    text = "Задайте географічне місце та час (момент відліку для цього місця)"
+    logger.info("observer> %s:", text)
 
-    reply_text = "Вітаю! Потрібно задаті географічне місце та час (момент відліку для цього місця)"
-
-    await update.message.reply_text(reply_text, reply_markup=markup)
+    await update.message.reply_text(text, reply_markup=markup)
 
     return CHOOSING
 
 
 async def regular_choice(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """Ask the user for info about the selected predefined choice."""
-    bdbu.monitor_user_record(update=update, context=context)
     user = update.effective_user
-
     text = update.message.text  # .lower()
     context.user_data["choice"] = text
     if context.user_data.get(text):
@@ -71,7 +68,7 @@ async def regular_choice(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
     else:
         reply_text = f'Параметер "{text}" не був заданий'
 
-    logger.info("%s: text=%s context.user_data=%s", user.first_name, text, context.user_data)
+    logger.info("regular_choice> %s: text=%s context.user_data=%s", user.first_name, text, context.user_data)
     await update.message.reply_text(reply_text)
 
     return TYPING_REPLY
@@ -79,60 +76,48 @@ async def regular_choice(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
 
 async def custom_choice(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """Create a new observer object and save to context"""
-    bdbu.monitor_user_record(update=update, context=context)
     user = update.effective_user
 
-    logger.info("%s: context.user_data=%s", user.first_name, context.user_data)
-    await update.message.reply_text(
-        'Alright, please send me the category first, for example "Most impressive skill"'
-    )
+    logger.info("custom_choice> %s: context.user_data=%s", user.first_name, context.user_data)
+    await update.message.reply_text('Alright, please send me skill')
 
     return TYPING_CHOICE
 
 
 async def received_information(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """Store info provided by user and ask for the next category."""
-    bdbu.monitor_user_record(update=update, context=context)
     text = update.message.text
 
     category = context.user_data["choice"]
     context.user_data[category] = text.upper()
     del context.user_data["choice"]
 
-    # context.chat_data.update(context.user_data)     # !!!
+    bdbu.monitor_user_record(update=update, context=context)
 
     await update.message.reply_text(
-        "Задані параметри:"
-        f"{facts_to_str(context.user_data)}"
-        "Можна змінювати ці параметри.",
-        reply_markup=markup,
-    )
+        f"Задані параметри збережені: {facts_to_str(context.user_data)} \nМожна змінювати ці параметри.",
+        reply_markup=markup,)
 
     return CHOOSING
 
 
 async def show_data(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Display the gathered info."""
-    bdbu.monitor_user_record(update=update, context=context)
 
-    await update.message.reply_text(
-        f"Збережені параметри: {facts_to_str(context.user_data)}"
-    )
+    await update.message.reply_text(f"Збережені параметри ?: {facts_to_str(context.user_data)}")
 
 
 async def done(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """Display the gathered info and end the conversation."""
-    bdbu.monitor_user_record(update=update, context=context)
 
     if "choice" in context.user_data:
         del context.user_data["choice"]
 
-    # context.chat_data.update(context.user_data)  # !!!
+    bdbu.monitor_user_record(update=update, context=context)
 
     await update.message.reply_text(
-        f"Задані параметри: {facts_to_str(context.user_data)}",
-        reply_markup=ReplyKeyboardRemove(),
-    )
+        f"Задані параметри збережені: {facts_to_str(context.user_data)}", reply_markup=ReplyKeyboardRemove(),)
+
     return ConversationHandler.END
 
 
@@ -201,6 +186,7 @@ observer_conversation_handler = ConversationHandler(
     persistent=True,
 )
 
+observer_handler = CommandHandler("obs", observer)
 show_data_handler = CommandHandler("show_data", show_data)
 
 
