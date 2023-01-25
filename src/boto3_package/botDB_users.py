@@ -307,9 +307,7 @@ def monitor_user_record(update=None, context=None):
     return user_data_dict, text
 
 
-def user_scan_filter(attr="weather", field="T"):
-    '''
-    '''
+def user_scan_filter(attr="weather"):
 
     list_of_items = botUsers_table.table_scan()
 
@@ -319,16 +317,12 @@ def user_scan_filter(attr="weather", field="T"):
 
 
 def get_user_sett(pk=""):
-    '''
-    '''
+
     list_of_items = botUsers_table.table_query(_pk=pk)
 
     sett_dict = list_of_items[0]['user_setting']
 
     return sett_dict
-
-
-
 
 
 if __name__ == '__main__':
