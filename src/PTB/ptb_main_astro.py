@@ -105,9 +105,12 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
 
 async def echo(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Echo the user message."""
+    bdbu.monitor_user_record(update=update, context=context)
     user = update.effective_user
-    logger.info("echo from %s: %s", user.first_name, update.message.text)
-    await update.message.reply_text(update.message.text)
+
+    text = f"{user.id} <{user.first_name} {user.last_name}> echo: {update.message.text}"
+    logger.info(text)
+    await update.message.reply_text(text)
 
 
 def parse_args(context: ContextTypes.DEFAULT_TYPE):
@@ -148,10 +151,7 @@ def get_chat_params(param_dict=None):
 async def moon_phase(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Return moon_phase to the user message."""
     user = update.effective_user
-    username = str(user.first_name) + " " + str(user.last_name) + " - " + str(user.username)
-    # User(first_name='Serhii', id=442763659, is_bot=False, language_code='en', last_name='Surmylo', username='Serhii_Surmylo')
-    bdbu.update_user_record(chat_id=str(user.id), user_name=username,
-                            sett_dict=context.chat_data, payment_dict=context.user_data)
+    bdbu.monitor_user_record(update=update, context=context)
 
     geo_name, moment = parse_args(context)
     logger.info("moon day for geo_name: %s at %s", geo_name, moment)
@@ -170,9 +170,7 @@ async def moon_phase(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None
 async def moon_day(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Return moon_day to the user message."""
     user = update.effective_user
-    username = str(user.first_name) + " " + str(user.last_name) + " - " + str(user.username)
-    bdbu.update_user_record(chat_id=str(user.id), user_name=username,
-                            sett_dict=context.chat_data, payment_dict=context.user_data)
+    bdbu.monitor_user_record(update=update, context=context)
 
     geo_name, moment = parse_args(context)
     logger.info("moon day for geo_name:  %s at %s", geo_name, moment)
@@ -200,9 +198,7 @@ async def moon_day(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 async def sun_rise(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Return moon_day to the user message."""
     user = update.effective_user
-    username = str(user.first_name) + " " + str(user.last_name) + " - " + str(user.username)
-    bdbu.update_user_record(chat_id=str(user.id), user_name=username,
-                            sett_dict=context.chat_data, payment_dict=context.user_data)
+    bdbu.monitor_user_record(update=update, context=context)
 
     geo_name, moment = parse_args(context)
     logger.info("sun rise for geo_name: %s at %s", geo_name, moment)
@@ -221,9 +217,7 @@ async def sun_rise(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 async def zodiac(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Return moon_day to the user message."""
     user = update.effective_user
-    username = str(user.first_name) + " " + str(user.last_name) + " - " + str(user.username)
-    bdbu.update_user_record(chat_id=str(user.id), user_name=username,
-                            sett_dict=context.chat_data, payment_dict=context.user_data)
+    bdbu.monitor_user_record(update=update, context=context)
 
     geo_name, moment = parse_args(context)
     logger.info("zodiac for geo_name: %s at %s", geo_name, moment)
@@ -247,9 +241,7 @@ async def zodiac(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 async def weather(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Return current weather to the user message."""
     user = update.effective_user
-    username = str(user.first_name) + " " + str(user.last_name) + " - " + str(user.username)
-    bdbu.update_user_record(chat_id=str(user.id), user_name=username,
-                            sett_dict=context.chat_data, payment_dict=context.user_data)
+    bdbu.monitor_user_record(update=update, context=context)
 
     geo_name, moment = parse_args(context)
     logger.info("weather for geo_name %s at %s", geo_name, moment)
@@ -268,9 +260,7 @@ async def weather(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 async def summary(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Return summary info to the user message."""
     user = update.effective_user
-    username = str(user.first_name) + " " + str(user.last_name) + " - " + str(user.username)
-    bdbu.update_user_record(chat_id=str(user.id), user_name=username,
-                            sett_dict=context.chat_data, payment_dict=context.user_data)
+    bdbu.monitor_user_record(update=update, context=context)
 
     geo_name, moment = parse_args(context)
     logger.info("summary -> geo_name=%s moment=%s", geo_name, moment)
@@ -365,12 +355,22 @@ def remove_job_if_exists(name: str, context: ContextTypes.DEFAULT_TYPE) -> bool:
     return True
 
 
+def get_dt_hhmm(hhmm=""):
+    dt_hhmm = datetime.strptime("2000-01-01 0000", "%Y-%m-%d %H%M")
+    try:
+        dt_hhmm = datetime.strptime("2000-01-01 " + hhmm, "%Y-%m-%d %H%M")
+
+    except ValueError:
+
+        return False, dt_hhmm
+
+    return True, dt_hhmm
+
+
 async def set_daily_timer(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Add a job to the queue."""
     user = update.effective_user
-    username = str(user.first_name) + " " + str(user.last_name) + " - " + str(user.username)
-    bdbu.update_user_record(chat_id=str(user.id), user_name=username,
-                            sett_dict=context.chat_data, payment_dict=context.user_data)
+    bdbu.monitor_user_record(update=update, context=context)
 
     chat_id = update.effective_message.chat_id
 
@@ -381,22 +381,34 @@ async def set_daily_timer(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
     dt_hhmm = None
     try:
         hhmm = context.args[0]
-        try:
-            dt_hhmm = datetime.strptime("2000-01-01 " + hhmm, "%Y-%m-%d %H%M")
-            context.chat_data[opc.key_Reminder] = hhmm
+
+        result, dt_hhmm = get_dt_hhmm(hhmm=hhmm)
+        if result:
             text += "Заданий час: " + str(dt_hhmm.time())
             logger.info(text)
-        except ValueError:
+        else:
             text += "Вибачте, задайте час в форматі [HHMM]"
             logger.info(text)
             await update.effective_message.reply_text(text)
             return
 
+        # try:
+        #     dt_hhmm = datetime.strptime("2000-01-01 " + hhmm, "%Y-%m-%d %H%M")
+        #     context.chat_data[opc.key_Reminder] = hhmm
+        #     text += "Заданий час: " + str(dt_hhmm.time())
+        #     logger.info(text)
+        # except ValueError:
+        #     text += "Вибачте, задайте час в форматі [HHMM]"
+        #     logger.info(text)
+        #     await update.effective_message.reply_text(text)
+        #     return
+
     except (IndexError, ValueError):
         if opc.key_Reminder in context.chat_data.keys():
             hhmm = context.chat_data[opc.key_Reminder]
+            result, dt_hhmm = get_dt_hhmm(hhmm=hhmm)
             dt_hhmm = datetime.strptime("2000-01-01 " + hhmm, "%Y-%m-%d %H%M")
-            text += "Збережені настройки часу нагадування [" + hhmm + "]"
+            text += "Збережені настройки часу нагадування: " + str(dt_hhmm.time())
             logger.info(text)
         else:
             await update.effective_message.reply_text("Usage: /set HHMM")
@@ -440,9 +452,7 @@ async def set_daily_timer(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
 async def color_of_the_days(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
     user = update.effective_user
-    username = str(user.first_name) + " " + str(user.last_name) + " - " + str(user.username)
-    bdbu.update_user_record(chat_id=str(user.id), user_name=username,
-                            sett_dict=context.chat_data, payment_dict=context.user_data)
+    bdbu.monitor_user_record(update=update, context=context)
 
     chat_id = update.message.chat_id
     chat_job_name = str(chat_id) + "#REP"           # 442763659#REP
@@ -464,37 +474,40 @@ async def color_of_the_days(update: Update, context: ContextTypes.DEFAULT_TYPE) 
 initial_pass = False
 
 
-# Define a function to send a message
 async def maintenance_service(context: ContextTypes.DEFAULT_TYPE):
+
     global initial_pass
 
-    chat_data = context.application.chat_data
+    # chat_data = context.application.chat_data
     # print('.', len(chat_data), chat_data)
 
     if not initial_pass:
         initial_pass = True
 
-        # print('.', len(chat_data), chat_data)
+        list_of_items, count = bdbu.user_scan_filter()
 
-        if len(chat_data) > 0:
+        if count > 0:
+            for item_dict in list_of_items:
 
-            for itm in chat_data:
+                chat_id = item_dict[bdbu.botUsers_table.partition_key]      # string
+                user_setting = item_dict["user_setting"]
+                reminder_time = user_setting[opc.key_Reminder]
+                print("::", chat_id, reminder_time)
 
-                chat_id = str(itm)
-                staff = chat_data[itm]
-                print("::", chat_id, staff)
-                text = chat_id + ': bot restarted! \n' + str(staff)
-                # print('.', text)
+                text = chat_id + ': bot restarted!'
 
-                # job = context.job_queue.run_repeating(
-                #     rwt.callback_repeating,
-                #     interval=36,
-                #     name=chat_id + "#REP",
-                #     chat_id=chat_id,
-                #     first=10
-                # )
-                #
-                # text += "\n" + str(job)
+                # Restore timer for weather grabber
+                job = context.job_queue.run_repeating(
+                    rwt.callback_repeating,
+                    interval=3600,
+                    name=chat_id + "#REP",
+                    chat_id=chat_id,
+                    first=10
+                )
+
+                # Restore timer for reminder
+
+                text += "\n" + str(job.name) + " " + str(job.next_t)[:19]
 
                 await context.bot.send_message(chat_id=chat_id, text=text)
 
@@ -537,7 +550,7 @@ def main() -> None:
 
     # Schedule the function to run every 10 seconds
     # job = context.job_queue.run_repeating(callback_repeating, interval=due, name=job_name, chat_id=chat_id, first=10)
-    application.job_queue.run_repeating(maintenance_service, interval=13, first=3)
+    application.job_queue.run_repeating(maintenance_service, interval=30, first=5)
 
     # Run the bot until the user presses Ctrl-C
     application.run_polling()

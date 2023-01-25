@@ -45,11 +45,16 @@ class dynamoDB_table(object):
         self._table_name = file_name
         self._partition_key = self._df.columns[0]
         self._sort_key = self._df.columns[1]
-        self._last_time_key = self._df.columns[2]
+        self._last_time_key = self._df.columns[2]       # to capture time moment !
 
         self.db = boto3.resource('dynamodb', region_name='eu-west-1')
         self.table = self.db.Table(self._table_name)
         self.client = boto3.client('dynamodb')
+
+    @property
+    def partition_key(self):
+
+        return self._partition_key
 
     @property
     def sort_key(self):
@@ -76,14 +81,14 @@ class dynamoDB_table(object):
         from decimal import Decimal
         import json
 
+        # print("user_data_dict=", user_data_dict)
+
         # # Partition and Sorting keys
         # rec_items_dict = {
         #         self._partition_key: chat_id,
         #         self._sort_key: utc_str
         # }
         rec_items_dict = {}
-
-        # print("data_csv_dict=", user_data_dict)
 
         if user_data_dict is not None:
             ddb_data = json.loads(json.dumps(user_data_dict), parse_float=Decimal)  # get rid of float
@@ -150,6 +155,17 @@ class dynamoDB_table(object):
         # init_id = int(table_dict["Table"]["ItemCount"])
         # init_id = int(table_dict["Table"]["TableSizeBytes"] / 2)
 
+    def table_scan(self):
+
+        from boto3.dynamodb.conditions import Key, Attr
+
+        response = self.table.scan()
+        # response = self.table.query(
+        #     KeyConditionExpression=Key(self._partition_key).eq(_pk) & Key(self._sort_key).between(_between_low, _between_high)
+        # )
+        items = response['Items']
+        return items
+
     def table_query(self, _pk="", _between_low="", _between_high=""):
 
         from boto3.dynamodb.conditions import Key, Attr
@@ -206,13 +222,13 @@ def main_create_populate_bot_users():
     return text
 
 
-def update_user_record(chat_id="", user_name="Noname", sett_dict=None, payment_dict=None):
+def _update_user_record(chat_id="", user_name="Noname", sett_dict=None, payment_dict=None):
 
     text = ""
 
     user_data_dict = {
-        'pk_chat_id': chat_id,      # "4774374724",
-        'sk_user_name': user_name,  # 'Serhii Surmylo',
+        'pk_chat_id': str(chat_id),     # "4774374724",
+        'sk_user_name': user_name,      # 'Serhii Surmylo',
         # 'last_time': '2022-12-11 21:11:17'
         }
 
@@ -242,39 +258,68 @@ def update_user_record(chat_id="", user_name="Noname", sett_dict=None, payment_d
     return user_data_dict, text
 
 
-def user_query_filter(lists_of_items, geo_name="", attr="weather", field="T"):
+def monitor_user_record(update=None, context=None):
     '''
-    :param lists_of_items:
-    :param geo_name:
-    :param attr:
-    :param field:
+    :param update:
+    :param context:
     :return:
+
+    # User(first_name='Serhii', id=442763659, is_bot=False, language_code='en', last_name='Surmylo', username='Serhii_Surmylo')
     '''
 
-    value_list = []
-    value_dict = {}
+    text = ""
 
-    for item in lists_of_items:
+    user = update.effective_user
+    username = str(user.first_name) + " " + str(user.last_name) + " - " + str(user.username)
 
-        print(">",  item)
-        sort_key = item[botUsers_table.sort_key]
-        city = item['location']['geo']
-        value = item[attr][field]
-        # print(">", sort_key, city, item[attr], value)
+    sett_dict = context.user_data
+    payment_dict = context.user_data
 
-        # Filter by city
-        if geo_name.upper() == city:
+    user_data_dict = {
+        'pk_chat_id': str(user.id),     # "4774374724",
+        'sk_user_name': username,       # 'Serhii Surmylo',
+        # 'last_time': '2022-12-11 21:11:17'
+        }
 
-            # value_dict[res_sun_str] = mdates.date2num(observer.get_unaware)
-            value_dict[sort_key] = float(value)
+    upd_data_dict = {}
 
-            value_list.append(float(value))
+    # User settings for chat
+    # upd_data_dict['user_setting'] = {
+    #     f'{opc.key_Geolocation}': 'WARSAW4',
+    #     f'{opc.key_Interval}': '3.21',
+    #     f'{opc.key_Reminder}': '0034'
+    # }
+    upd_data_dict['user_setting'] = sett_dict
+    upd_data_dict['reminder_time'] = sett_dict[opc.key_Reminder]
 
-    average = 0
-    if len(value_list) > 0:
-        average = sum(value_list) / len(value_list)
+    # User permition and payments
+    # upd_data_dict['permition'] = {
+    #     'payment': 32.37
+    # }
+    upd_data_dict['permition'] = payment_dict
 
-    return value_dict, average
+    user_data_dict.update(upd_data_dict)
+
+    resp = botUsers_table.put(user_data_dict=user_data_dict)
+
+    text += "\n" + str(resp["ResponseMetadata"]["RequestId"])[:12] + "... "
+    text += "" + str(resp["ResponseMetadata"]["HTTPStatusCode"]) + "/" + str(resp["ResponseMetadata"]["RetryAttempts"])
+
+    return user_data_dict, text
+
+
+def user_scan_filter(attr="weather", field="T"):
+    '''
+    '''
+
+    list_of_items = botUsers_table.table_scan()
+
+    count = len(list_of_items)
+
+    return list_of_items, count
+
+
+
 
 
 if __name__ == '__main__':
@@ -296,11 +341,13 @@ if __name__ == '__main__':
 
 
 
-    list_of_items = botUsers_table.table_query(_pk="442763659#REP",
-                                               _between_low="2021-01-21 14:41:49",
-                                               _between_high="2024-01-21 12:37:00")
-
+    # list_of_items = botUsers_table.table_query(_pk="442763659#REP",
+    #                                            _between_low="2021-01-21 14:41:49",
+    #                                            _between_high="2024-01-21 12:37:00")
+    list_of_items = botUsers_table.table_scan()
+    print(len(list_of_items))
     # pprint(list_of_items)
+
     # # # print(text)
     # data_dict, avg = main_query_filter(list_of_items, geo_name=geo_name, attr="weather", field="P")
     # pprint(data_dict)
