@@ -354,5 +354,5 @@ if __name__ == '__main__':
     # list_of_items = botUsers_table.table_query(_pk="442763659")
     # print(len(list_of_items), list_of_items[0])
 
-    sett_dict = get_user_sett(pk="442763659")
-    print(sett_dict[opc.key_Reminder])
+    # sett_dict = get_user_sett(pk="442763659")
+    # print(sett_dict[opc.key_Reminder])

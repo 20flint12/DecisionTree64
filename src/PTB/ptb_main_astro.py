@@ -462,6 +462,9 @@ initial_pass = False
 
 
 async def maintenance_service(context: ContextTypes.DEFAULT_TYPE):
+
+    import time
+
     global initial_pass
 
     if not initial_pass:
@@ -487,6 +490,7 @@ async def maintenance_service(context: ContextTypes.DEFAULT_TYPE):
                     chat_id=chat_id,
                     first=10
                 )
+                time.sleep(0.01)
                 text += "\n" + str(job_rep.name) + " " + str(job_rep.next_t)[:19]
 
                 # Restore timer for reminder
@@ -506,6 +510,7 @@ async def maintenance_service(context: ContextTypes.DEFAULT_TYPE):
                         chat_id=chat_id,
                         job_kwargs={},
                     )
+                    time.sleep(0.01)
                     text += "\n" + str(job_daily.name) + " " + str(job_daily.next_t)[:19]
 
                 await context.bot.send_message(chat_id=chat_id, text=text)
