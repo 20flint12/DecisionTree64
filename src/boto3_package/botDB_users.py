@@ -190,7 +190,7 @@ class dynamoDB_table(object):
         return text
 
 
-file_name = "bot_Users.csv"
+file_name = "bot_users.csv"
 script_dir = os.path.dirname(os.path.abspath(__file__))
 file_path = os.path.join(script_dir, file_name)
 print(file_path)
