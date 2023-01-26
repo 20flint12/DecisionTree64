@@ -461,7 +461,7 @@ async def color_of_the_days(update: Update, context: ContextTypes.DEFAULT_TYPE) 
 initial_pass = False
 
 
-async def maintenance_service(context: ContextTypes.DEFAULT_TYPE):
+async def restart_service(context: ContextTypes.DEFAULT_TYPE):
 
     import time as t
 
@@ -476,9 +476,10 @@ async def maintenance_service(context: ContextTypes.DEFAULT_TYPE):
             for item_dict in list_of_items:
 
                 chat_id = item_dict[bdbu.botUsers_table.partition_key]      # string
+                user_name = item_dict[bdbu.botUsers_table.sort_key]
                 user_setting = item_dict["user_setting"]
                 reminder_hhmm = user_setting[opc.key_Reminder]
-                print("::", chat_id, reminder_hhmm)
+                print(len(list_of_items), "::", chat_id, user_name, reminder_hhmm, user_setting)
 
                 text = chat_id + ': bot re-started...'
 
@@ -490,7 +491,7 @@ async def maintenance_service(context: ContextTypes.DEFAULT_TYPE):
                     chat_id=chat_id,
                     first=10
                 )
-                t.sleep(0.01)
+                t.sleep(0.1)
                 text += "\n" + str(job_rep.name) + " " + str(job_rep.next_t)[:19]
 
                 # Restore timer for reminder
@@ -510,7 +511,7 @@ async def maintenance_service(context: ContextTypes.DEFAULT_TYPE):
                         chat_id=chat_id,
                         job_kwargs={},
                     )
-                    t.sleep(0.01)
+                    t.sleep(0.1)
                     text += "\n" + str(job_daily.name) + " " + str(job_daily.next_t)[:19]
 
                 await context.bot.send_message(chat_id=chat_id, text=text)
@@ -554,8 +555,8 @@ def main() -> None:
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, echo))
 
     # Schedule the function to run every 10 seconds
-    # job = context.job_queue.run_repeating(callback_repeating, interval=due, name=job_name, chat_id=chat_id, first=10)
-    application.job_queue.run_repeating(maintenance_service, interval=30, first=5)
+    # application.job_queue.run_repeating(maintenance_service, interval=30, first=5)
+    application.job_queue.run_once(restart_service, 10)
 
     # Run the bot until the user presses Ctrl-C
     application.run_polling()
