@@ -64,6 +64,8 @@ import socket
 hostname = socket.gethostname()     # DELL-DEV
 print(hostname)
 
+DEVELOPER_CHAT_ID = 442763659
+
 
 # Enable logging
 logging.basicConfig(format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO)
@@ -84,7 +86,7 @@ async def error_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
     # Build the message with some markup and additional information about what happened.
     # You might need to add some logic to deal with messages longer than the 4096 character limit.
     update_str = update.to_dict() if isinstance(update, Update) else str(update)
-    message = (
+    text = (
         f"An exception was raised while handling an update\n"
         f"<pre>update = {html.escape(json.dumps(update_str, indent=2, ensure_ascii=False))}"
         "</pre>\n\n"
@@ -94,16 +96,17 @@ async def error_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
     )
 
     # Finally, send the message
-    DEVELOPER_CHAT_ID = 442763659
-    await context.bot.send_message(chat_id=DEVELOPER_CHAT_ID, text=message, parse_mode=ParseMode.HTML)
+    await context.bot.send_message(chat_id=DEVELOPER_CHAT_ID, text=text, parse_mode=ParseMode.HTML)
 
 
 async def handle_exception(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
+    text = ""
+
     if update is not None:
         user_id = update.effective_user.id
     else:
-        user_id = 0
+        user_id = -1
 
     try:
         raise context.error
@@ -111,21 +114,22 @@ async def handle_exception(update: Update, context: ContextTypes.DEFAULT_TYPE) -
     #     # remove update.message.chat_id from conversation list
     #     print("Unauthorized!!!!!")
     except Forbidden:
-        print(user_id, ":: *** Forbidden *** !!!")
-    except TimedOut:
-        # handle slow connection problems
-        print(user_id, ":: *** TimedOut *** !!!")
-    except NetworkError:
-        # handle other connection problems
-        print("NetworkError!!!!!")
-    except ChatMigrated as e:
-        # the chat_id of a group has changed, use e.new_chat_id instead
-        print("ChatMigrated!!!!!", e)
-    except TelegramError as e:
-        # handle all other telegram related errors
-        print(user_id, ":: *** TelegramError *** !!!", e)
+        text += str(user_id) + ":: *** Forbidden *** !!!"
+    except TimedOut:            # handle slow connection problems
+        text += str(user_id) + ":: *** TimedOut *** !!!"
+    except NetworkError:        # handle other connection problems
+        text += str(user_id) + ":: *** NetworkError *** !!!"
+    except ChatMigrated as e:   # the chat_id of a group has changed, use e.new_chat_id instead
+        text += str(user_id) + ":: *** ChatMigrated *** !!!" + str(e)
+    except TelegramError as e:  # handle all other telegram related errors
+        text += str(user_id) + ":: *** TelegramError *** !!!" + str(e)
     except Exception as e:
-        print(user_id, ":: *** Exception *** !!! - ", e)
+        text += str(user_id) + ":: *** Exception *** !!!" + str(e)
+
+    print(text)
+
+    # Finally, send the message
+    await context.bot.send_message(chat_id=DEVELOPER_CHAT_ID, text=text, parse_mode=ParseMode.HTML)
 
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -559,7 +563,7 @@ async def restart_service(context: ContextTypes.DEFAULT_TYPE):
 
                 job_rep = context.job_queue.run_repeating(
                     rwt.callback_repeating,
-                    interval=3600 + 2*user_counter,
+                    interval=3600 + 3*user_counter,     # 2 sec divergence
                     name=chat_id + "#REP",
                     chat_id=chat_id,
                     first=10,

@@ -82,10 +82,10 @@ async def callback_repeating(context: ContextTypes.DEFAULT_TYPE):
     data_dict, out_text = mr.main_put_record(observer=observer_obj, _chat_job=job.name)
     text += "\n" + str(data_dict)
     text += out_text
-    # try:
-    await context.bot.send_message(chat_id=job.chat_id, text=text)
-    # except Exception as e:
-    #     print(chat_id, "::callback_repeating *** Exception *** !!! - ", e)
+    try:
+        await context.bot.send_message(chat_id=job.chat_id, text=text)
+    except Exception as e:
+        print(chat_id, ":: callback_repeating *** Exception *** - ", e)
 
 
 async def set_repeat_timer(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
