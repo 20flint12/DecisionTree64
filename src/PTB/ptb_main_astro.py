@@ -100,25 +100,33 @@ async def error_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
 
 async def handle_exception(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
+    if update is not None:
+        user_id = update.effective_user.id
+    else:
+        user_id = 0
+
     try:
         raise context.error
     # except Unauthorized:
     #     # remove update.message.chat_id from conversation list
     #     print("Unauthorized!!!!!")
     except Forbidden:
-        print("Forbidden!!!!!")
+        print(user_id, ":: *** Forbidden *** !!!")
     except TimedOut:
-        print("TimedOut!!!!!")
-    # handle slow connection problems
+        # handle slow connection problems
+        print(user_id, ":: *** TimedOut *** !!!")
     except NetworkError:
-        print("TimedOut!!!!!")
         # handle other connection problems
+        print("NetworkError!!!!!")
     except ChatMigrated as e:
         # the chat_id of a group has changed, use e.new_chat_id instead
         print("ChatMigrated!!!!!", e)
     except TelegramError as e:
         # handle all other telegram related errors
-        print("TelegramError!!!!!", e)
+        print(user_id, ":: *** TelegramError *** !!!", e)
+    except Exception as e:
+        print(user_id, ":: *** Exception *** !!! - ", e)
+
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Send a message when the command /start is issued."""
@@ -382,13 +390,22 @@ async def alarm(context: ContextTypes.DEFAULT_TYPE) -> None:
     wt_dict, wt_text = wt.main_weather_now(observer=observer_obj)
     text += wt_text
 
-    await context.bot.send_message(chat_id=job.chat_id, text=text)
+    try:
+        await context.bot.send_message(chat_id=job.chat_id, text=text)
+    except Exception as e:
+        pass
+        print(chat_id, "alarm:: An exception occurred ************** !!!!!!!!!!!!!!!!!!!!!", e)
 
     # ++++++++++++++++++++++
     mp.plot_color_of_the_days(observer=observer_obj, days=5, file_name=photo_name, chat_job=chat_job_name)
 
     logger.info("send_photo %s", photo_name)
-    await context.bot.send_photo(chat_id=job.chat_id, photo=open(photo_name, 'rb'))
+
+    try:
+        await context.bot.send_photo(chat_id=job.chat_id, photo=open(photo_name, 'rb'))
+    except Exception as e:
+        pass
+        print(chat_id, "alarm:: An exception occurred ************** !!!!!!!!!!!!!!!!!!!!!", e)
 
 
 def remove_job_if_exists(name: str, context: ContextTypes.DEFAULT_TYPE) -> bool:
@@ -526,53 +543,58 @@ async def restart_service(context: ContextTypes.DEFAULT_TYPE):
 
         list_of_items, count = bdbu.user_scan_filter()
 
+        user_counter = -1
+
         if count > 0:
             for item_dict in list_of_items:
+                user_counter += 1
 
                 chat_id = item_dict[bdbu.botUsers_table.partition_key]      # string
                 user_name = item_dict[bdbu.botUsers_table.sort_key]
                 user_setting = item_dict["user_setting"]
                 reminder_hhmm = user_setting[opc.key_Reminder]
-                print(len(list_of_items), "::", chat_id, user_name, reminder_hhmm, user_setting)
+                print(user_counter, "::", chat_id, user_name, reminder_hhmm, user_setting)
 
                 text = chat_id + ': bot re-started...'
 
-                try:
-                    # Restore timer for weather grabber
-                    job_rep = context.job_queue.run_repeating(
-                        rwt.callback_repeating,
-                        interval=3600,
-                        name=chat_id + "#REP",
+                job_rep = context.job_queue.run_repeating(
+                    rwt.callback_repeating,
+                    interval=36 + 2*user_counter,
+                    name=chat_id + "#REP",
+                    chat_id=chat_id,
+                    first=10,
+                )
+                job_rep.job.misfire_grace_time = 30
+                # t.sleep(0.1)
+                text += "\n" + str(job_rep.name) + " " + str(job_rep.next_t)[:19]
+
+                # Restore timer for reminder
+                if opc.key_Reminder in user_setting.keys():
+                    reminder_hhmm = user_setting[opc.key_Reminder]
+                    result, dt_hhmm = get_dt_hhmm(hhmm=reminder_hhmm)
+
+                    job_daily = context.job_queue.run_daily(
+                        alarm,
+                        time=time(
+                            hour=dt_hhmm.hour,
+                            minute=dt_hhmm.minute,
+                            second=10,
+                            tzinfo=pytz.timezone('Europe/Warsaw')),
+                        days=(0, 1, 2, 3, 4, 5, 6),
+                        name=chat_id + "#DAILY",
                         chat_id=chat_id,
-                        first=10
+                        job_kwargs={},
                     )
-                    t.sleep(0.1)
-                    text += "\n" + str(job_rep.name) + " " + str(job_rep.next_t)[:19]
+                    job_daily.job.misfire_grace_time = 30
+                    # t.sleep(0.1)
+                    text += "\n" + str(job_daily.name) + " " + str(job_daily.next_t)[:19]
 
-                    # Restore timer for reminder
-                    if opc.key_Reminder in user_setting.keys():
-                        reminder_hhmm = user_setting[opc.key_Reminder]
-                        result, dt_hhmm = get_dt_hhmm(hhmm=reminder_hhmm)
-
-                        job_daily = context.job_queue.run_daily(
-                            alarm,
-                            time=time(
-                                hour=dt_hhmm.hour,
-                                minute=dt_hhmm.minute,
-                                second=10,
-                                tzinfo=pytz.timezone('Europe/Warsaw')),
-                            days=(0, 1, 2, 3, 4, 5, 6),
-                            name=chat_id + "#DAILY",
-                            chat_id=chat_id,
-                            job_kwargs={},
-                        )
-                        t.sleep(0.1)
-                        text += "\n" + str(job_daily.name) + " " + str(job_daily.next_t)[:19]
-
+                try:
                     await context.bot.send_message(chat_id=chat_id, text=text)
 
-                except TelegramError:
+                except Exception as e:
                     pass
+                    print(chat_id, "restart_service:: Exception -", e)
 
 
 def main() -> None:

@@ -82,11 +82,14 @@ async def callback_repeating(context: ContextTypes.DEFAULT_TYPE):
     data_dict, out_text = mr.main_put_record(observer=observer_obj, _chat_job=job.name)
     text += "\n" + str(data_dict)
     text += out_text
+    # try:
     await context.bot.send_message(chat_id=job.chat_id, text=text)
+    # except Exception as e:
+    #     print(chat_id, "::callback_repeating *** Exception *** !!! - ", e)
 
 
 async def set_repeat_timer(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Add a job to the queue."""
+    """Add a job_rep to the queue."""
     chat_id = update.effective_message.chat_id
     job_name = str(chat_id) + "#REP"
     text = ""
@@ -101,8 +104,18 @@ async def set_repeat_timer(update: Update, context: ContextTypes.DEFAULT_TYPE) -
         if job_removed:
             text += " Old one was removed.\n"
 
-        job = context.job_queue.run_repeating(callback_repeating, interval=due, name=job_name, chat_id=chat_id, first=10)
-        text += str(job.name) + " timer successfully set."
+        job_rep = context.job_queue.run_repeating(
+            callback_repeating,
+            interval=due,
+            name=job_name,
+            chat_id=chat_id,
+            first=10
+        )
+        job_rep.job.misfire_grace_time = 30
+
+        text += "\n" + str(job_rep.name) + " " + str(job_rep.next_t)[:19]
+        # text += str(job_rep.name) + " timer successfully set."
+
         await update.effective_message.reply_text(text)
 
     except (IndexError, ValueError):
