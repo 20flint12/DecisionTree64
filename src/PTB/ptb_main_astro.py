@@ -559,7 +559,7 @@ async def restart_service(context: ContextTypes.DEFAULT_TYPE):
 
                 job_rep = context.job_queue.run_repeating(
                     rwt.callback_repeating,
-                    interval=36 + 2*user_counter,
+                    interval=3600 + 2*user_counter,
                     name=chat_id + "#REP",
                     chat_id=chat_id,
                     first=10,
