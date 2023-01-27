@@ -28,11 +28,10 @@ import src.boto3_package.mainDB_moon_day as dbmd
 import src.boto3_package.botDB_users as bdbu
 
 
-import socket
-hostname = socket.gethostname()     # DELL-DEV
-print(hostname)
-
+import html
+import json
 import logging
+import traceback
 
 from telegram import __version__ as TG_VER
 
@@ -48,6 +47,7 @@ if __version_info__ < (20, 0, 0, "alpha", 1):
         f"visit https://docs.python-telegram-bot.org/en/v{TG_VER}/examples.html"
     )
 from telegram import ReplyKeyboardMarkup, ReplyKeyboardRemove, ForceReply, Update
+from telegram.constants import ParseMode
 from telegram.ext import (
     Application,
     CommandHandler,
@@ -58,13 +58,67 @@ from telegram.ext import (
     filters,
 )
 
+from telegram.error import Forbidden, TimedOut, NetworkError, ChatMigrated, TelegramError
+
+import socket
+hostname = socket.gethostname()     # DELL-DEV
+print(hostname)
+
 
 # Enable logging
-logging.basicConfig(
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO
-)
+logging.basicConfig(format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO)
 logger = logging.getLogger(__name__)
+# logger.addFilter((lambda s: not s.msg.endswith('A TelegramError was raised while processing the Update'))
 
+
+async def error_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Log the error and send a telegram message to notify the developer."""
+    # # Log the error before we do anything else, so we can see it even if something breaks.
+    # logger.error(msg="Exception while handling an update:", exc_info=context.error)
+
+    # traceback.format_exception returns the usual python message about an exception, but as a
+    # list of strings rather than a single string, so we have to join them together.
+    tb_list = traceback.format_exception(None, context.error, context.error.__traceback__)
+    tb_string = "".join(tb_list)
+
+    # Build the message with some markup and additional information about what happened.
+    # You might need to add some logic to deal with messages longer than the 4096 character limit.
+    update_str = update.to_dict() if isinstance(update, Update) else str(update)
+    message = (
+        f"An exception was raised while handling an update\n"
+        f"<pre>update = {html.escape(json.dumps(update_str, indent=2, ensure_ascii=False))}"
+        "</pre>\n\n"
+        f"<pre>context.chat_data = {html.escape(str(context.chat_data))}</pre>\n\n"
+        f"<pre>context.user_data = {html.escape(str(context.user_data))}</pre>\n\n"
+        f"<pre>{html.escape(tb_string)}</pre>"
+    )
+
+    # Finally, send the message
+    DEVELOPER_CHAT_ID = 442763659
+    await context.bot.send_message(chat_id=DEVELOPER_CHAT_ID, text=message, parse_mode=ParseMode.HTML)
+
+
+async def handle_exception(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+
+    try:
+        raise context.error
+    # except Unauthorized:
+    #     # remove update.message.chat_id from conversation list
+    #     print("Unauthorized!!!!!")
+    except Forbidden:
+        print("Forbidden!!!!!")
+    except TimedOut:
+        print("TimedOut!!!!!")
+    # handle slow connection problems
+    except NetworkError:
+        print("TimedOut!!!!!")
+        # handle other connection problems
+    except ChatMigrated as e:
+        # the chat_id of a group has changed, use e.new_chat_id instead
+        print("ChatMigrated!!!!!", e)
+    except TelegramError as e:
+        # handle all other telegram related errors
+        print("TelegramError!!!!!", e)
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Send a message when the command /start is issued."""
@@ -483,38 +537,42 @@ async def restart_service(context: ContextTypes.DEFAULT_TYPE):
 
                 text = chat_id + ': bot re-started...'
 
-                # Restore timer for weather grabber
-                job_rep = context.job_queue.run_repeating(
-                    rwt.callback_repeating,
-                    interval=3600,
-                    name=chat_id + "#REP",
-                    chat_id=chat_id,
-                    first=10
-                )
-                t.sleep(0.1)
-                text += "\n" + str(job_rep.name) + " " + str(job_rep.next_t)[:19]
-
-                # Restore timer for reminder
-                if opc.key_Reminder in user_setting.keys():
-                    reminder_hhmm = user_setting[opc.key_Reminder]
-                    result, dt_hhmm = get_dt_hhmm(hhmm=reminder_hhmm)
-
-                    job_daily = context.job_queue.run_daily(
-                        alarm,
-                        time=time(
-                            hour=dt_hhmm.hour,
-                            minute=dt_hhmm.minute,
-                            second=10,
-                            tzinfo=pytz.timezone('Europe/Warsaw')),
-                        days=(0, 1, 2, 3, 4, 5, 6),
-                        name=chat_id + "#DAILY",
+                try:
+                    # Restore timer for weather grabber
+                    job_rep = context.job_queue.run_repeating(
+                        rwt.callback_repeating,
+                        interval=3600,
+                        name=chat_id + "#REP",
                         chat_id=chat_id,
-                        job_kwargs={},
+                        first=10
                     )
                     t.sleep(0.1)
-                    text += "\n" + str(job_daily.name) + " " + str(job_daily.next_t)[:19]
+                    text += "\n" + str(job_rep.name) + " " + str(job_rep.next_t)[:19]
 
-                await context.bot.send_message(chat_id=chat_id, text=text)
+                    # Restore timer for reminder
+                    if opc.key_Reminder in user_setting.keys():
+                        reminder_hhmm = user_setting[opc.key_Reminder]
+                        result, dt_hhmm = get_dt_hhmm(hhmm=reminder_hhmm)
+
+                        job_daily = context.job_queue.run_daily(
+                            alarm,
+                            time=time(
+                                hour=dt_hhmm.hour,
+                                minute=dt_hhmm.minute,
+                                second=10,
+                                tzinfo=pytz.timezone('Europe/Warsaw')),
+                            days=(0, 1, 2, 3, 4, 5, 6),
+                            name=chat_id + "#DAILY",
+                            chat_id=chat_id,
+                            job_kwargs={},
+                        )
+                        t.sleep(0.1)
+                        text += "\n" + str(job_daily.name) + " " + str(job_daily.next_t)[:19]
+
+                    await context.bot.send_message(chat_id=chat_id, text=text)
+
+                except TelegramError:
+                    pass
 
 
 def main() -> None:
@@ -557,6 +615,10 @@ def main() -> None:
     # Schedule the function to run every 10 seconds
     # application.job_queue.run_repeating(maintenance_service, interval=30, first=5)
     application.job_queue.run_once(restart_service, 10)
+
+    # ...and the error handler
+    application.add_error_handler(error_handler)
+    application.add_error_handler(handle_exception)
 
     # Run the bot until the user presses Ctrl-C
     application.run_polling()

@@ -1,3 +1,4 @@
+# git rm --cached /.idea/misc.xml
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -26,7 +27,6 @@ win-20flint12-London.rdp
 
 /.idea/workspace.xml
 /.idea/csv-editor.xml
-# git rm --cached /.idea/misc.xml
 
 /src/PTB/442763659_photo.png
 /.idea/DecisionTree64.iml
