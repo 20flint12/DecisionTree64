@@ -16,7 +16,6 @@ request, geo_name, unaware_datetime -> chat#job
 python -m venv c:\Users\Administrator\Documents\DecisionTree64\venv310
 +
 c:\Users\Plinfa-DEV\PycharmProjects\DecisionTree64\venv310\Scripts\activate.bat
-c:\Users\Administrator\PycharmProjects\DecisionTree64\venv310\Scripts\activate.bat
 c:\Users\Administrator\Documents\DecisionTree64\venv310\Scripts\activate.bat
 -------------------------------------------------------------------------------
 
@@ -68,8 +67,8 @@ git fetch
 git switch develop
 git pull origin develop
 
-tmux new -s mywindow
-tmux a -t mywindow
+tmux new -s ptb_main_astro
+tmux a -t ptb_main_astro
 tmux new -s recorder
 tmux a -t recorder
 
