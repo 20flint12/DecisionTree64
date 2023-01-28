@@ -92,7 +92,7 @@ async def received_information(update: Update, context: ContextTypes.DEFAULT_TYP
     context.user_data[category] = text.upper()
     del context.user_data["choice"]
 
-    bdbu.monitor_user_record(update=update, context=context)
+    bdbu.update_user_record(update=update, context=context)
 
     await update.message.reply_text(
         f"Задані параметри збережені: {facts_to_str(context.user_data)} \nМожна змінювати ці параметри.",
@@ -113,7 +113,7 @@ async def done(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     if "choice" in context.user_data:
         del context.user_data["choice"]
 
-    bdbu.monitor_user_record(update=update, context=context)
+    bdbu.update_user_record(update=update, context=context)
 
     await update.message.reply_text(
         f"Задані параметри збережені: {facts_to_str(context.user_data)}", reply_markup=ReplyKeyboardRemove(),)

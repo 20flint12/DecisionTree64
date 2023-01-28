@@ -61,7 +61,7 @@ async def callback_repeating(context: ContextTypes.DEFAULT_TYPE):
     text = job.name + ' @ ' + str(job.next_t)[:19] + "\n" + str(context.job_queue.jobs())[25:]
     # logger.info(text)
 
-    sett_dict = bdbu.get_user_sett(pk=chat_id)
+    sett_dict = bdbu.get_user_db_data(pk=chat_id)
     # print("###", sett_dict, sett_dict[opc.key_Reminder])
     if opc.key_Geolocation in sett_dict:
         geo_name = sett_dict[opc.key_Geolocation]
