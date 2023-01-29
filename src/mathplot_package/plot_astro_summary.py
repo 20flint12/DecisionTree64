@@ -274,6 +274,7 @@ def plot_color_of_the_days(observer=None, days=1., file_name="plot_astro_summary
                      )
 
 
+
     # ////////////////////  SUN MOON DAYS  //////////////////////////////////
 
     s_angle = np.array(sun_angle)
@@ -400,6 +401,8 @@ def _plot_annotations_of_moon_days(observer=None, days=1., axe=None, horiz_range
     end_unaware = observer.get_unaware + timedelta(days=days)
     cur_unaware = begin_unaware
 
+    print("_plot_annotations_of_moon_days ???", observer.get_geo_name)
+
     while end_unaware > cur_unaware:
         if cur_unaware == begin_unaware:                            # init pass
             pass                                                    # init calculation
@@ -507,7 +510,8 @@ def _plot_annotations_of_zodiacs(annotation_moon_dict=None, annotation_sun_dict=
 
 if __name__ == '__main__':
 
-    geo_name = 'Kremenchuk'
+    # geo_name = 'Kremenchuk'
+    geo_name = 'Astana'
     # geo_name = 'Mragowo'
     # geo_name = 'Boston'
     # geo_name = 'Kharkiv'

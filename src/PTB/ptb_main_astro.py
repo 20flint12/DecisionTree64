@@ -401,7 +401,7 @@ async def alarm(context: ContextTypes.DEFAULT_TYPE) -> None:
         print(chat_id, "alarm:: An exception occurred ************** !!!!!!!!!!!!!!!!!!!!!", e)
 
     # ++++++++++++++++++++++
-    mp.plot_color_of_the_days(observer=observer_obj, days=5, file_name=photo_name, chat_job=chat_job_name)
+    mp.plot_color_of_the_days(observer=observer_obj, days=4, file_name=photo_name, chat_job=chat_job_name)
 
     logger.info("send_photo %s", photo_name)
 
@@ -527,7 +527,7 @@ async def color_of_the_days(update: Update, context: ContextTypes.DEFAULT_TYPE) 
     text = ""
     text += str(observer_obj)
     # ++++++++++++++++++++++
-    mp.plot_color_of_the_days(observer=observer_obj, days=5, file_name=photo_name, chat_job=chat_job_name)
+    mp.plot_color_of_the_days(observer=observer_obj, days=4, file_name=photo_name, chat_job=chat_job_name)
 
     logger.info("color_of_the_days - %s", photo_name)
     await update.message.reply_photo(photo=open(photo_name, 'rb'))
@@ -656,8 +656,8 @@ def main() -> None:
     application.job_queue.run_once(restart_service, 10)
 
     # ...and the error handler
-    application.add_error_handler(error_handler)
-    application.add_error_handler(handle_exception)
+    # application.add_error_handler(error_handler)
+    # application.add_error_handler(handle_exception)
 
     # Run the bot until the user presses Ctrl-C
     application.run_polling()
