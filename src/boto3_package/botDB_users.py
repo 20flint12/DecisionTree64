@@ -277,33 +277,35 @@ def update_user_record(update=None, context=None, user_db_data=None):      # !!!
 
     # print(user_db_data)
     '''
-    {
-      'reminder_time': '0801',
-      'pk_chat_id': '5983009083',
-      'payment': {
-        
-      },
-      'sk_user_name': 'JanuszMazur-None',
-      'context_user_data': {
-        '�����������': '0801',
-        '��������': ''2.333',
-        '����������': 'KREMENCHUK'
-      },
-      'last_time': '2023-01-2916: 15: 48'
-    }
+    # user_db_data = {
+    #     'pk_chat_id': '333344452',
+    #     'sk_user_name': 'Vasiya',
+    #     'reminder_time': '0333',
+    #     'activity': {'attempts': 2, 'state': True},
+    #     'payment': {},
+    #     'context_user_data': {
+    #         f'{opc.key_Geolocation}': 'WARSfAW444',
+    #         f'{opc.key_Interval}': '3.212',
+    #         f'{opc.key_Reminder}': '1134'
+    #         }
+    #     }
     '''
-
     if "payment" in user_db_data:
-        if user_db_data["payment"]:
-            if user_db_data["payment"] is not None:
-                upd_data_dict['payment'] = user_db_data["payment"]
+        if user_db_data["payment"] or user_db_data["payment"] is not None:
+            upd_data_dict['payment'] = user_db_data["payment"]
         else:
             upd_data_dict['payment'] = {}
     else:
         upd_data_dict['payment'] = {}
 
-    if "activity" in user_db_data and user_db_data["activity"]:
-        upd_data_dict['activity'] = user_db_data["activity"]
+    if "activity" in user_db_data:
+        if user_db_data["activity"]:
+            upd_data_dict['activity'] = user_db_data["activity"]
+        else:
+            upd_data_dict['activity'] = {'attempts': 1, 'state': True}
+    else:
+        upd_data_dict['activity'] = {'attempts': 2, 'state': True}
+
 
     user_data_dict.update(upd_data_dict)
 

@@ -49,7 +49,7 @@ def dict_fields_to_str(user_data: Dict[str, str]) -> str:
     return "\n".join(dfields).join(["\n", "\n"])
 
 
-async def observer_settings(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+async def observer_setup(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """Start the conversation, display any stored data and ask user for input."""
     text = "Задайте географічне місце та час (момент відліку для цього місця)"
     logger.info("observer> %s:", text)
@@ -100,8 +100,8 @@ async def received_information(update: Update, context: ContextTypes.DEFAULT_TYP
 
     # While changing data update db record
     # user_db_data = {
-    #     # 'pk_chat_id': '333344452',
-    #     # 'sk_user_name': 'Vasiya',
+    #     'pk_chat_id': '333344452',
+    #     'sk_user_name': 'Vasiya',
     #     'reminder_time': '0333',
     #     'activity': {'attempts': 2, 'state': True},
     #     'payment': {},
@@ -125,8 +125,7 @@ async def received_information(update: Update, context: ContextTypes.DEFAULT_TYP
     bdbu.update_user_record(update=update, context=context, user_db_data=user_db_data)
 
     user_db_data = bdbu.get_user_db_data(pk=user_id)    # get new data in context.chat_data
-    # context.chat_data.pop('key', None)                # to delete a value from chat_data
-    context.chat_data.update({})                        # contain current updated user_db_data to work with
+    context.chat_data.clear()                           # to delete a value from chat_data
     context.chat_data.update(user_db_data)              # contain current updated user_db_data to work with
 
     await update.message.reply_text(
@@ -136,18 +135,16 @@ async def received_information(update: Update, context: ContextTypes.DEFAULT_TYP
     return CHOOSING
 
 
-async def show_data(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+async def show_user_db_data(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Display the gathered info."""
     chat_id = str(update.effective_message.chat_id)
 
-    context_data_db = bdbu.get_user_db_data(pk=chat_id)
+    user_db_data = bdbu.get_user_db_data(pk=chat_id)
 
     text = "Збережені параметри:"
-
-    text += "\n context.user_data" + dict_fields_to_str(context.user_data)
-    text += "\n context.chat_data" + dict_fields_to_str(context.chat_data)
-    text += "\n context_data_db" + dict_fields_to_str(context_data_db)
-    # text += "\n context_data_db\n" + str(context_data_db)
+    text += "\n*** context.user_data ***" + dict_fields_to_str(context.user_data)
+    text += "\n*** context.chat_data ***" + dict_fields_to_str(context.chat_data)
+    text += "\n*** user_db_data ***" + dict_fields_to_str(user_db_data)
 
     await update.message.reply_text(text)
 
@@ -157,8 +154,6 @@ async def done(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
 
     if "choice" in context.user_data:
         del context.user_data["choice"]
-
-    # bdbu.update_user_record(update=update, context=context)
 
     await update.message.reply_text(
         f"Задані параметри збережені: {dict_fields_to_str(context.user_data)}", reply_markup=ReplyKeyboardRemove(),)
@@ -212,7 +207,7 @@ async def done(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
 
 
 observer_conversation_handler = ConversationHandler(
-    entry_points=[CommandHandler("obs", observer_settings)],
+    entry_points=[CommandHandler("obs", observer_setup)],
     states={
         CHOOSING: [
             # key_Geoloc, key_Moment, key_Notify, key_Addition
@@ -231,7 +226,7 @@ observer_conversation_handler = ConversationHandler(
     persistent=True,
 )
 
-observer_handler = CommandHandler("obs", observer_settings)
-show_data_handler = CommandHandler("show_data", show_data)
+observer_handler = CommandHandler("obs", observer_setup)
+repare_user_db_data_handler = CommandHandler("show_data", show_user_db_data)
 
 

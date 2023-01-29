@@ -640,7 +640,7 @@ def main() -> None:
 
     application.add_handler(opc.observer_conversation_handler)      # /obs
     # application.add_handler(opc.observer_handler)
-    application.add_handler(opc.show_data_handler)
+    application.add_handler(opc.repare_user_db_data_handler)
 
     application.add_handler(CommandHandler("rep", rwt.set_repeat_timer))
     application.add_handler(CommandHandler("pause", rwt.pause_repeat_timer))
