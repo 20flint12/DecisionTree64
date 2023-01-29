@@ -221,7 +221,7 @@ def main_create_populate_bot_users():
     return text
 
 
-def _test_update_user_record(chat_id="", user_name="Noname", context_data_dict=None,):
+def _test_update_user_record(chat_id="", user_name="Noname", user_db_data=None, ):
     text = ""
 
     user_data_dict = {
@@ -232,10 +232,18 @@ def _test_update_user_record(chat_id="", user_name="Noname", context_data_dict=N
 
     upd_data_dict = {}
 
-    upd_data_dict['reminder_time'] = context_data_dict["reminder_time"]
-    upd_data_dict['user_setting'] = context_data_dict["user_setting"]
-    upd_data_dict['payment'] = context_data_dict["payment"]
-    upd_data_dict['activity'] = context_data_dict["activity"]
+    if "reminder_time" in user_db_data and user_db_data["reminder_time"]:
+        upd_data_dict['reminder_time'] = user_db_data["reminder_time"]
+
+    if "context_user_data" in user_db_data and user_db_data["context_user_data"]:
+        upd_data_dict['context_user_data'] = user_db_data["context_user_data"]
+
+    if "payment" in user_db_data and user_db_data["payment"]:
+        upd_data_dict['payment'] = user_db_data["payment"]
+
+    if "activity" in user_db_data and user_db_data["activity"]:
+        upd_data_dict['activity'] = user_db_data["activity"]
+
     # upd_data_dict['context_data_dict'] = context_data_dict
 
     user_data_dict.update(upd_data_dict)
@@ -261,10 +269,41 @@ def update_user_record(update=None, context=None, user_db_data=None):      # !!!
 
     upd_data_dict = {}
 
-    upd_data_dict['reminder_time'] = context.user_data[opc.key_Reminder]
-    upd_data_dict['user_setting'] = context.user_data
-    upd_data_dict['payment'] = user_db_data["payment"]
-    upd_data_dict['activity'] = user_db_data["activity"]
+    if opc.key_Reminder in context.user_data and context.user_data[opc.key_Reminder]:
+        upd_data_dict['reminder_time'] = context.user_data[opc.key_Reminder]
+
+    if context.user_data is not None:
+        upd_data_dict['context_user_data'] = context.user_data
+
+    # print(user_db_data)
+    '''
+    {
+      'reminder_time': '0801',
+      'pk_chat_id': '5983009083',
+      'payment': {
+        
+      },
+      'sk_user_name': 'JanuszMazur-None',
+      'context_user_data': {
+        '�����������': '0801',
+        '��������': ''2.333',
+        '����������': 'KREMENCHUK'
+      },
+      'last_time': '2023-01-2916: 15: 48'
+    }
+    '''
+
+    if "payment" in user_db_data:
+        if user_db_data["payment"]:
+            if user_db_data["payment"] is not None:
+                upd_data_dict['payment'] = user_db_data["payment"]
+        else:
+            upd_data_dict['payment'] = {}
+    else:
+        upd_data_dict['payment'] = {}
+
+    if "activity" in user_db_data and user_db_data["activity"]:
+        upd_data_dict['activity'] = user_db_data["activity"]
 
     user_data_dict.update(upd_data_dict)
 
@@ -290,7 +329,6 @@ def get_user_db_data(pk=""):     # store this content in context.chat_data
     list_of_items = botUsers_table.table_query(_pk=pk)
 
     context_chat_data = list_of_items[0]
-    # sett_dict = context_chat_data['user_setting']
 
     return context_chat_data
 
@@ -309,8 +347,8 @@ if __name__ == '__main__':
 
 
 
-    context_data_dict = get_user_db_data(pk="33334445267")
-    pprint(context_data_dict)
+    user_db_data = get_user_db_data(pk="33334445267")
+    pprint(user_db_data)
     '''
     {'activity': {'attempts': Decimal('0'), 'state': True},
      'last_time': '2023-01-28 22:09:31',
@@ -318,7 +356,7 @@ if __name__ == '__main__':
      'pk_chat_id': '33334445267',
      'reminder_time': '0333',
      'sk_user_name': 'Vasiya-fake',
-     'user_setting': {'��������': '3.212',
+     'context_user_data': {'��������': '3.212',
                       '����������': 'WARSfAW444',
                       '�����������': '1134'}}
      '''
@@ -332,20 +370,20 @@ if __name__ == '__main__':
     #     'reminder_time': '0333',
     #     'activity': {'attempts': 2, 'state': True},
     #     'payment': {},
-    #     'user_setting': {
+    #     'context_user_data': {
     #         f'{opc.key_Geolocation}': 'WARSfAW444',
     #         f'{opc.key_Interval}': '3.212',
     #         f'{opc.key_Reminder}': '1134'
     #         }
     #     }
-    att = int(context_data_dict["activity"]["attempts"])    # !!! when wrong request !!!
-    context_data_dict["activity"]["attempts"] = att + 1
+    att = int(user_db_data["activity"]["attempts"])    # !!! when wrong request !!!
+    user_db_data["activity"]["attempts"] = att + 1
     if att >= 3:
-        context_data_dict["activity"]["state"] = False      # !!! check this state to know how work with user !!!
+        user_db_data["activity"]["state"] = False      # !!! check this state to know how work with user !!!
     else:
-        context_data_dict["activity"]["state"] = True
+        user_db_data["activity"]["state"] = True
     data_dict, text = _test_update_user_record(chat_id="33334445267", user_name="Vasiya-fake",
-                                               context_data_dict=context_data_dict,
+                                               user_db_data=user_db_data,
                                                # context_data_dict=None,
                                                )
     pprint(data_dict)
@@ -354,8 +392,8 @@ if __name__ == '__main__':
 
 
 
-    context_data_dict = get_user_db_data(pk="33334445267")
-    pprint(context_data_dict)
+    user_db_data = get_user_db_data(pk="33334445267")
+    pprint(user_db_data)
     '''
     {'activity': {'attempts': Decimal('0'), 'state': True},
      'last_time': '2023-01-28 22:09:31',
@@ -363,7 +401,7 @@ if __name__ == '__main__':
      'pk_chat_id': '33334445267',
      'reminder_time': '0333',
      'sk_user_name': 'Vasiya-fake',
-     'user_setting': {'��������': '3.212',
+     'context_user_data': {'��������': '3.212',
                       '����������': 'WARSfAW444',
                       '�����������': '1134'}}
      '''

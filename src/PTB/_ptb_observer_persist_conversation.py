@@ -2,6 +2,7 @@
 # pylint: disable=unused-argument, wrong-import-position
 # This program is dedicated to the public domain under the CC0 license.
 
+from pprint import pprint
 
 import src.ephem_routines.ephem_package.geo_place as geo
 import src.boto3_package.botDB_users as bdbu
@@ -42,13 +43,13 @@ reply_keyboard = [
 markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True,)
 
 
-def facts_to_str(user_data: Dict[str, str]) -> str:
+def dict_fields_to_str(user_data: Dict[str, str]) -> str:
     """Helper function for formatting the gathered user info."""
-    facts = [f"{key} - {value}" for key, value in user_data.items()]
-    return "\n".join(facts).join(["\n", "\n"])
+    dfields = [f"'{key}': {value}" for key, value in user_data.items()]
+    return "\n".join(dfields).join(["\n", "\n"])
 
 
-async def observer(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+async def observer_settings(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """Start the conversation, display any stored data and ask user for input."""
     text = "Задайте географічне місце та час (момент відліку для цього місця)"
     logger.info("observer> %s:", text)
@@ -86,16 +87,50 @@ async def custom_choice(update: Update, context: ContextTypes.DEFAULT_TYPE) -> i
 
 async def received_information(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """Store info provided by user and ask for the next category."""
+    user_id = str(update.effective_user.id)
     text = update.message.text
 
-    category = context.user_data["choice"]
-    context.user_data[category] = text.upper()
-    del context.user_data["choice"]
+    if "choice" in context.user_data and context.user_data["choice"] and context.user_data["choice"] is not None:
+        category = context.user_data["choice"]
+        context.user_data[category] = text.upper()
+        del context.user_data["choice"]
 
-    bdbu.update_user_record(update=update, context=context)
+    user_db_data = bdbu.get_user_db_data(pk=user_id)    # get old data
+    # pprint(user_db_data)
+
+    # While changing data update db record
+    # user_db_data = {
+    #     # 'pk_chat_id': '333344452',
+    #     # 'sk_user_name': 'Vasiya',
+    #     'reminder_time': '0333',
+    #     'activity': {'attempts': 2, 'state': True},
+    #     'payment': {},
+    #     'context_user_data': {
+    #         f'{opc.key_Geolocation}': 'WARSfAW444',
+    #         f'{opc.key_Interval}': '3.212',
+    #         f'{opc.key_Reminder}': '1134'
+    #         }
+    #     }
+    user_db_data['context_user_data'] = context.user_data
+
+    if "activity" in user_db_data and user_db_data["activity"] and user_db_data["activity"] is not None:
+        att = int(user_db_data["activity"]["attempts"])    # !!! when wrong request !!!
+        user_db_data["activity"]["attempts"] = att + 1
+        if att >= 5:
+            user_db_data["activity"]["state"] = False      # !!! check this state to know how work with user !!!
+        else:
+            user_db_data["activity"]["state"] = True
+            user_db_data["activity"]["attempts"] = 0
+
+    bdbu.update_user_record(update=update, context=context, user_db_data=user_db_data)
+
+    user_db_data = bdbu.get_user_db_data(pk=user_id)    # get new data in context.chat_data
+    # context.chat_data.pop('key', None)                # to delete a value from chat_data
+    context.chat_data.update({})                        # contain current updated user_db_data to work with
+    context.chat_data.update(user_db_data)              # contain current updated user_db_data to work with
 
     await update.message.reply_text(
-        f"Задані параметри збережені: {facts_to_str(context.user_data)} \nМожна змінювати ці параметри.",
+        f"Задані параметри збережені: {dict_fields_to_str(context.user_data)} \nМожна змінювати ці параметри.",
         reply_markup=markup,)
 
     return CHOOSING
@@ -103,8 +138,18 @@ async def received_information(update: Update, context: ContextTypes.DEFAULT_TYP
 
 async def show_data(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Display the gathered info."""
+    chat_id = str(update.effective_message.chat_id)
 
-    await update.message.reply_text(f"Збережені параметри ?: {facts_to_str(context.user_data)}")
+    context_data_db = bdbu.get_user_db_data(pk=chat_id)
+
+    text = "Збережені параметри:"
+
+    text += "\n context.user_data" + dict_fields_to_str(context.user_data)
+    text += "\n context.chat_data" + dict_fields_to_str(context.chat_data)
+    text += "\n context_data_db" + dict_fields_to_str(context_data_db)
+    # text += "\n context_data_db\n" + str(context_data_db)
+
+    await update.message.reply_text(text)
 
 
 async def done(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
@@ -113,10 +158,10 @@ async def done(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     if "choice" in context.user_data:
         del context.user_data["choice"]
 
-    bdbu.update_user_record(update=update, context=context)
+    # bdbu.update_user_record(update=update, context=context)
 
     await update.message.reply_text(
-        f"Задані параметри збережені: {facts_to_str(context.user_data)}", reply_markup=ReplyKeyboardRemove(),)
+        f"Задані параметри збережені: {dict_fields_to_str(context.user_data)}", reply_markup=ReplyKeyboardRemove(),)
 
     return ConversationHandler.END
 
@@ -167,7 +212,7 @@ async def done(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
 
 
 observer_conversation_handler = ConversationHandler(
-    entry_points=[CommandHandler("obs", observer)],
+    entry_points=[CommandHandler("obs", observer_settings)],
     states={
         CHOOSING: [
             # key_Geoloc, key_Moment, key_Notify, key_Addition
@@ -186,7 +231,7 @@ observer_conversation_handler = ConversationHandler(
     persistent=True,
 )
 
-observer_handler = CommandHandler("obs", observer)
+observer_handler = CommandHandler("obs", observer_settings)
 show_data_handler = CommandHandler("show_data", show_data)
 
 

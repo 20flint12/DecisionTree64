@@ -61,15 +61,18 @@ async def callback_repeating(context: ContextTypes.DEFAULT_TYPE):
     text = job.name + ' @ ' + str(job.next_t)[:19] + "\n" + str(context.job_queue.jobs())[25:]
     # logger.info(text)
 
-    sett_dict = bdbu.get_user_db_data(pk=chat_id)
-    # print("###", sett_dict, sett_dict[opc.key_Reminder])
-    if opc.key_Geolocation in sett_dict:
-        geo_name = sett_dict[opc.key_Geolocation]
+    if not context.chat_data:
+        context_chat_data = bdbu.get_user_db_data(pk=chat_id)
+        context.chat_data.update(context_chat_data)
+        print("###***", context.chat_data, context_chat_data)
+
+    if opc.key_Geolocation in context.chat_data['context_user_data']:
+        geo_name = context.chat_data['context_user_data'][opc.key_Geolocation]
     else:
         geo_name = "Mragowo"
 
-    if opc.key_Interval in sett_dict:
-        moment = sett_dict[opc.key_Interval]
+    if opc.key_Interval in context.chat_data['context_user_data']:
+        moment = context.chat_data['context_user_data'][opc.key_Interval]
     else:
         moment = "5"
     logger.info("callback_repeating -> geo_name=%s moment=%s", geo_name, moment)
@@ -77,7 +80,6 @@ async def callback_repeating(context: ContextTypes.DEFAULT_TYPE):
     observer_obj = geo.Observer(geo_name=geo_name, unaware_datetime=datetime.today())
     text = ""
     text += str(observer_obj)
-
 
     data_dict, out_text = mr.main_put_record(observer=observer_obj, _chat_job=job.name)
     text += "\n" + str(data_dict)

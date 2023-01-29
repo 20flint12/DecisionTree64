@@ -123,8 +123,8 @@ async def handle_exception(update: Update, context: ContextTypes.DEFAULT_TYPE) -
         text += str(user_id) + ":: *** ChatMigrated *** !!!" + str(e)
     except TelegramError as e:  # handle all other telegram related errors
         text += str(user_id) + ":: *** TelegramError *** !!!" + str(e)
-    except Exception as e:
-        text += str(user_id) + ":: *** Exception *** !!!" + str(e)
+    # except Exception as e:
+    #     text += str(user_id) + ":: *** Exception *** !!!" + str(e)
 
     print(text)
 
@@ -162,7 +162,7 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
 
 async def echo(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Echo the user message."""
-    bdbu.update_user_record(update=update, context=context)
+    # bdbu.update_user_record(update=update, context=context)
     user = update.effective_user
 
     text = f"{user.id} <{user.first_name} {user.last_name}> echo: {update.message.text}"
@@ -208,7 +208,7 @@ def get_chat_params(param_dict=None):
 async def moon_phase(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Return moon_phase to the user message."""
     user = update.effective_user
-    bdbu.update_user_record(update=update, context=context)
+    # bdbu.update_user_record(update=update, context=context)
 
     geo_name, moment = parse_args(context)
     logger.info("moon day for geo_name: %s at %s", geo_name, moment)
@@ -227,7 +227,7 @@ async def moon_phase(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None
 async def moon_day(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Return moon_day to the user message."""
     user = update.effective_user
-    bdbu.update_user_record(update=update, context=context)
+    # bdbu.update_user_record(update=update, context=context)
 
     geo_name, moment = parse_args(context)
     logger.info("moon day for geo_name:  %s at %s", geo_name, moment)
@@ -255,7 +255,7 @@ async def moon_day(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 async def sun_rise(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Return moon_day to the user message."""
     user = update.effective_user
-    bdbu.update_user_record(update=update, context=context)
+    # bdbu.update_user_record(update=update, context=context)
 
     geo_name, moment = parse_args(context)
     logger.info("sun rise for geo_name: %s at %s", geo_name, moment)
@@ -274,7 +274,7 @@ async def sun_rise(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 async def zodiac(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Return moon_day to the user message."""
     user = update.effective_user
-    bdbu.update_user_record(update=update, context=context)
+    # bdbu.update_user_record(update=update, context=context)
 
     geo_name, moment = parse_args(context)
     logger.info("zodiac for geo_name: %s at %s", geo_name, moment)
@@ -298,7 +298,7 @@ async def zodiac(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 async def weather(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Return current weather to the user message."""
     user = update.effective_user
-    bdbu.update_user_record(update=update, context=context)
+    # bdbu.update_user_record(update=update, context=context)
 
     geo_name, moment = parse_args(context)
     logger.info("weather for geo_name %s at %s", geo_name, moment)
@@ -317,7 +317,7 @@ async def weather(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 async def summary(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Return summary info to the user message."""
     user = update.effective_user
-    bdbu.update_user_record(update=update, context=context)
+    # bdbu.update_user_record(update=update, context=context)
 
     geo_name, moment = parse_args(context)
     logger.info("summary -> geo_name=%s moment=%s", geo_name, moment)
@@ -506,7 +506,7 @@ async def set_daily_timer(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
     if job_removed:
         text += "\nСтарий таймер видалено."
 
-    bdbu.update_user_record(update=update, context=context)
+    # bdbu.update_user_record(update=update, context=context)
 
     await update.effective_message.reply_text(text)
 
@@ -514,7 +514,7 @@ async def set_daily_timer(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
 async def color_of_the_days(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
     user = update.effective_user
-    bdbu.update_user_record(update=update, context=context)
+    # bdbu.update_user_record(update=update, context=context)
 
     chat_id = update.message.chat_id
     chat_job_name = str(chat_id) + "#REP"           # 442763659#REP
@@ -555,9 +555,18 @@ async def restart_service(context: ContextTypes.DEFAULT_TYPE):
 
                 chat_id = item_dict[bdbu.botUsers_table.partition_key]      # string
                 user_name = item_dict[bdbu.botUsers_table.sort_key]
-                user_setting = item_dict["user_setting"]
-                reminder_hhmm = user_setting[opc.key_Reminder]
-                print(user_counter, "::", chat_id, user_name, reminder_hhmm, user_setting)
+
+                if "context_user_data" in item_dict and item_dict["context_user_data"]:
+                    context_user_data = item_dict["context_user_data"]
+                else:
+                    context_user_data = {
+                        f'{opc.key_Geolocation}': 'OLSZTYN',
+                        f'{opc.key_Interval}': '4.567',
+                        f'{opc.key_Reminder}': '0011'
+                        }
+
+                reminder_hhmm = context_user_data[opc.key_Reminder]
+                print(user_counter, "::", chat_id, user_name, reminder_hhmm, context_user_data)
 
 
 
@@ -566,7 +575,7 @@ async def restart_service(context: ContextTypes.DEFAULT_TYPE):
 
                 job_rep = context.job_queue.run_repeating(
                     rwt.callback_repeating,
-                    interval=3600 + 3*user_counter,     # 2 sec divergence
+                    interval=3600 + 3*user_counter,     # 3 sec divergence
                     name=chat_id + "#REP",
                     chat_id=chat_id,
                     first=10,
@@ -576,8 +585,8 @@ async def restart_service(context: ContextTypes.DEFAULT_TYPE):
                 text += "\n" + str(job_rep.name) + " " + str(job_rep.next_t)[:19]
 
                 # Restore timer for reminder
-                if opc.key_Reminder in user_setting.keys():
-                    reminder_hhmm = user_setting[opc.key_Reminder]
+                if opc.key_Reminder in context_user_data.keys():
+                    reminder_hhmm = context_user_data[opc.key_Reminder]
                     result, dt_hhmm = get_dt_hhmm(hhmm=reminder_hhmm)
 
                     job_daily = context.job_queue.run_daily(
