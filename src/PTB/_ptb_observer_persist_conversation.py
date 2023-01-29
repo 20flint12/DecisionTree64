@@ -111,7 +111,7 @@ async def received_information(update: Update, context: ContextTypes.DEFAULT_TYP
     #         f'{opc.key_Reminder}': '1134'
     #         }
     #     }
-    user_db_data['context_user_data'] = context.user_data
+    user_db_data['context_user_data'] = context.user_data   # update field
 
     if "activity" in user_db_data and user_db_data["activity"] and user_db_data["activity"] is not None:
         att = int(user_db_data["activity"]["attempts"])    # !!! when wrong request !!!
@@ -135,6 +135,18 @@ async def received_information(update: Update, context: ContextTypes.DEFAULT_TYP
     return CHOOSING
 
 
+async def done(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    """Display the gathered info and end the conversation."""
+
+    if "choice" in context.user_data:
+        del context.user_data["choice"]
+
+    await update.message.reply_text(
+        f"Задані параметри збережені: {dict_fields_to_str(context.user_data)}", reply_markup=ReplyKeyboardRemove(),)
+
+    return ConversationHandler.END
+
+
 async def show_user_db_data(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Display the gathered info."""
     chat_id = str(update.effective_message.chat_id)
@@ -149,16 +161,25 @@ async def show_user_db_data(update: Update, context: ContextTypes.DEFAULT_TYPE) 
     await update.message.reply_text(text)
 
 
-async def done(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    """Display the gathered info and end the conversation."""
+async def repair_user_db_data(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Download user data to context.user_data"""
+    chat_id = str(update.effective_message.chat_id)
 
-    if "choice" in context.user_data:
-        del context.user_data["choice"]
+    user_db_data = bdbu.get_user_db_data(pk=chat_id)
 
-    await update.message.reply_text(
-        f"Задані параметри збережені: {dict_fields_to_str(context.user_data)}", reply_markup=ReplyKeyboardRemove(),)
+    context.user_data.clear()
+    context.user_data.update(user_db_data['context_user_data'])
 
-    return ConversationHandler.END
+    context.chat_data.clear()
+    context.chat_data.update(user_db_data)
+
+    text = "Збережені параметри:"
+    text += "\n*** context.user_data ***" + dict_fields_to_str(context.user_data)
+    text += "\n*** context.chat_data ***" + dict_fields_to_str(context.chat_data)
+    text += "\n*** user_db_data ***" + dict_fields_to_str(user_db_data)
+
+    await update.message.reply_text(text)
+
 
 
 # def main_conversation_handler() -> None:
@@ -227,6 +248,7 @@ observer_conversation_handler = ConversationHandler(
 )
 
 observer_handler = CommandHandler("obs", observer_setup)
-repare_user_db_data_handler = CommandHandler("show_data", show_user_db_data)
+show_user_db_data_handler = CommandHandler("show_data", show_user_db_data)
+repair_user_db_data_handler = CommandHandler("repair_data", repair_user_db_data)
 
 
