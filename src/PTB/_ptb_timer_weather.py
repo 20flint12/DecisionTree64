@@ -58,14 +58,29 @@ def remove_job_if_exists(name: str, context: ContextTypes.DEFAULT_TYPE) -> bool:
 async def callback_repeating(context: ContextTypes.DEFAULT_TYPE):
     job = context.job
     chat_id = str(job.chat_id)
+
+    user_db_data = bdbu.get_user_db_data(pk=chat_id)
+
+    # print(chat_id, ":: ", context.chat_data, "\n------", user_db_data)
+    if context.chat_data == user_db_data:
+        print("++++++")
+    else:
+        print("------")
+        print(chat_id, ":: \n", context.chat_data, "---------------\n", user_db_data)
+
+        context.chat_data.clear()
+        context.chat_data.update(user_db_data)
+        context.user_data.clear()
+        context.user_data.update(user_db_data['context_user_data'])
+
     text = job.name + ' @ ' + str(job.next_t)[:19] + "\n" + str(context.job_queue.jobs())[25:]
     # logger.info(text)
 
-    if not context.chat_data:
-        context_chat_data = bdbu.get_user_db_data(pk=chat_id)
-        context.chat_data.update(context_chat_data)
-        print("###***", context.chat_data, context_chat_data)
-
+    # if not context.chat_data:
+    #     context_chat_data = bdbu.get_user_db_data(pk=chat_id)
+    #     context.chat_data.update(context_chat_data)
+    #     print("###***", context.chat_data, context_chat_data)
+    #
     if opc.key_Geolocation in context.chat_data['context_user_data']:
         geo_name = context.chat_data['context_user_data'][opc.key_Geolocation]
     else:
@@ -75,7 +90,7 @@ async def callback_repeating(context: ContextTypes.DEFAULT_TYPE):
         moment = context.chat_data['context_user_data'][opc.key_Interval]
     else:
         moment = "5"
-    logger.info("callback_repeating -> geo_name=%s moment=%s", geo_name, moment)
+    logger.info("%s: callback_repeating -> geo_name=%s moment=%s", chat_id, geo_name, moment)
 
     observer_obj = geo.Observer(geo_name=geo_name, unaware_datetime=datetime.today())
     text = ""

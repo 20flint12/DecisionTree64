@@ -523,13 +523,13 @@ if __name__ == '__main__':
     text += str(observer_obj)
     # print(text)
     # #######################################################################################
-    plot_color_of_the_days(observer=observer_obj, days=3.5, file_name="plot_astro_summary.png", chat_job="442763659#REP")
+    # plot_color_of_the_days(observer=observer_obj, days=3.5, file_name="plot_astro_summary.png", chat_job="442763659#REP")
 
     # observer_obj.unaware_update_utc(in_unaware_datetime)
     # plot_color_of_the_days(observer=observer_obj, days=3, file_name="plot_astro_summary.png", chat_job="442763659#REP")
     #
     # observer_obj.unaware_update_utc(in_unaware_datetime)
-    # plot_color_of_the_days(observer=observer_obj, days=5, file_name="plot_astro_summary.png", chat_job="442763659#REP")
+    plot_color_of_the_days(observer=observer_obj, days=5, file_name="plot_astro_summary.png", chat_job="442763659#REP")
     #
     # observer_obj.unaware_update_utc(in_unaware_datetime)
     # plot_color_of_the_days(observer=observer_obj, days=6, file_name="plot_astro_summary.png", chat_job="442763659#REP")

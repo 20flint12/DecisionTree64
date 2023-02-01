@@ -12,9 +12,11 @@ Usage:
 Press Ctrl-C on the command line or send a signal to the process to stop the bot.
 """
 
+from pprint import pprint
 
 from datetime import datetime, time
 import pytz
+
 import src.ephem_routines.ephem_package.geo_place as geo
 import src.ephem_routines.ephem_package.moon_day as md
 import src.ephem_routines.ephem_package.sun_rise_sett as sr
@@ -208,6 +210,8 @@ def get_chat_params(param_dict=None):
 async def moon_phase(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Return moon_phase to the user message."""
     user = update.effective_user
+    bot = context.bot
+    print(user, bot.id, bot.name, bot.first_name)
     # bdbu.update_user_record(update=update, context=context)
 
     geo_name, moment = parse_args(context)
@@ -545,72 +549,72 @@ async def restart_service(context: ContextTypes.DEFAULT_TYPE):
     if not initial_pass:
         initial_pass = True
 
+        # print("context.user_data= "), pprint(context.user_data)
+        # print("context.chat_data= "), pprint(context.chat_data)
+
         list_of_items, count = bdbu.user_scan_filter()
 
         user_counter = -1
 
         if count > 0:
-            for item_dict in list_of_items:
+            for user_db_data in list_of_items:
                 user_counter += 1
+                # print(user_db_data)
+                user_bot_id = user_db_data[bdbu.botUsers_table.partition_key]      # string
+                user_name = user_db_data[bdbu.botUsers_table.sort_key]
 
-                chat_id = item_dict[bdbu.botUsers_table.partition_key]      # string
-                user_name = item_dict[bdbu.botUsers_table.sort_key]
-
-                if "context_user_data" in item_dict and item_dict["context_user_data"]:
-                    context_user_data = item_dict["context_user_data"]
-                else:
-                    context_user_data = {
-                        f'{opc.key_Geolocation}': 'OLSZTYN',
-                        f'{opc.key_Interval}': '4.567',
-                        f'{opc.key_Reminder}': '0011'
-                        }
+                # Get "context_user_data" from DB of set defaults
+                user_db_data.setdefault('context_user_data', "{}")         # for non-existent fields in the database !!!
+                context_user_data = json.loads(user_db_data['context_user_data'])
+                # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ defaults
+                context_user_data.setdefault(opc.key_Geolocation, "OLSZTYN")
+                context_user_data.setdefault(opc.key_Interval, "4.567")
+                context_user_data.setdefault(opc.key_Reminder, "0123")
 
                 reminder_hhmm = context_user_data[opc.key_Reminder]
-                print(user_counter, "::", chat_id, user_name, reminder_hhmm, context_user_data)
 
+                print(user_counter, "::", user_bot_id, user_name, reminder_hhmm, context_user_data)
 
-
-
-                text = chat_id + ': bot re-started...'
+                text = user_bot_id + ': bot re-started...'
 
                 job_rep = context.job_queue.run_repeating(
                     rwt.callback_repeating,
-                    interval=3600 + 3*user_counter,     # 3 sec divergence
-                    name=chat_id + "#REP",
-                    chat_id=chat_id,
-                    first=10,
+                    interval=36 + 3*user_counter,     # 3 sec divergence
+                    name=user_bot_id + "#REP",
+                    chat_id=user_bot_id,
+                    first=6,
                 )
                 job_rep.job.misfire_grace_time = 30
                 # t.sleep(0.1)
                 text += "\n" + str(job_rep.name) + " " + str(job_rep.next_t)[:19]
 
                 # Restore timer for reminder
-                if opc.key_Reminder in context_user_data.keys():
-                    reminder_hhmm = context_user_data[opc.key_Reminder]
-                    result, dt_hhmm = get_dt_hhmm(hhmm=reminder_hhmm)
+                result, dt_hhmm = get_dt_hhmm(hhmm=reminder_hhmm)
 
-                    job_daily = context.job_queue.run_daily(
-                        alarm,
-                        time=time(
-                            hour=dt_hhmm.hour,
-                            minute=dt_hhmm.minute,
-                            second=10,
-                            tzinfo=pytz.timezone('Europe/Warsaw')),
-                        days=(0, 1, 2, 3, 4, 5, 6),
-                        name=chat_id + "#DAILY",
-                        chat_id=chat_id,
-                        job_kwargs={},
-                    )
-                    job_daily.job.misfire_grace_time = 30
-                    # t.sleep(0.1)
-                    text += "\n" + str(job_daily.name) + " " + str(job_daily.next_t)[:19]
+                job_daily = context.job_queue.run_daily(
+                    alarm,
+                    time=time(
+                        hour=dt_hhmm.hour,
+                        minute=dt_hhmm.minute,
+                        second=10,
+                        tzinfo=pytz.timezone('Europe/Warsaw')),
+                    days=(0, 1, 2, 3, 4, 5, 6),
+                    name=user_bot_id + "#DAILY",
+                    chat_id=user_bot_id,
+                    job_kwargs={},
+                )
+                job_daily.job.misfire_grace_time = 30
+                # t.sleep(0.1)
+                text += "\n" + str(job_daily.name) + " " + str(job_daily.next_t)[:19]
+
+
 
                 try:
-                    await context.bot.send_message(chat_id=chat_id, text=text)
+                    await context.bot.send_message(chat_id=user_bot_id.split("#")[0], text=text)
 
                 except Exception as e:
                     pass
-                    print(chat_id, "restart_service:: Exception -", e)
+                    print(user_bot_id, "restart_service:: Exception -", e)
 
 
 def main() -> None:

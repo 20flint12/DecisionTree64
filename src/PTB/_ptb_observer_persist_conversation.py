@@ -30,15 +30,19 @@ logger = logging.getLogger(__name__)
 
 CHOOSING, TYPING_REPLY, TYPING_CHOICE = range(3)
 
-key_Geolocation = u"Геолокація"
-key_Interval = u"Інтервал"
-key_Reminder = u"Нагадування"
+# key_Geolocation = u"Геолокація"
+# key_Interval = u"Інтервал"
+# key_Reminder = u"Нагадування"
+# key_Addition = u"Додатково"
+key_Geolocation = u"Geolocation"
+key_Interval = u"Interval"
+key_Reminder = u"Reminder"
 key_Addition = u"Додатково"
 
 reply_keyboard = [
     [key_Geolocation, key_Interval],
     [key_Reminder, key_Addition],
-    ["Готово"],
+    [u"Готово"],
 ]
 markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True,)
 
@@ -87,7 +91,11 @@ async def custom_choice(update: Update, context: ContextTypes.DEFAULT_TYPE) -> i
 
 async def received_information(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """Store info provided by user and ask for the next category."""
-    user_id = str(update.effective_user.id)
+    # user_id = str(update.effective_user.id)
+    user = update.effective_user
+    bot = context.bot
+    user_bot_id = str(user.id) + "#" + str(bot.id)
+
     text = update.message.text
 
     if "choice" in context.user_data and context.user_data["choice"] and context.user_data["choice"] is not None:
@@ -95,22 +103,10 @@ async def received_information(update: Update, context: ContextTypes.DEFAULT_TYP
         context.user_data[category] = text.upper()
         del context.user_data["choice"]
 
-    user_db_data = bdbu.get_user_db_data(pk=user_id)    # get old data
+    # user_db_data = bdbu.get_user_db_data(pk=user_bot_id)    # get old data
     # pprint(user_db_data)
 
-    # While changing data update db record
-    # user_db_data = {
-    #     'pk_chat_id': '333344452',
-    #     'sk_user_name': 'Vasiya',
-    #     'reminder_time': '0333',
-    #     'activity': {'attempts': 2, 'state': True},
-    #     'payment': {},
-    #     'context_user_data': {
-    #         f'{opc.key_Geolocation}': 'WARSfAW444',
-    #         f'{opc.key_Interval}': '3.212',
-    #         f'{opc.key_Reminder}': '1134'
-    #         }
-    #     }
+    user_db_data = {}
     user_db_data['context_user_data'] = context.user_data   # update field
 
     if "activity" in user_db_data and user_db_data["activity"] and user_db_data["activity"] is not None:
@@ -124,9 +120,9 @@ async def received_information(update: Update, context: ContextTypes.DEFAULT_TYP
 
     bdbu.update_user_record(update=update, context=context, user_db_data=user_db_data)
 
-    user_db_data = bdbu.get_user_db_data(pk=user_id)    # get new data in context.chat_data
-    context.chat_data.clear()                           # to delete a value from chat_data
-    context.chat_data.update(user_db_data)              # contain current updated user_db_data to work with
+    user_db_data = bdbu.get_user_db_data(pk=user_bot_id)    # get new data in context.chat_data
+    context.chat_data.clear()                               # to delete a value from chat_data
+    context.chat_data.update(user_db_data)                  # contain current updated user_db_data to work with
 
     await update.message.reply_text(
         f"Задані параметри збережені: {dict_fields_to_str(context.user_data)} \nМожна змінювати ці параметри.",
@@ -149,9 +145,12 @@ async def done(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
 
 async def show_user_db_data(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Display the gathered info."""
-    chat_id = str(update.effective_message.chat_id)
+    user = update.effective_user
+    bot = context.bot
+    user_bot_id = str(user.id) + "#" + str(bot.id)
 
-    user_db_data = bdbu.get_user_db_data(pk=chat_id)
+    user_db_data = bdbu.get_user_db_data(pk=user_bot_id)
+    print(user_bot_id, user_db_data)
 
     text = "Збережені параметри:"
     text += "\n*** context.user_data ***" + dict_fields_to_str(context.user_data)
@@ -163,15 +162,22 @@ async def show_user_db_data(update: Update, context: ContextTypes.DEFAULT_TYPE) 
 
 async def repair_user_db_data(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Download user data to context.user_data"""
-    chat_id = str(update.effective_message.chat_id)
+    user = update.effective_user
+    bot = context.bot
+    user_bot_id = str(user.id) + "#" + str(bot.id)
 
-    user_db_data = bdbu.get_user_db_data(pk=chat_id)
+    user_db_data = bdbu.get_user_db_data(pk=user_bot_id)
+    # if len(user_db_data) == 0:
 
-    context.user_data.clear()
-    context.user_data.update(user_db_data['context_user_data'])
+    if "context_user_data" in user_db_data:
+        context.user_data.clear()
+        context.user_data.update(user_db_data['context_user_data'])
 
-    context.chat_data.clear()
-    context.chat_data.update(user_db_data)
+        context.chat_data.clear()
+        context.chat_data.update(user_db_data)
+    else:
+        context.user_data.clear()
+        context.chat_data.clear()
 
     text = "Збережені параметри:"
     text += "\n*** context.user_data ***" + dict_fields_to_str(context.user_data)

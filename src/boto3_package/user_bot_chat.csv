@@ -1,0 +1,3 @@
+pk_user_bot_id,sk_user_bot_name,last_time,context_user_data,activity,payment
+4774374724#122233333,Serhii Surmylo @ Biblyka_bot,2022-12-11 21:11:17,"{'Геолокація': 'WARSAW', 'Інтервал': '1.111', 'Нагадування': '2331'}","{'attempts': 2, 'state': True, 'enable': True, 'last_error': ''}",{}
+4342423425#122233333,Anton Kuchin @ Biblyka_bot,2022-12-11 21:11:17,"{'Геолокація': 'KHARKIV', 'Інтервал': '2.222', 'Нагадування': '1344'}","{'attempts': 2, 'state': True, 'enable': True, 'last_error': ''}",{}

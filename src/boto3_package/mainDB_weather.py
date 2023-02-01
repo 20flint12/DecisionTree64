@@ -202,7 +202,7 @@ def main_put_record(observer=None, _chat_job="12345678#REP1"):
     # Location and timezone
     observer.get_coords_by_name()
     observer.get_tz_by_coord()
-    data_dict["location"] = {"geo": observer._geo_name,
+    data_dict["location"] = {"geo": observer.get_geo_name,
                              "tz": observer.timezone_name
                              }
 
@@ -261,7 +261,8 @@ if __name__ == '__main__':
     # print(text)
 
 
-    geo_name = 'Mragowo'
+    # geo_name = 'Mragowo'
+    geo_name = 'ASTANA'
     # geo_name = 'Kremenchuk'
     local_unaware_datetime = datetime.datetime.now()
     observer_obj = geo.Observer(geo_name=geo_name, unaware_datetime=local_unaware_datetime)

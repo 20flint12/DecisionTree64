@@ -4,6 +4,9 @@ from datetime import datetime
 from pprint import pprint
 import os
 
+import json
+from decimal import Decimal
+
 import src.ephem_routines.ephem_package.geo_place as geo
 import src.ephem_routines.ephem_package.moon_day as md
 import src.ephem_routines.ephem_package.sun_rise_sett as sr
@@ -76,11 +79,18 @@ class dynamoDB_table(object):
         return response
 
     def put(self, user_data_dict=None):     # at a current UTC time
+        '''
+        # Store a dictionary in DynamoDB
+        dictionary = {'key1': 'value1', 'key2': 'value2'}
+        dynamodb.put_item(TableName='mytable', Item={'id': {'S': '1'}, 'data': {'S': json.dumps(dictionary)}})
 
-        from decimal import Decimal
-        import json
-
-        # print("user_data_dict=", user_data_dict)
+        # Retrieve the dictionary from DynamoDB
+        response = dynamodb.get_item(TableName='mytable', Key={'id': {'S': '1'}})
+        item = response['Item']
+        dictionary = json.loads(item['data']['S'])
+        print(dictionary)
+        '''
+        # print("put -> user_data_dict=", user_data_dict)
 
         # # Partition and Sorting keys
         # rec_items_dict = {
@@ -90,8 +100,8 @@ class dynamoDB_table(object):
         rec_items_dict = {}
 
         if user_data_dict is not None:
-            ddb_data = json.loads(json.dumps(user_data_dict), parse_float=Decimal)  # get rid of float
-            rec_items_dict.update(ddb_data)  # !!!
+            # ddb_data = json.loads(json.dumps(user_data_dict), parse_float=Decimal)  # get rid of float
+            rec_items_dict.update(user_data_dict)  # !!!
 
             # Update last_time_key current UTC now
             utc_str = datetime.datetime.utcnow().strftime(geo.dt_format_rev)
@@ -190,7 +200,7 @@ class dynamoDB_table(object):
         return text
 
 
-file_name = "bot_users.csv"
+file_name = "user_bot_chat.csv"
 script_dir = os.path.dirname(os.path.abspath(__file__))
 file_path = os.path.join(script_dir, file_name)
 print(file_path)
@@ -221,35 +231,58 @@ def main_create_populate_bot_users():
     return text
 
 
-def _test_update_user_record(chat_id="", user_name="Noname", user_db_data=None, ):
-    text = ""
+def _test_update_user_record(context_user_data=None, user_db_data=None, ):
+    '''
+    user_db_data = {
+        'pk_chat_id': '333344452',
+        'sk_user_name': 'Vasiya',
+        'activity': {'attempts': 2, 'state': True, 'enable': True, 'last_error': ''},
+        'payment': {},
+        'context_user_data': {
+            f'{opc.key_Geolocation}': 'WARSfAW444',
+            f'{opc.key_Interval}': '3.212',
+            f'{opc.key_Reminder}': '1134'
+            }
+        }
+    '''
 
     user_data_dict = {
-        'pk_chat_id': str(chat_id),     # "4774374724",
-        'sk_user_name': user_name,      # 'Serhii Surmylo',
-        # 'last_time': '2022-12-11 21:11:17'
-        }
+        f'{botUsers_table.partition_key}': "4774374724#122233333",
+        f'{botUsers_table.sort_key}': "Serhii Surmylo @ Biblyka_bot",
+    }
 
-    upd_data_dict = {}
+    upd_user_db_data = {}
 
-    if "reminder_time" in user_db_data and user_db_data["reminder_time"]:
-        upd_data_dict['reminder_time'] = user_db_data["reminder_time"]
 
-    if "context_user_data" in user_db_data and user_db_data["context_user_data"]:
-        upd_data_dict['context_user_data'] = user_db_data["context_user_data"]
+    if context_user_data is not None:       # =================================== context_user_data
+        upd_user_db_data['context_user_data'] = json.dumps(context_user_data)
 
-    if "payment" in user_db_data and user_db_data["payment"]:
-        upd_data_dict['payment'] = user_db_data["payment"]
 
-    if "activity" in user_db_data and user_db_data["activity"]:
-        upd_data_dict['activity'] = user_db_data["activity"]
+    if "payment" in user_db_data:           # =================================== payment
+        if user_db_data["payment"] or user_db_data["payment"] is not None:
+            payment_dict = user_db_data["payment"]
+        else:
+            payment_dict = {"term": 20}
+    else:
+        payment_dict = {"term": 10}
+    upd_user_db_data['payment'] = json.dumps(payment_dict)
 
-    # upd_data_dict['context_data_dict'] = context_data_dict
 
-    user_data_dict.update(upd_data_dict)
+    if "activity" in user_db_data:          # =================================== activity
+        if user_db_data["activity"]:
+            activity_dict = user_db_data["activity"]
+        else:
+            activity_dict = {'attempts': -2, 'state': True}
+    else:
+        activity_dict = {'attempts': -3, 'state': True}
+    upd_user_db_data['activity'] = json.dumps(activity_dict)
+
+
+    user_data_dict.update(upd_user_db_data)
 
     resp = botUsers_table.put(user_data_dict=user_data_dict)
 
+    text = ""
     text += "\n" + str(resp["ResponseMetadata"]["RequestId"])[:12] + "... "
     text += "" + str(resp["ResponseMetadata"]["HTTPStatusCode"]) + "/" + str(resp["ResponseMetadata"]["RetryAttempts"])
 
@@ -258,56 +291,61 @@ def _test_update_user_record(chat_id="", user_name="Noname", user_db_data=None, 
 
 def update_user_record(update=None, context=None, user_db_data=None):      # !!! user_db_data store in context_chat_data
     '''
-    # User(first_name='Serhii', id=442763659, is_bot=False, language_code='en', last_name='Surmylo', username='Serhii_Surmylo')
+    user_db_data = {
+        'pk_chat_id': '333344452',
+        'sk_user_name': 'Vasiya',
+        'activity': {'attempts': 2, 'state': True, 'enable': True, 'last_error': ''},
+        'payment': {},
+        'context_user_data': {
+            f'{opc.key_Geolocation}': 'WARSfAW444',
+            f'{opc.key_Interval}': '3.212',
+            f'{opc.key_Reminder}': '1134'
+            }
+        }
     '''
     text = ""
 
     user = update.effective_user
-    username = str(user.first_name) + " " + str(user.last_name) + " - " + str(user.username)
+    bot = context.bot
+    user_bot_id = str(user.id) + "#" + str(bot.id)
 
-    user_data_dict = {'pk_chat_id': str(user.id), 'sk_user_name': username}
+    user_name = str(user.first_name) + " " + str(user.last_name) + " - " + str(user.username)
+    bot_name = str(bot.first_name) + " " + str(bot.name)
+    user_bot_name = user_name + " @ " + bot_name
 
-    upd_data_dict = {}
+    user_data_dict = {
+        f'{botUsers_table.partition_key}': user_bot_id,
+        f'{botUsers_table.sort_key}': user_bot_name,
+    }
 
-    if opc.key_Reminder in context.user_data and context.user_data[opc.key_Reminder]:
-        upd_data_dict['reminder_time'] = context.user_data[opc.key_Reminder]
+    upd_user_db_data = {}
 
-    if context.user_data is not None:
-        upd_data_dict['context_user_data'] = context.user_data
+    if context.user_data is not None:           # =================================== context_user_data
+        upd_user_db_data['context_user_data'] = json.dumps(context.user_data)
+    # print(upd_user_db_data)
 
-    # print(user_db_data)
-    '''
-    # user_db_data = {
-    #     'pk_chat_id': '333344452',
-    #     'sk_user_name': 'Vasiya',
-    #     'reminder_time': '0333',
-    #     'activity': {'attempts': 2, 'state': True},
-    #     'payment': {},
-    #     'context_user_data': {
-    #         f'{opc.key_Geolocation}': 'WARSfAW444',
-    #         f'{opc.key_Interval}': '3.212',
-    #         f'{opc.key_Reminder}': '1134'
-    #         }
-    #     }
-    '''
-    if "payment" in user_db_data:
+
+    if "payment" in user_db_data:           # =================================== payment
         if user_db_data["payment"] or user_db_data["payment"] is not None:
-            upd_data_dict['payment'] = user_db_data["payment"]
+            payment_dict = user_db_data["payment"]
         else:
-            upd_data_dict['payment'] = {}
+            payment_dict = {"term": 20}
     else:
-        upd_data_dict['payment'] = {}
+        payment_dict = {"term": 10}
+    upd_user_db_data['payment'] = json.dumps(payment_dict)
 
-    if "activity" in user_db_data:
+
+    if "activity" in user_db_data:          # =================================== activity
         if user_db_data["activity"]:
-            upd_data_dict['activity'] = user_db_data["activity"]
+            activity_dict = user_db_data["activity"]
         else:
-            upd_data_dict['activity'] = {'attempts': 1, 'state': True}
+            activity_dict = {'attempts': -1, 'state': True}
     else:
-        upd_data_dict['activity'] = {'attempts': 2, 'state': True}
+        activity_dict = {'attempts': -2, 'state': True}
+    upd_user_db_data['activity'] = json.dumps(activity_dict)
 
 
-    user_data_dict.update(upd_data_dict)
+    user_data_dict.update(upd_user_db_data)
 
     resp = botUsers_table.put(user_data_dict=user_data_dict)
 
@@ -330,9 +368,31 @@ def get_user_db_data(pk=""):     # store this content in context.chat_data
 
     list_of_items = botUsers_table.table_query(_pk=pk)
 
-    context_chat_data = list_of_items[0]
+    # user_db_data = {}
 
-    return context_chat_data
+    if len(list_of_items) > 0:
+
+        user_db_data = list_of_items[0]
+        # print("user_db_data= ")
+        # pprint(user_db_data)
+
+        user_db_data.setdefault('activity', "{}")
+        user_db_data['activity'] = json.loads(user_db_data['activity'])
+
+        user_db_data.setdefault('payment', "{}")
+        user_db_data['payment'] = json.loads(user_db_data['payment'])
+
+        user_db_data.setdefault('context_user_data', "{}")
+        user_db_data['context_user_data'] = json.loads(user_db_data['context_user_data'])
+        # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ defaults
+        user_db_data['context_user_data'].setdefault(opc.key_Geolocation, "OLSZTYN")
+        user_db_data['context_user_data'].setdefault(opc.key_Interval, "5.555")
+        user_db_data['context_user_data'].setdefault(opc.key_Reminder, "0000")
+
+        user_db_data.setdefault('add_data', "{}")      # for non-existent fields in the database !!!
+        user_db_data['add_data'] = json.loads(user_db_data['add_data'])
+
+        return user_db_data
 
 
 if __name__ == '__main__':
@@ -346,65 +406,54 @@ if __name__ == '__main__':
     # list_of_items = botUsers_table.table_query(_pk="442763659")
     # print(len(list_of_items), list_of_items[0])
 
+    # user_db_data = {}
 
-
-
-    user_db_data = get_user_db_data(pk="33334445267")
+    user_db_data = get_user_db_data(pk="4774374724#122233333")
+    print("**** 1 ****")
     pprint(user_db_data)
-    '''
-    {'activity': {'attempts': Decimal('0'), 'state': True},
-     'last_time': '2023-01-28 22:09:31',
-     'payment': {},
-     'pk_chat_id': '33334445267',
-     'reminder_time': '0333',
-     'sk_user_name': 'Vasiya-fake',
-     'context_user_data': {'��������': '3.212',
-                      '����������': 'WARSfAW444',
-                      '�����������': '1134'}}
-     '''
+    #  '''
+    # {'activity': "{'attempts': 2, 'state': True, 'enable': True, 'last_error': ''}",
+    #   'context_user_data': "{'����������': 'WARSAW', '��������': '1.111', "
+    #                        "'�����������': '2331'}",
+    #   'last_time': '2023-01-30 12:59:05',
+    #   'payment': '{}',
+    #   'pk_user_bot_id': '4774374724#122233333',
+    #   'sk_user_bot_name': 'Serhii Surmylo @ Biblyka_bot'}
+    #   '''
 
 
 
+    # context_user_data = None
+    context_user_data = {
+        f'{opc.key_Geolocation}': 'WARSAWmod2',
+        f'{opc.key_Interval}': '2.224',
+        f'{opc.key_Reminder}': '2222'
+    }
 
-    # context_data_dict = {
-    #     # 'pk_chat_id': '333344452',
-    #     # 'sk_user_name': 'Vasiya',
-    #     'reminder_time': '0333',
-    #     'activity': {'attempts': 2, 'state': True},
-    #     'payment': {},
-    #     'context_user_data': {
-    #         f'{opc.key_Geolocation}': 'WARSfAW444',
-    #         f'{opc.key_Interval}': '3.212',
-    #         f'{opc.key_Reminder}': '1134'
-    #         }
-    #     }
-    att = int(user_db_data["activity"]["attempts"])    # !!! when wrong request !!!
-    user_db_data["activity"]["attempts"] = att + 1
-    if att >= 3:
-        user_db_data["activity"]["state"] = False      # !!! check this state to know how work with user !!!
+    # user_db_data["activity"] = ""
+    # user_db_data["activity"] = None
+    user_db_data["activity"]["attempts"] += 1                   # !!! when wrong request !!!
+    if user_db_data["activity"]["attempts"] >= 5:
+        user_db_data["activity"]["state"] = False               # !!! check this state to know how work with user !!!
+        user_db_data["activity"]["last_error"] = "Overload2"    # !!! check this state to know how work with user !!!
     else:
         user_db_data["activity"]["state"] = True
-    data_dict, text = _test_update_user_record(chat_id="33334445267", user_name="Vasiya-fake",
-                                               user_db_data=user_db_data,
-                                               # context_data_dict=None,
-                                               )
+        user_db_data["activity"]["attempts"] = 0
+        user_db_data["activity"]["last_error"] = "-"
+
+    user_db_data["payment"]["term"] = 11.009
+
+
+
+    data_dict, text = _test_update_user_record(context_user_data=context_user_data, user_db_data=user_db_data)
+    print("**** 2 ****")
     pprint(data_dict)
     print(text)
 
 
 
 
-    user_db_data = get_user_db_data(pk="33334445267")
-    pprint(user_db_data)
-    '''
-    {'activity': {'attempts': Decimal('0'), 'state': True},
-     'last_time': '2023-01-28 22:09:31',
-     'payment': {},
-     'pk_chat_id': '33334445267',
-     'reminder_time': '0333',
-     'sk_user_name': 'Vasiya-fake',
-     'context_user_data': {'��������': '3.212',
-                      '����������': 'WARSfAW444',
-                      '�����������': '1134'}}
-     '''
+    # user_db_data = get_user_db_data(pk="4774374724#122233333")
+    # pprint(user_db_data)
+
 
