@@ -26,6 +26,18 @@ except Exception as e:
     print("Error {}".format(e))
 
 
+from enum import IntEnum
+
+
+class ParamOrigin(IntEnum):
+    DEFAULT = 1
+    SETTING = 2
+    ARGUMENT = 3
+    INVALID_TIME = 10      # check VALIDITY after conversion to dt
+    DEFAULT_INVALID = 11
+    SETTING_INVALID = 12
+    ARGUMENT_INVALID = 13
+
 class dynamoDB_table(object):
 
     _table_name = "table_name"

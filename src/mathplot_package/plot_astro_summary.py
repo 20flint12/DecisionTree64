@@ -24,7 +24,7 @@ import src.boto3_package.mainDB_weather as b3w
 from babel.dates import format_datetime
 
 
-def plot_color_of_the_days(observer=None, days=1., file_name="plot_astro_summary.png", chat_job=''):
+def plot_color_of_the_days(observer=None, days=1., file_name="plot_astro_summary.png", job_name=''):
     # print("unaware date2num=", mdates.date2num(observer.get_unaware))
 
     begin_unaware = observer.get_unaware - timedelta(days=days)
@@ -174,8 +174,8 @@ def plot_color_of_the_days(observer=None, days=1., file_name="plot_astro_summary
 
     print(begin_unaware, " - ", end_unaware)            # 2023-01-18 10:22:27.276605  -  2023-01-25 10:22:27.276605
 
-    list_of_items = b3w.recordWeather_table.table_query(_pk=chat_job,
-                                                        _between_low=str(begin_unaware),    # "2021-01-21 14:41:49"
+    list_of_items = b3w.recordWeather_table.table_query(_pk=job_name,
+                                                        _between_low=str(begin_unaware),  # "2021-01-21 14:41:49"
                                                         _between_high=str(end_unaware)
                                                         )
     # pprint(list_of_items)
@@ -418,11 +418,11 @@ def _plot_annotations_of_moon_days(observer=None, days=1., axe=None, horiz_range
         coords = (0.6 * horiz_range, mdates.date2num(cur_unaware))
 
         axe.annotate(annot_text,
-                         xy=coords,
-                         fontsize=8,
-                         horizontalalignment='center',
-                         verticalalignment='center'
-                         )
+                     xy=coords,
+                     fontsize=8,
+                     horizontalalignment='center',
+                     verticalalignment='center'
+                     )
 
 
 def _plot_annotations_of_moon_phases(observer=None, days=1., axe=None, horiz_range=1):
@@ -529,7 +529,7 @@ if __name__ == '__main__':
     # plot_color_of_the_days(observer=observer_obj, days=3, file_name="plot_astro_summary.png", chat_job="442763659#REP")
     #
     # observer_obj.unaware_update_utc(in_unaware_datetime)
-    plot_color_of_the_days(observer=observer_obj, days=5, file_name="plot_astro_summary.png", chat_job="442763659#REP")
+    plot_color_of_the_days(observer=observer_obj, days=5, file_name="plot_astro_summary.png", job_name="442763659#REP")
     #
     # observer_obj.unaware_update_utc(in_unaware_datetime)
     # plot_color_of_the_days(observer=observer_obj, days=6, file_name="plot_astro_summary.png", chat_job="442763659#REP")

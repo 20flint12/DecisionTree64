@@ -108,7 +108,10 @@ async def callback_timer_REP(context: ContextTypes.DEFAULT_TYPE):
 async def setup_timer_REP(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Add a job_rep to the queue."""
     chat_id = update.effective_message.chat_id
-    job_name = str(chat_id) + "#REP"
+    bot = context.bot
+    user_bot_id = str(chat_id) + "#" + str(bot.id)
+    job_name = user_bot_id + "#REP"
+
     text = ""
     try:
         # args[0] should contain the time for the timer in seconds
@@ -119,7 +122,7 @@ async def setup_timer_REP(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
 
         job_removed = remove_job_if_exists(job_name, context)
         if job_removed:
-            text += " Old one was removed.\n"
+            text += "\nСтарий таймер видалено."
 
         job_rep = context.job_queue.run_repeating(
             callback_timer_REP,
