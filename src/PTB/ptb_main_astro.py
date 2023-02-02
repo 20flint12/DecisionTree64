@@ -174,37 +174,33 @@ async def echo(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
 def parse_args(context: ContextTypes.DEFAULT_TYPE):
 
+    context.user_data.setdefault(opc.key_Geolocation, "OLSZTYN")
+    context.user_data.setdefault(opc.key_Interval, "5.555")
+    context.user_data.setdefault(opc.key_Reminder, "0000")
+
     if len(context.args) > 0:
         geo_name = str(context.args[0])
     else:
-        if opc.key_Geolocation in context.user_data:
-            geo_name = context.user_data[opc.key_Geolocation]
-        else:
-            geo_name = "Mragowo"
+        geo_name = context.user_data[opc.key_Geolocation]
 
-    if opc.key_Interval in context.user_data:
-        moment = context.user_data[opc.key_Interval]
-    else:
-        moment = "5"
-
-    return geo_name, moment
+    return geo_name, context.user_data[opc.key_Interval]
 
 
-def get_chat_params(param_dict=None):
-    if param_dict is None:
-        return
-
-    if opc.key_Geolocation in param_dict:
-        geo_name = param_dict[opc.key_Geolocation]
-    else:
-        geo_name = "Mragowo"
-
-    if opc.key_Interval in param_dict:
-        moment = param_dict[opc.key_Interval]
-    else:
-        moment = "5.0"
-
-    return geo_name, moment
+# def get_chat_params(param_dict=None):
+#     if param_dict is None:
+#         return
+#
+#     if opc.key_Geolocation in param_dict:
+#         geo_name = param_dict[opc.key_Geolocation]
+#     else:
+#         geo_name = "Mragowo"
+#
+#     if opc.key_Interval in param_dict:
+#         moment = param_dict[opc.key_Interval]
+#     else:
+#         moment = "5.0"
+#
+#     return geo_name, moment
 
 
 async def moon_phase(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -357,11 +353,11 @@ async def summary(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     await update.message.reply_text(text)
 
 
-async def alarm(context: ContextTypes.DEFAULT_TYPE) -> None:
+async def callback_timer_DAILY(context: ContextTypes.DEFAULT_TYPE) -> None:
     """Send the alarm message."""
     job = context.job
     chat_id = str(job.chat_id)
-    chat_job_name = chat_id + "#REP"
+    # chat_job_name = chat_id + "#REP"
     photo_name = chat_id + "_photo.png"     # 442763659_photo.jpg
 
     sett_dict = bdbu.get_user_db_data(pk=chat_id)
@@ -405,7 +401,7 @@ async def alarm(context: ContextTypes.DEFAULT_TYPE) -> None:
         print(chat_id, "alarm:: An exception occurred ************** !!!!!!!!!!!!!!!!!!!!!", e)
 
     # ++++++++++++++++++++++
-    mp.plot_color_of_the_days(observer=observer_obj, days=4, file_name=photo_name, chat_job=chat_job_name)
+    mp.plot_color_of_the_days(observer=observer_obj, days=4, file_name=photo_name, chat_job=chat_id + "#REP")
 
     logger.info("send_photo %s", photo_name)
 
@@ -416,9 +412,9 @@ async def alarm(context: ContextTypes.DEFAULT_TYPE) -> None:
         print(chat_id, "alarm:: An exception occurred ************** !!!!!!!!!!!!!!!!!!!!!", e)
 
 
-def remove_job_if_exists(name: str, context: ContextTypes.DEFAULT_TYPE) -> bool:
+def remove_job_if_exists(job_name: str, context: ContextTypes.DEFAULT_TYPE) -> bool:
     """Remove job with given name. Returns whether job was removed."""
-    current_jobs = context.job_queue.get_jobs_by_name(name)
+    current_jobs = context.job_queue.get_jobs_by_name(job_name)
     if not current_jobs:
         return False
     for job in current_jobs:
@@ -440,7 +436,7 @@ def get_dt_hhmm(hhmm=""):
     return True, dt_hhmm
 
 
-async def set_daily_timer(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+async def setup_timer_DAILY(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Add a job to the queue."""
     user = update.effective_user
 
@@ -480,7 +476,7 @@ async def set_daily_timer(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
     # ############# Specify timer with valid [HHMM] ###############
     job_removed = remove_job_if_exists(str(chat_id), context)
     context.job_queue.run_daily(
-        alarm,
+        callback_timer_DAILY,
         time=time(
             hour=dt_hhmm.hour,
             minute=dt_hhmm.minute,
@@ -578,8 +574,8 @@ async def restart_service(context: ContextTypes.DEFAULT_TYPE):
                 text = user_bot_id + ': bot re-started...'
 
                 job_rep = context.job_queue.run_repeating(
-                    rwt.callback_repeating,
-                    interval=36 + 3*user_counter,     # 3 sec divergence
+                    rwt.callback_timer_REP,
+                    interval=360 + 3*user_counter,     # 3 sec divergence
                     name=user_bot_id + "#REP",
                     chat_id=user_bot_id,
                     first=6,
@@ -592,7 +588,7 @@ async def restart_service(context: ContextTypes.DEFAULT_TYPE):
                 result, dt_hhmm = get_dt_hhmm(hhmm=reminder_hhmm)
 
                 job_daily = context.job_queue.run_daily(
-                    alarm,
+                    callback_timer_DAILY,
                     time=time(
                         hour=dt_hhmm.hour,
                         minute=dt_hhmm.minute,
@@ -639,7 +635,7 @@ def main() -> None:
     application.add_handler(CommandHandler("zod", zodiac))          # /zod <GEO_PLACE>
     application.add_handler(CommandHandler("wt", weather))
     application.add_handler(CommandHandler("sum", summary))
-    application.add_handler(CommandHandler("set", set_daily_timer))
+    application.add_handler(CommandHandler("set", setup_timer_DAILY))
     application.add_handler(CommandHandler("cod", color_of_the_days))
 
     application.add_handler(opc.observer_conversation_handler)      # /obs
@@ -647,10 +643,10 @@ def main() -> None:
     application.add_handler(opc.show_user_db_data_handler)
     application.add_handler(opc.repair_user_db_data_handler)
 
-    application.add_handler(CommandHandler("rep", rwt.set_repeat_timer))
-    application.add_handler(CommandHandler("pause", rwt.pause_repeat_timer))
-    application.add_handler(CommandHandler("run", rwt.run_repeat_timer))
-    application.add_handler(CommandHandler("urep", rwt.unset_repeat_timer))
+    application.add_handler(CommandHandler("rep", rwt.setup_timer_REP))
+    application.add_handler(CommandHandler("pause", rwt.pause_timer_REP))
+    application.add_handler(CommandHandler("run", rwt.run_timer_REP))
+    application.add_handler(CommandHandler("urep", rwt.unset_timer_REP))
 
     # on non command i.e message - echo the message on Telegram
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, echo))

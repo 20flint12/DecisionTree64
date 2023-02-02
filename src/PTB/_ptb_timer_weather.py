@@ -55,7 +55,7 @@ def remove_job_if_exists(name: str, context: ContextTypes.DEFAULT_TYPE) -> bool:
     return True
 
 
-async def callback_repeating(context: ContextTypes.DEFAULT_TYPE):
+async def callback_timer_REP(context: ContextTypes.DEFAULT_TYPE):
     job = context.job
     chat_id = str(job.chat_id)
 
@@ -105,7 +105,7 @@ async def callback_repeating(context: ContextTypes.DEFAULT_TYPE):
         print(chat_id, ":: callback_repeating *** Exception *** - ", e)
 
 
-async def set_repeat_timer(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+async def setup_timer_REP(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Add a job_rep to the queue."""
     chat_id = update.effective_message.chat_id
     job_name = str(chat_id) + "#REP"
@@ -122,7 +122,7 @@ async def set_repeat_timer(update: Update, context: ContextTypes.DEFAULT_TYPE) -
             text += " Old one was removed.\n"
 
         job_rep = context.job_queue.run_repeating(
-            callback_repeating,
+            callback_timer_REP,
             interval=due,
             name=job_name,
             chat_id=chat_id,
@@ -139,7 +139,7 @@ async def set_repeat_timer(update: Update, context: ContextTypes.DEFAULT_TYPE) -
         await update.effective_message.reply_text("Usage: /rep <seconds>")
 
 
-async def pause_repeat_timer(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+async def pause_timer_REP(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Pause the job if the user changed their mind."""
     chat_id = update.message.chat_id
     context_job_name = str(chat_id) + "#REP"
@@ -164,7 +164,7 @@ async def pause_repeat_timer(update: Update, context: ContextTypes.DEFAULT_TYPE)
         await update.message.reply_text(text)
 
 
-async def run_repeat_timer(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+async def run_timer_REP(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Ran the job if the user changed their mind."""
     chat_id = update.message.chat_id
     context_job_name = str(chat_id) + "#REP"
@@ -189,7 +189,7 @@ async def run_repeat_timer(update: Update, context: ContextTypes.DEFAULT_TYPE) -
         await update.message.reply_text(text)
 
 
-async def unset_repeat_timer(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+async def unset_timer_REP(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Remove the job if the user changed their mind."""
     chat_id = update.message.chat_id
     context_job_name = str(chat_id) + "#REP"
