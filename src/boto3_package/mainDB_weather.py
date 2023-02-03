@@ -237,16 +237,18 @@ def main_query_filter(lists_of_items, geo_name="", attr="weather", field="T"):
     for item in lists_of_items:
 
         sort_key = item[recordWeather_table.sort_key]
-        city = item['location']['geo']
-        value = item[attr][field]
-        # print(">", sort_key, city, item[attr], value)
+
+        location_dict = json.loads(item['location'])
+        attr_dict = json.loads(item[attr])
+
+        city = location_dict['geo']
+        value = attr_dict[field]
+        print(">", sort_key, city, item[attr], value)
 
         # Filter by city
         if geo_name.upper() == city:
 
-            # value_dict[res_sun_str] = mdates.date2num(observer.get_unaware)
             value_dict[sort_key] = float(value)
-
             value_list.append(float(value))
 
     average = 0
@@ -285,12 +287,12 @@ if __name__ == '__main__':
 
 
 
-    list_of_items = recordWeather_table.table_query(_pk="442763659#REP",
+    list_of_items = recordWeather_table.table_query(_pk="5354533983#1042106378#REP",
                                                     _between_low="2021-01-21 14:41:49",
                                                     _between_high="2024-01-21 12:37:00")
 
     # pprint(list_of_items)
-    # # print(text)
+    # print(text)
     data_dict, avg = main_query_filter(list_of_items, geo_name=geo_name, attr="weather", field="P")
     pprint(data_dict)
 

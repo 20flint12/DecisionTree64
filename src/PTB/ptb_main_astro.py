@@ -586,9 +586,6 @@ async def restart_service(context: ContextTypes.DEFAULT_TYPE):
     if not initial_pass:
         initial_pass = True
 
-        # print("context.user_data= "), pprint(context.user_data)
-        # print("context.chat_data= "), pprint(context.chat_data)
-
         list_of_items, count = bdbu.user_scan_filter()
 
         user_counter = -1
@@ -654,8 +651,6 @@ async def restart_service(context: ContextTypes.DEFAULT_TYPE):
                     job_daily.job.misfire_grace_time = 30
                     # t.sleep(0.1)
                     text += "\n" + str(job_daily.name) + " " + str(job_daily.next_t)[:19]
-
-
 
                 try:
                     await context.bot.send_message(chat_id=chat_id, text=text)
