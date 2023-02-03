@@ -427,8 +427,10 @@ async def callback_timer_DAILY(context: ContextTypes.DEFAULT_TYPE) -> None:
     job = context.job
     chat_id = str(job.chat_id)
     photo_name = job.name + "_photo.png"     # 442763659_photo.jpg
+    data_user_chat_id = job.data
 
-    (valid_geo_name, geo_name), (valid_interval, interval) = parse_Geolocation_Interval(context, parse_args=False)
+    (valid_geo_name, geo_name), (valid_interval, interval) = parse_Geolocation_Interval(context, parse_args=False,
+                                                                                        user_bot_id=data_user_chat_id)
     logger.info("%s:: callback_timer_DAILY> geo_name=%s moment=%s", job.name, geo_name, interval)
 
     observer_obj = geo.Observer(geo_name=geo_name, unaware_datetime=datetime.today())
@@ -611,7 +613,7 @@ async def restart_service(context: ContextTypes.DEFAULT_TYPE):
 
                 job_rep = context.job_queue.run_repeating(
                     rwt.callback_timer_REP,
-                    interval=60 + 3*user_counter,     # 3 sec divergence
+                    interval=3600 + 3*user_counter,     # 3 sec divergence
                     name=user_bot_id + "#REP",
                     user_id=chat_id,
                     chat_id=chat_id,
@@ -626,24 +628,29 @@ async def restart_service(context: ContextTypes.DEFAULT_TYPE):
                 user_db_data.setdefault('activity', "{}")                   # for non-existent fields in the database !!!
                 activity = json.loads(user_db_data['activity'])
                 print(activity)
-                print(activity.get('enable_daily', False))
-                print(activity.get('daily_utc_time', [10, 10, 10]))
+                # print(activity.get('enable_daily', False))
+                # print(activity.get('daily_utc_time', [10, 10, 10]))
+                enable_daily = activity.get('enable_daily', False)
+                daily_utc_time = activity.get('daily_utc_time', [10, 10, 10])
 
-                # job_daily = context.job_queue.run_daily(
-                #     callback_timer_DAILY,
-                #     time=time(
-                #         hour=dt_hhmm.hour,
-                #         minute=dt_hhmm.minute,
-                #         second=10,
-                #         tzinfo=pytz.timezone('Europe/Warsaw')),
-                #     days=(0, 1, 2, 3, 4, 5, 6),
-                #     name=user_bot_id + "#DAILY",
-                #     chat_id=user_bot_id,
-                #     job_kwargs={},
-                # )
-                # job_daily.job.misfire_grace_time = 30
-                # # t.sleep(0.1)
-                # text += "\n" + str(job_daily.name) + " " + str(job_daily.next_t)[:19]
+                if enable_daily:
+                    job_daily = context.job_queue.run_daily(
+                        callback_timer_DAILY,
+                        time=time(
+                            hour=daily_utc_time[0],
+                            minute=daily_utc_time[0],
+                            second=daily_utc_time[0],
+                            tzinfo=pytz.timezone('UTC')),
+                        days=(0, 1, 2, 3, 4, 5, 6),
+                        name=user_bot_id + "#DAILY",
+                        user_id=chat_id,
+                        chat_id=chat_id,
+                        data=user_bot_id,
+                        job_kwargs={},
+                    )
+                    job_daily.job.misfire_grace_time = 30
+                    # t.sleep(0.1)
+                    text += "\n" + str(job_daily.name) + " " + str(job_daily.next_t)[:19]
 
 
 
