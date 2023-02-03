@@ -60,31 +60,31 @@ async def callback_timer_REP(context: ContextTypes.DEFAULT_TYPE):
     job = context.job
     data_user_chat_id = job.data
 
-    user_db_data = bdbu.get_user_db_data(pk=data_user_chat_id)
-
-    # print(chat_id, ":: ", context.chat_data, "\n*************************", user_db_data)
-    if context.chat_data == user_db_data:
-        pass
-        # print("++++++")
-    else:
-        print("------")
-        print(data_user_chat_id, ":: \n", context.chat_data, "---------------\n", user_db_data)
-
-        if context.chat_data is None:
-            pass
-            # context.chat_data.clear()
-            # context.chat_data = {}
-        else:
-            context.chat_data.clear()
-        context.chat_data.update(user_db_data)
-
-        if context.user_data is None:
-            pass
-            # context.user_data.clear()
-            # context.user_data = {}
-        else:
-            context.user_data.clear()
-        context.user_data.update(user_db_data['context_user_data'])
+    # user_db_data = bdbu.get_user_db_data(pk=data_user_chat_id)
+    #
+    # # print(chat_id, ":: ", context.chat_data, "\n*************************", user_db_data)
+    # if context.chat_data == user_db_data:
+    #     pass
+    #     # print("++++++")
+    # else:
+    #     print("------")
+    #     print(data_user_chat_id, ":: \n", context.chat_data, "---------------\n", user_db_data)
+    #
+    #     if context.chat_data is None:
+    #         pass
+    #         # context.chat_data.clear()
+    #         # context.chat_data = {}
+    #     else:
+    #         context.chat_data.clear()
+    #     context.chat_data.update(user_db_data)
+    #
+    #     if context.user_data is None:
+    #         pass
+    #         # context.user_data.clear()
+    #         # context.user_data = {}
+    #     else:
+    #         context.user_data.clear()
+    #     context.user_data.update(user_db_data['context_user_data'])
 
     text = job.name + ' @ ' + str(job.next_t)[:19] + "\n" + str(context.job_queue.jobs())[25:]
     # logger.info(text)
@@ -97,7 +97,7 @@ async def callback_timer_REP(context: ContextTypes.DEFAULT_TYPE):
     text = ""
     text += str(observer_obj)
 
-    data_dict, out_text = mr.main_put_record(observer=observer_obj, _chat_job=job.name)
+    data_dict, out_text = mr.main_put_record(observer=observer_obj, job_name=job.name)
     text += "\n" + str(data_dict)
     text += out_text
     try:

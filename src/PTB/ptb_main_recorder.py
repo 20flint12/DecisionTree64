@@ -140,7 +140,7 @@ async def callback_repeating(context: ContextTypes.DEFAULT_TYPE):
     # logger.info(text)
     # init_id, out_str = mr.main_put_record(_chat_job=job.name)
 
-    init_id, out_str = mr.main_put_record(observer=observer_obj, _chat_job=job.name)
+    init_id, out_str = mr.main_put_record(observer=observer_obj, job_name=job.name)
     text += out_str
     await context.bot.send_message(chat_id=job.chat_id, text=text)
 

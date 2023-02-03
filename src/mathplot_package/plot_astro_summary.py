@@ -403,26 +403,26 @@ def _plot_annotations_of_moon_days(observer=None, days=1., axe=None, horiz_range
 
     print("_plot_annotations_of_moon_days ???", observer.get_geo_name)
 
-    while end_unaware > cur_unaware:
-        if cur_unaware == begin_unaware:                            # init pass
-            pass                                                    # init calculation
-        else:
-            cur_unaware = cur_unaware + timedelta(days=24.5 / 24)   # next calculation
-
-        observer.unaware_update_utc(cur_unaware)
-        moon_dict, moon_text = md.main_moon_day(observer=observer)  # modified observer
-        lbl_moon_noon = ephem.Date((moon_dict['moon_sett'] + moon_dict['moon_rise']) / 2)
-        cur_unaware = lbl_moon_noon.datetime()
-
-        annot_text = str(moon_dict["moon_day"]) + " міс. д."
-        coords = (0.6 * horiz_range, mdates.date2num(cur_unaware))
-
-        axe.annotate(annot_text,
-                     xy=coords,
-                     fontsize=8,
-                     horizontalalignment='center',
-                     verticalalignment='center'
-                     )
+    # while end_unaware > cur_unaware:
+    #     if cur_unaware == begin_unaware:                            # init pass
+    #         pass                                                    # init calculation
+    #     else:
+    #         cur_unaware = cur_unaware + timedelta(days=24.5 / 24)   # next calculation
+    #
+    #     observer.unaware_update_utc(cur_unaware)
+    #     moon_dict, moon_text = md.main_moon_day(observer=observer)  # modified observer
+    #     lbl_moon_noon = ephem.Date((moon_dict['moon_sett'] + moon_dict['moon_rise']) / 2)
+    #     cur_unaware = lbl_moon_noon.datetime()
+    #
+    #     annot_text = str(moon_dict["moon_day"]) + " міс. д."
+    #     coords = (0.6 * horiz_range, mdates.date2num(cur_unaware))
+    #
+    #     axe.annotate(annot_text,
+    #                  xy=coords,
+    #                  fontsize=8,
+    #                  horizontalalignment='center',
+    #                  verticalalignment='center'
+    #                  )
 
 
 def _plot_annotations_of_moon_phases(observer=None, days=1., axe=None, horiz_range=1):

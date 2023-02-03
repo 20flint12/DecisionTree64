@@ -3,6 +3,7 @@ import pandas as pd
 from datetime import datetime
 from pprint import pprint
 import os
+import json
 
 import src.ephem_routines.ephem_package.geo_place as geo
 import src.ephem_routines.ephem_package.moon_day as md
@@ -64,7 +65,7 @@ class dynamoDB_table(object):
         )
         return response
 
-    def put(self, chat_job='', data_dict=None):     # at a current time
+    def put(self, job_name='', data_dict=None):     # at a current time
 
         from decimal import Decimal
         import json
@@ -73,7 +74,7 @@ class dynamoDB_table(object):
 
         # Partition and Sorting keys
         rec_items_dict = {
-                self._partition_key: chat_job,
+                self._partition_key: job_name,
                 self._sort_key: utc_str
         }
 
@@ -155,7 +156,7 @@ class dynamoDB_table(object):
             weather_dict = self._df.loc[i].to_dict()
             # print(weather_dict)
 
-            resp = self.put(chat_job="chat_job", data_dict=weather_dict)
+            resp = self.put(job_name="chat_job", data_dict=weather_dict)
             # print(".")
             text += str(resp) + "\n"
 
@@ -193,7 +194,7 @@ def main_create_populate_record_weather():
     return text
 
 
-def main_put_record(observer=None, _chat_job="12345678#REP1"):
+def main_put_record(observer=None, job_name="12345678#REP1"):
 
     text = ""
 
@@ -202,16 +203,16 @@ def main_put_record(observer=None, _chat_job="12345678#REP1"):
     # Location and timezone
     observer.get_coords_by_name()
     observer.get_tz_by_coord()
-    data_dict["location"] = {"geo": observer.get_geo_name,
-                             "tz": observer.timezone_name
-                             }
+
+    # Observer data
+    observer_dict = {"geo": observer.get_geo_name, "tz": observer.timezone_name}
+    data_dict["location"] = json.dumps(observer_dict)
 
     # Weather data
     wth_dict, str_head = wt.main_weather_now(observer)
-    # data_dict["weather"] = {'erwe': 32.34}
-    data_dict["weather"] = wth_dict
+    data_dict["weather"] = json.dumps(wth_dict)
 
-    resp = recordWeather_table.put(chat_job=_chat_job, data_dict=data_dict)
+    resp = recordWeather_table.put(job_name=job_name, data_dict=data_dict)
 
     text += "\n" + str(resp["ResponseMetadata"]["RequestId"])[:12] + "... "
     text += "" + str(resp["ResponseMetadata"]["HTTPStatusCode"]) + "/" + str(resp["ResponseMetadata"]["RetryAttempts"])

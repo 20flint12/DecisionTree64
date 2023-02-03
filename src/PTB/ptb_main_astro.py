@@ -245,15 +245,16 @@ def parse_Reminder(update: Update, context: ContextTypes.DEFAULT_TYPE, observer=
             valid_reminder = bdbu.PrmOrig.ARG
 
     # Check validity of time string
-    dt_hhmm = datetime.strptime("2000-01-01 0000", "%Y-%m-%d %H%M")
+    dt_hhmm_unaware = datetime.strptime("2000-01-01 0000", "%Y-%m-%d %H%M")
+    dt_hhmm_utc = datetime.strptime("2000-01-01 0000", "%Y-%m-%d %H%M")
 
     try:
-        dt_hhmm = datetime.strptime("2000-01-01 " + reminder, "%Y-%m-%d %H%M")
+        dt_hhmm_unaware = datetime.strptime("2000-01-01 " + reminder, "%Y-%m-%d %H%M")
 
         # ToDo in Observer
         # dt_hhmm = pytz.timezone("UTC").localize(dt_hhmm)
         # valid_reminder = bdbu.ParamOrigin.VALID_TIME
-        dt_hhmm_utc = observer.dt_unaware_to_utc(dt_hhmm)
+        dt_hhmm_utc = observer.dt_unaware_to_utc(dt_hhmm_unaware)
 
         user_db_data = context.chat_data        # ???
         user_db_data["activity"]["daily_utc_time"] = [dt_hhmm_utc.hour, dt_hhmm_utc.minute, dt_hhmm_utc.second]
@@ -261,11 +262,11 @@ def parse_Reminder(update: Update, context: ContextTypes.DEFAULT_TYPE, observer=
 
     except ValueError:
 
-        valid_reminder = valid_reminder + bdbu.PrmOrig.INVALID_TIME
+        valid_reminder = bdbu.PrmOrig(valid_reminder) + bdbu.PrmOrig.INVALID_TIME
 
-    print("parse_Reminder> (", valid_reminder, ") ", dt_hhmm)
+    print("parse_Reminder> (", bdbu.PrmOrig(valid_reminder), ") ", dt_hhmm_unaware.time(), " utc:", dt_hhmm_utc.time())
 
-    return valid_reminder, dt_hhmm
+    return valid_reminder, dt_hhmm_unaware, dt_hhmm_utc
 
 
 async def moon_phase(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -483,6 +484,7 @@ def remove_job_if_exists(job_name: str, context: ContextTypes.DEFAULT_TYPE) -> b
 
 async def setup_timer_DAILY(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Add a job to the queue."""
+
     # user = update.effective_user
     chat_id = update.effective_message.chat_id
     bot = context.bot
@@ -498,15 +500,15 @@ async def setup_timer_DAILY(update: Update, context: ContextTypes.DEFAULT_TYPE) 
     # ++++++++++++++++++++++
 
     text = ""
-    valid_reminder, dt_hhmm = parse_Reminder(update, context, observer=observer_obj)
+    valid_reminder, dt_hhmm_unaware, dt_hhmm_utc = parse_Reminder(update, context, observer=observer_obj)
 
     if valid_reminder in (bdbu.PrmOrig.DEF, bdbu.PrmOrig.SET, bdbu.PrmOrig.ARG):
-        text += "Заданий час: " + str(dt_hhmm.time())
+        text += "Заданий час: " + str(dt_hhmm_unaware.time()) + " | " + str(dt_hhmm_utc.time()) + " UTC"
         logger.info(text)
 
     elif valid_reminder in (bdbu.PrmOrig.DEF_INVALID, bdbu.PrmOrig.SET_INVALID,
                             bdbu.PrmOrig.ARG_INVALID):
-        text += "Вибачте, задайте час в форматі [HHMM] / " + valid_reminder.name
+        text += "Вибачте, задайте час в форматі [HHMM] / " + str(bdbu.PrmOrig(valid_reminder))
         logger.info(text)
         await update.effective_message.reply_text(text)
         return
@@ -517,9 +519,10 @@ async def setup_timer_DAILY(update: Update, context: ContextTypes.DEFAULT_TYPE) 
     if job_removed:
         text += "\nСтарий таймер видалено."
 
-    context.job_queue.run_daily(
+    job_daily = context.job_queue.run_daily(
         callback_timer_DAILY,
-        time=time(hour=dt_hhmm.hour, minute=dt_hhmm.minute, second=8, tzinfo=pytz.timezone('UTC')),
+        time=time(hour=dt_hhmm_utc.hour, minute=dt_hhmm_utc.minute,
+                  second=dt_hhmm_utc.second, tzinfo=pytz.timezone('UTC')),
         days=(0, 1, 2, 3, 4, 5, 6),
         name=user_bot_id + "#DAILY",
         chat_id=chat_id,
@@ -542,7 +545,7 @@ async def setup_timer_DAILY(update: Update, context: ContextTypes.DEFAULT_TYPE) 
     #     },
     # )
 
-    text += "\nТаймер нагадування запущений!" + job_name
+    text += "\nТаймер нагадування запущений!" + job_daily.name + str(job_daily.next_t.time())
 
     # bdbu.update_user_record(update=update, context=context)
 
@@ -613,12 +616,12 @@ async def restart_service(context: ContextTypes.DEFAULT_TYPE):
 
                 job_rep = context.job_queue.run_repeating(
                     rwt.callback_timer_REP,
-                    interval=3600 + 3*user_counter,     # 3 sec divergence
+                    interval=3600 + 5*user_counter,     # 3 sec divergence
                     name=user_bot_id + "#REP",
                     user_id=chat_id,
                     chat_id=chat_id,
                     data=user_bot_id,
-                    first=6,
+                    first=10,
                 )
                 job_rep.job.misfire_grace_time = 30
                 # t.sleep(0.1)

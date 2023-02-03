@@ -38,6 +38,7 @@ class PrmOrig(IntEnum):
     SET_INVALID = 12
     ARG_INVALID = 13
 
+
 class dynamoDB_table(object):
 
     _table_name = "table_name"
