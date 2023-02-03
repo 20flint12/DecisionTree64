@@ -29,14 +29,14 @@ except Exception as e:
 from enum import IntEnum
 
 
-class ParamOrigin(IntEnum):
-    DEFAULT = 1
-    SETTING = 2
-    ARGUMENT = 3
+class PrmOrig(IntEnum):
+    DEF = 1
+    SET = 2
+    ARG = 3
     INVALID_TIME = 10      # check VALIDITY after conversion to dt
-    DEFAULT_INVALID = 11
-    SETTING_INVALID = 12
-    ARGUMENT_INVALID = 13
+    DEF_INVALID = 11
+    SET_INVALID = 12
+    ARG_INVALID = 13
 
 class dynamoDB_table(object):
 
@@ -284,9 +284,9 @@ def _test_update_user_record(context_user_data=None, user_db_data=None, ):
         if user_db_data["activity"]:
             activity_dict = user_db_data["activity"]
         else:
-            activity_dict = {'attempts': -2, 'state': True}
+            activity_dict = {'attempts': -1, 'state': True, 'enable': False, 'notify_REP': True, 'repeat_time': 1800}
     else:
-        activity_dict = {'attempts': -3, 'state': True}
+        activity_dict ={'attempts': -2, 'state': True, 'enable': False, 'notify_REP': True, 'repeat_time': 1800}
     upd_user_db_data['activity'] = json.dumps(activity_dict)
 
 
@@ -351,9 +351,9 @@ def update_user_record(update=None, context=None, user_db_data=None):      # !!!
         if user_db_data["activity"]:
             activity_dict = user_db_data["activity"]
         else:
-            activity_dict = {'attempts': -1, 'state': True}
+            activity_dict = {'attempts': -1, 'state': True, 'enable': False, 'notify_REP': True, 'repeat_time': 1800}
     else:
-        activity_dict = {'attempts': -2, 'state': True}
+        activity_dict = {'attempts': -2, 'state': True, 'enable': False, 'notify_REP': True, 'repeat_time': 1800}
     upd_user_db_data['activity'] = json.dumps(activity_dict)
 
 

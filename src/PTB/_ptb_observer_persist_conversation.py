@@ -169,11 +169,17 @@ async def repair_user_db_data(update: Update, context: ContextTypes.DEFAULT_TYPE
     user_db_data = bdbu.get_user_db_data(pk=user_bot_id)
     # if len(user_db_data) == 0:
 
+    # context.application.chat_data.clear()
+    # context.application.chat_data.update({})
+    # chat_data = dict(context.application.chat_data)
+    # chat_data.clear()
+    # context.application.chat_data = chat_data
+
     if "context_user_data" in user_db_data:
-        context.user_data.clear()
+        # context.user_data.update({})
         context.user_data.update(user_db_data['context_user_data'])
 
-        context.chat_data.clear()
+        # context.chat_data.update({})
         context.chat_data.update(user_db_data)
     else:
         context.user_data.clear()
@@ -251,6 +257,7 @@ observer_conversation_handler = ConversationHandler(
     fallbacks=[MessageHandler(filters.Regex("^Готово$"), done)],
     name="astro_conversation",
     persistent=True,
+    # persistent=False,
 )
 
 observer_handler = CommandHandler("obs", observer_setup)

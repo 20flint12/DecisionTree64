@@ -7,6 +7,7 @@ from pprint import pprint
 
 import src.ephem_routines.ephem_package.geo_place as geo
 import src.PTB._ptb_observer_persist_conversation as opc
+import src.PTB.ptb_main_astro as pma
 import src.boto3_package.mainDB_weather as mr
 import src.boto3_package.botDB_users as bdbu
 
@@ -57,40 +58,40 @@ def remove_job_if_exists(name: str, context: ContextTypes.DEFAULT_TYPE) -> bool:
 
 async def callback_timer_REP(context: ContextTypes.DEFAULT_TYPE):
     job = context.job
-    chat_id = str(job.chat_id)
+    data_user_chat_id = job.data
 
-    user_db_data = bdbu.get_user_db_data(pk=chat_id)
+    user_db_data = bdbu.get_user_db_data(pk=data_user_chat_id)
 
-    # print(chat_id, ":: ", context.chat_data, "\n------", user_db_data)
+    # print(chat_id, ":: ", context.chat_data, "\n*************************", user_db_data)
     if context.chat_data == user_db_data:
-        print("++++++")
+        pass
+        # print("++++++")
     else:
         print("------")
-        print(chat_id, ":: \n", context.chat_data, "---------------\n", user_db_data)
+        print(data_user_chat_id, ":: \n", context.chat_data, "---------------\n", user_db_data)
 
-        context.chat_data.clear()
+        if context.chat_data is None:
+            pass
+            # context.chat_data.clear()
+            # context.chat_data = {}
+        else:
+            context.chat_data.clear()
         context.chat_data.update(user_db_data)
-        context.user_data.clear()
+
+        if context.user_data is None:
+            pass
+            # context.user_data.clear()
+            # context.user_data = {}
+        else:
+            context.user_data.clear()
         context.user_data.update(user_db_data['context_user_data'])
 
     text = job.name + ' @ ' + str(job.next_t)[:19] + "\n" + str(context.job_queue.jobs())[25:]
     # logger.info(text)
 
-    # if not context.chat_data:
-    #     context_chat_data = bdbu.get_user_db_data(pk=chat_id)
-    #     context.chat_data.update(context_chat_data)
-    #     print("###***", context.chat_data, context_chat_data)
-    #
-    if opc.key_Geolocation in context.chat_data['context_user_data']:
-        geo_name = context.chat_data['context_user_data'][opc.key_Geolocation]
-    else:
-        geo_name = "Mragowo"
+    (valid_geo_name, geo_name), (valid_interval, interval) = pma.parse_Geolocation_Interval(context, parse_args=False)
 
-    if opc.key_Interval in context.chat_data['context_user_data']:
-        moment = context.chat_data['context_user_data'][opc.key_Interval]
-    else:
-        moment = "5"
-    logger.info("%s: callback_repeating -> geo_name=%s moment=%s", chat_id, geo_name, moment)
+    logger.info("%s: callback_repeating -> geo_name=%s moment=%s", data_user_chat_id, geo_name, interval)
 
     observer_obj = geo.Observer(geo_name=geo_name, unaware_datetime=datetime.today())
     text = ""
@@ -102,11 +103,12 @@ async def callback_timer_REP(context: ContextTypes.DEFAULT_TYPE):
     try:
         await context.bot.send_message(chat_id=job.chat_id, text=text)
     except Exception as e:
-        print(chat_id, ":: callback_repeating *** Exception *** - ", e)
+        print(data_user_chat_id, ":: callback_repeating *** Exception *** - ", e)
 
 
 async def setup_timer_REP(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Add a job_rep to the queue."""
+    user_id = update.effective_user.id
     chat_id = update.effective_message.chat_id
     bot = context.bot
     user_bot_id = str(chat_id) + "#" + str(bot.id)
@@ -127,8 +129,10 @@ async def setup_timer_REP(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
         job_rep = context.job_queue.run_repeating(
             callback_timer_REP,
             interval=due,
-            name=job_name,
+            name=user_bot_id + "#REP",
+            user_id=chat_id,
             chat_id=chat_id,
+            data=user_bot_id,
             first=10
         )
         job_rep.job.misfire_grace_time = 30

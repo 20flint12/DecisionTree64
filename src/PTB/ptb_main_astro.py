@@ -172,7 +172,22 @@ async def echo(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     await update.message.reply_text(text)
 
 
-def parse_Geolocation_Interval(context: ContextTypes.DEFAULT_TYPE, parse_args=False):
+def get_user_bot_id(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    chat_id = update.effective_message.chat_id
+    bot = context.bot
+    user_bot_id = str(chat_id) + "#" + str(bot.id)
+    return user_bot_id
+
+
+def parse_Geolocation_Interval(context: ContextTypes.DEFAULT_TYPE, parse_args=False, user_bot_id=""):
+
+    if not context.chat_data:
+        print("!!!!!!!!!!!! not hasattr(context, 'chat_data') or not context.chat_data !!!!!!!!!!!")
+
+        user_db_data = bdbu.get_user_db_data(pk=user_bot_id)
+
+        context.chat_data.clear()
+        context.chat_data.update(user_db_data)
 
     context.chat_data["context_user_data"].setdefault(opc.key_Geolocation, "OLSZTYN")
     context.chat_data["context_user_data"].setdefault(opc.key_Interval, "5.555")
@@ -181,15 +196,15 @@ def parse_Geolocation_Interval(context: ContextTypes.DEFAULT_TYPE, parse_args=Fa
     # ---------------------------------------------------
     geo_name = context.chat_data["context_user_data"][opc.key_Geolocation]
     if geo_name == context.chat_data["context_user_data"][opc.key_Geolocation]:
-        valid_geo_name = bdbu.ParamOrigin.SETTING
+        valid_geo_name = bdbu.PrmOrig.SET
     else:
-        valid_geo_name = bdbu.ParamOrigin.DEFAULT
+        valid_geo_name = bdbu.PrmOrig.DEF
 
     interval = context.chat_data["context_user_data"][opc.key_Interval]
     if interval == context.chat_data["context_user_data"][opc.key_Interval]:
-        valid_interval = bdbu.ParamOrigin.SETTING
+        valid_interval = bdbu.PrmOrig.SET
     else:
-        valid_interval = bdbu.ParamOrigin.DEFAULT
+        valid_interval = bdbu.PrmOrig.DEF
 
     # ===================================================
     if hasattr(context, 'args') and parse_args:
@@ -197,13 +212,13 @@ def parse_Geolocation_Interval(context: ContextTypes.DEFAULT_TYPE, parse_args=Fa
 
         if arg_len == 1:
             geo_name = str(context.args[0])
-            valid_geo_name = bdbu.ParamOrigin.ARGUMENT
+            valid_geo_name = bdbu.PrmOrig.ARG
 
         elif arg_len == 2:
             geo_name = str(context.args[0])
-            valid_geo_name = bdbu.ParamOrigin.ARGUMENT
+            valid_geo_name = bdbu.PrmOrig.ARG
             interval = str(context.args[1])
-            valid_interval = bdbu.ParamOrigin.ARGUMENT
+            valid_interval = bdbu.PrmOrig.ARG
 
     print("parse_Geolocation_Interval> (", valid_geo_name, geo_name, "), (", valid_interval, interval, ")")
 
@@ -217,9 +232,9 @@ def parse_Reminder(context: ContextTypes.DEFAULT_TYPE, observer=None):
     # ---------------------------------------------------
     reminder = context.chat_data["context_user_data"][opc.key_Reminder]
     if reminder == context.chat_data["context_user_data"][opc.key_Reminder]:
-        valid_reminder = bdbu.ParamOrigin.SETTING
+        valid_reminder = bdbu.PrmOrig.SET
     else:
-        valid_reminder = bdbu.ParamOrigin.DEFAULT
+        valid_reminder = bdbu.PrmOrig.DEF
 
     # ===================================================
     if hasattr(context, 'args'):
@@ -227,7 +242,7 @@ def parse_Reminder(context: ContextTypes.DEFAULT_TYPE, observer=None):
 
         if arg_len == 1:
             reminder = str(context.args[0])
-            valid_reminder = bdbu.ParamOrigin.ARGUMENT
+            valid_reminder = bdbu.PrmOrig.ARG
 
     # Check validity of time string
     dt_hhmm = datetime.strptime("2000-01-01 0000", "%Y-%m-%d %H%M")
@@ -241,7 +256,7 @@ def parse_Reminder(context: ContextTypes.DEFAULT_TYPE, observer=None):
 
     except ValueError:
 
-        valid_reminder = valid_reminder + bdbu.ParamOrigin.INVALID_TIME
+        valid_reminder = valid_reminder + bdbu.PrmOrig.INVALID_TIME
 
     print("parse_Reminder> (", valid_reminder, ") ", dt_hhmm)
 
@@ -255,7 +270,9 @@ async def moon_phase(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None
     print(user, bot.id, bot.name, bot.first_name)
     # bdbu.update_user_record(update=update, context=context)
 
-    (valid_geo_name, geo_name), (valid_interval, interval) = parse_Geolocation_Interval(context, parse_args=True)
+    user_bot_id = get_user_bot_id(update, context)
+    (valid_geo_name, geo_name), (valid_interval, interval) = parse_Geolocation_Interval(context, parse_args=True,
+                                                                                        user_bot_id=user_bot_id)
     logger.info("moon day for geo_name: %s at %s", geo_name, interval)
 
     observer_obj = geo.Observer(geo_name=geo_name, unaware_datetime=datetime.today())
@@ -345,7 +362,9 @@ async def weather(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     user = update.effective_user
     # bdbu.update_user_record(update=update, context=context)
 
-    (valid_geo_name, geo_name), (valid_interval, interval) = parse_Geolocation_Interval(context, parse_args=True)
+    user_bot_id = get_user_bot_id(update, context)
+    (valid_geo_name, geo_name), (valid_interval, interval) = parse_Geolocation_Interval(context, parse_args=True,
+                                                                                        user_bot_id=user_bot_id)
     logger.info("weather for geo_name %s at %s", geo_name, interval)
 
     observer_obj = geo.Observer(geo_name=geo_name, unaware_datetime=datetime.today())
@@ -474,13 +493,13 @@ async def setup_timer_DAILY(update: Update, context: ContextTypes.DEFAULT_TYPE) 
     text = ""
     valid_reminder, dt_hhmm = parse_Reminder(context, observer=observer_obj)
 
-    if valid_reminder in (bdbu.ParamOrigin.DEFAULT, bdbu.ParamOrigin.SETTING, bdbu.ParamOrigin.ARGUMENT):
+    if valid_reminder in (bdbu.PrmOrig.DEF, bdbu.PrmOrig.SET, bdbu.PrmOrig.ARG):
         text += "Заданий час: " + str(dt_hhmm.time())
         logger.info(text)
 
-    elif valid_reminder in (bdbu.ParamOrigin.DEFAULT_INVALID, bdbu.ParamOrigin.SETTING_INVALID,
-                            bdbu.ParamOrigin.ARGUMENT_INVALID):
-        text += "Вибачте, задайте час в форматі [HHMM] / " + valid_reminder
+    elif valid_reminder in (bdbu.PrmOrig.DEF_INVALID, bdbu.PrmOrig.SET_INVALID,
+                            bdbu.PrmOrig.ARG_INVALID):
+        text += "Вибачте, задайте час в форматі [HHMM] / " + str(valid_reminder)
         logger.info(text)
         await update.effective_message.reply_text(text)
         return
@@ -495,8 +514,9 @@ async def setup_timer_DAILY(update: Update, context: ContextTypes.DEFAULT_TYPE) 
         callback_timer_DAILY,
         time=time(hour=dt_hhmm.hour, minute=dt_hhmm.minute, second=8, tzinfo=pytz.timezone('UTC')),
         days=(0, 1, 2, 3, 4, 5, 6),
-        name=job_name,
+        name=user_bot_id + "#DAILY",
         chat_id=chat_id,
+        user_id=chat_id,
         job_kwargs={
             # 'trigger': 'cron',
             # 'days': 'mon-fri,sun',
@@ -566,8 +586,10 @@ async def restart_service(context: ContextTypes.DEFAULT_TYPE):
             for user_db_data in list_of_items:
                 user_counter += 1
                 # print(user_db_data)
+
                 user_bot_id = user_db_data[bdbu.botUsers_table.partition_key]      # string
                 user_name = user_db_data[bdbu.botUsers_table.sort_key]
+                chat_id = user_bot_id.split("#")[0]
 
                 # Get "context_user_data" from DB of set defaults
                 user_db_data.setdefault('context_user_data', "{}")         # for non-existent fields in the database !!!
@@ -583,9 +605,11 @@ async def restart_service(context: ContextTypes.DEFAULT_TYPE):
 
                 job_rep = context.job_queue.run_repeating(
                     rwt.callback_timer_REP,
-                    interval=360 + 3*user_counter,     # 3 sec divergence
+                    interval=60 + 3*user_counter,     # 3 sec divergence
                     name=user_bot_id + "#REP",
-                    chat_id=user_bot_id,
+                    user_id=chat_id,
+                    chat_id=chat_id,
+                    data=user_bot_id,
                     first=6,
                 )
                 job_rep.job.misfire_grace_time = 30
@@ -614,7 +638,7 @@ async def restart_service(context: ContextTypes.DEFAULT_TYPE):
 
 
                 try:
-                    await context.bot.send_message(chat_id=user_bot_id.split("#")[0], text=text)
+                    await context.bot.send_message(chat_id=chat_id, text=text)
 
                 except Exception as e:
                     pass
@@ -632,7 +656,9 @@ def main() -> None:
         token = "345369460:AAEjHUhRMdT-E44Xbd82YG_I2C5-uCjR8Wg"     # @scsdvwervdbot astro_bot
         persist_filepath = "ptb_main_astro_prod"
     persistence = PicklePersistence(filepath=persist_filepath)
+    # persistence.flush()
     application = Application.builder().token(token).persistence(persistence).build()
+    # application = Application.builder().token(token).build()
 
     # on different commands - answer in Telegram
     application.add_handler(CommandHandler("start", start))
