@@ -168,6 +168,12 @@ class Observer:
         # print("self.aware_datetime=", self.aware_datetime)
         return out_aware
 
+    def dt_unaware_to_utc(self, in_unaware=None) -> _utc:
+        if in_unaware is not None:
+            loc_aware = self.timezone.localize(in_unaware)
+            out_utc = loc_aware.astimezone(pytz.timezone('UTC'))
+            return out_utc
+
     def unaware_update_utc(self, in_unaware=None) -> _utc:
         # self.timezone = pytz.timezone(self.timezone_name)
         if in_unaware is not None:

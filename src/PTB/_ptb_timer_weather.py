@@ -91,7 +91,7 @@ async def callback_timer_REP(context: ContextTypes.DEFAULT_TYPE):
 
     (valid_geo_name, geo_name), (valid_interval, interval) = pma.parse_Geolocation_Interval(context, parse_args=False)
 
-    logger.info("%s: callback_repeating -> geo_name=%s moment=%s", data_user_chat_id, geo_name, interval)
+    logger.info("%s: callback_timer_REP -> geo_name=%s moment=%s", data_user_chat_id, geo_name, interval)
 
     observer_obj = geo.Observer(geo_name=geo_name, unaware_datetime=datetime.today())
     text = ""
@@ -103,7 +103,7 @@ async def callback_timer_REP(context: ContextTypes.DEFAULT_TYPE):
     try:
         await context.bot.send_message(chat_id=job.chat_id, text=text)
     except Exception as e:
-        print(data_user_chat_id, ":: callback_repeating *** Exception *** - ", e)
+        print(data_user_chat_id, ":: callback_timer_REP *** Exception *** - ", e)
 
 
 async def setup_timer_REP(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:

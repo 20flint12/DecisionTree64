@@ -225,7 +225,7 @@ def parse_Geolocation_Interval(context: ContextTypes.DEFAULT_TYPE, parse_args=Fa
     return (valid_geo_name, geo_name), (valid_interval, interval)
 
 
-def parse_Reminder(context: ContextTypes.DEFAULT_TYPE, observer=None):
+def parse_Reminder(update: Update, context: ContextTypes.DEFAULT_TYPE, observer=None):
 
     context.chat_data["context_user_data"].setdefault(opc.key_Reminder, "0000")
 
@@ -251,8 +251,13 @@ def parse_Reminder(context: ContextTypes.DEFAULT_TYPE, observer=None):
         dt_hhmm = datetime.strptime("2000-01-01 " + reminder, "%Y-%m-%d %H%M")
 
         # ToDo in Observer
-        dt_hhmm = pytz.timezone("UTC").localize(dt_hhmm)
+        # dt_hhmm = pytz.timezone("UTC").localize(dt_hhmm)
         # valid_reminder = bdbu.ParamOrigin.VALID_TIME
+        dt_hhmm_utc = observer.dt_unaware_to_utc(dt_hhmm)
+
+        user_db_data = context.chat_data        # ???
+        user_db_data["activity"]["daily_utc_time"] = [dt_hhmm_utc.hour, dt_hhmm_utc.minute, dt_hhmm_utc.second]
+        bdbu.update_user_record(update=update, context=context, user_db_data=user_db_data)
 
     except ValueError:
 
@@ -491,7 +496,7 @@ async def setup_timer_DAILY(update: Update, context: ContextTypes.DEFAULT_TYPE) 
     # ++++++++++++++++++++++
 
     text = ""
-    valid_reminder, dt_hhmm = parse_Reminder(context, observer=observer_obj)
+    valid_reminder, dt_hhmm = parse_Reminder(update, context, observer=observer_obj)
 
     if valid_reminder in (bdbu.PrmOrig.DEF, bdbu.PrmOrig.SET, bdbu.PrmOrig.ARG):
         text += "Заданий час: " + str(dt_hhmm.time())
@@ -499,7 +504,7 @@ async def setup_timer_DAILY(update: Update, context: ContextTypes.DEFAULT_TYPE) 
 
     elif valid_reminder in (bdbu.PrmOrig.DEF_INVALID, bdbu.PrmOrig.SET_INVALID,
                             bdbu.PrmOrig.ARG_INVALID):
-        text += "Вибачте, задайте час в форматі [HHMM] / " + str(valid_reminder)
+        text += "Вибачте, задайте час в форматі [HHMM] / " + valid_reminder.name
         logger.info(text)
         await update.effective_message.reply_text(text)
         return
@@ -517,6 +522,7 @@ async def setup_timer_DAILY(update: Update, context: ContextTypes.DEFAULT_TYPE) 
         name=user_bot_id + "#DAILY",
         chat_id=chat_id,
         user_id=chat_id,
+        data=user_bot_id,
         job_kwargs={
             # 'trigger': 'cron',
             # 'days': 'mon-fri,sun',
@@ -592,7 +598,7 @@ async def restart_service(context: ContextTypes.DEFAULT_TYPE):
                 chat_id = user_bot_id.split("#")[0]
 
                 # Get "context_user_data" from DB of set defaults
-                user_db_data.setdefault('context_user_data', "{}")         # for non-existent fields in the database !!!
+                user_db_data.setdefault('context_user_data', "{}")          # for non-existent fields in the database !!!
                 context_user_data = json.loads(user_db_data['context_user_data'])
                 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ defaults
                 context_user_data.setdefault(opc.key_Geolocation, "OLSZTYN")
@@ -616,9 +622,13 @@ async def restart_service(context: ContextTypes.DEFAULT_TYPE):
                 # t.sleep(0.1)
                 text += "\n" + str(job_rep.name) + " " + str(job_rep.next_t)[:19]
 
-                # # Restore timer for reminder
-                # result, dt_hhmm = parse_Reminder(hhmm=context_user_data[opc.key_Reminder])
-                #
+                # Restore timer for reminder
+                user_db_data.setdefault('activity', "{}")                   # for non-existent fields in the database !!!
+                activity = json.loads(user_db_data['activity'])
+                print(activity)
+                print(activity.get('enable_daily', False))
+                print(activity.get('daily_utc_time', [10, 10, 10]))
+
                 # job_daily = context.job_queue.run_daily(
                 #     callback_timer_DAILY,
                 #     time=time(
