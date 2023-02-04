@@ -429,10 +429,10 @@ async def callback_timer_DAILY(context: ContextTypes.DEFAULT_TYPE) -> None:
     job = context.job
     chat_id = str(job.chat_id)
     photo_name = job.name + "_photo.png"     # 442763659_photo.jpg
-    data_user_chat_id = job.data
+    pk_sk_user_id = job.data
 
-    (valid_geo_name, geo_name), (valid_interval, interval) = parse_Geolocation_Interval(context, parse_args=False,
-                                                                                        user_bot_id=data_user_chat_id)
+    (valid_geo_name, geo_name), (valid_interval, interval) = \
+        parse_Geolocation_Interval(context, parse_args=False, user_bot_id=pk_sk_user_id['pk'])
     logger.info("%s:: callback_timer_DAILY> geo_name=%s moment=%s", job.name, geo_name, interval)
 
     observer_obj = geo.Observer(geo_name=geo_name, unaware_datetime=datetime.today())
@@ -490,6 +490,8 @@ async def setup_timer_DAILY(update: Update, context: ContextTypes.DEFAULT_TYPE) 
     chat_id = update.effective_message.chat_id
     bot = context.bot
     user_bot_id = str(chat_id) + "#" + str(bot.id)
+    # user_bot_id = user_db_data[bdbu.botUsers_table.partition_key]  # string
+    user_name = context.chat_data['sk_user_bot_name']
     job_name = user_bot_id + "#DAILY"
 
     (valid_geo_name, geo_name), (valid_interval, interval) = parse_Geolocation_Interval(context, parse_args=False)
@@ -528,7 +530,7 @@ async def setup_timer_DAILY(update: Update, context: ContextTypes.DEFAULT_TYPE) 
         name=user_bot_id + "#DAILY",
         chat_id=chat_id,
         user_id=chat_id,
-        data=user_bot_id,
+        data={'pk': user_bot_id, 'sk': user_name},
         job_kwargs={
             # 'trigger': 'cron',
             # 'days': 'mon-fri,sun',
@@ -616,16 +618,16 @@ async def restart_service(context: ContextTypes.DEFAULT_TYPE):
 
                 job_rep = context.job_queue.run_repeating(
                     rwt.callback_timer_REP,
-                    interval=3600 + 10*user_counter,     # 3 sec divergence
+                    interval=36 + 10*user_counter,     # 3 sec divergence
                     name=user_bot_id + "#REP",
                     user_id=chat_id,
                     chat_id=chat_id,
-                    data=user_bot_id,
+                    data={'pk': user_bot_id, 'sk': user_name},
                     first=10,
                 )
                 job_rep.job.misfire_grace_time = 300
                 t.sleep(1)
-                text += "\n" + str(job_rep.name) + " " + str(job_rep.next_t)[:19]
+                text += "\n" + str(job_rep.name) + "-" + str(job_rep.next_t.time())[:8]
 
                 # Restore timer for reminder
                 user_db_data.setdefault('activity', "{}")                   # for non-existent fields in the database !!!
@@ -646,12 +648,12 @@ async def restart_service(context: ContextTypes.DEFAULT_TYPE):
                         name=user_bot_id + "#DAILY",
                         user_id=chat_id,
                         chat_id=chat_id,
-                        data=user_bot_id,
+                        data={'pk': user_bot_id, 'sk': user_name},
                         job_kwargs={},
                     )
                     job_daily.job.misfire_grace_time = 300
                     t.sleep(1)
-                    text += "\n" + str(job_daily.name) + " " + str(job_daily.next_t)[:19]
+                    text += "\n" + str(job_daily.name) + "-" + str(job_daily.next_t.time())
 
                 try:
                     await context.bot.send_message(chat_id=chat_id, text=text)

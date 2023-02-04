@@ -58,7 +58,7 @@ def remove_job_if_exists(name: str, context: ContextTypes.DEFAULT_TYPE) -> bool:
 
 async def callback_timer_REP(context: ContextTypes.DEFAULT_TYPE):
     job = context.job
-    data_user_bot_id = job.data
+    pk_sk_user_id = job.data
 
     # user_db_data = bdbu.get_user_db_data(pk=data_user_bot_id)
     #
@@ -90,9 +90,9 @@ async def callback_timer_REP(context: ContextTypes.DEFAULT_TYPE):
     # logger.info(text)
 
     (valid_geo_name, geo_name), (valid_interval, interval) = \
-        pma.parse_Geolocation_Interval(context, parse_args=False, user_bot_id=data_user_bot_id)
+        pma.parse_Geolocation_Interval(context, parse_args=False, user_bot_id=pk_sk_user_id['pk'])
 
-    logger.info("%s: callback_timer_REP -> geo_name=%s moment=%s", data_user_bot_id, geo_name, interval)
+    logger.info("%s: callback_timer_REP -> geo_name=%s moment=%s", pk_sk_user_id, geo_name, interval)
 
     observer_obj = geo.Observer(geo_name=geo_name, unaware_datetime=datetime.today())
     text = ""
@@ -127,8 +127,8 @@ async def callback_timer_REP(context: ContextTypes.DEFAULT_TYPE):
         #     else:
         #         context.chat_data["activity"]["state"] = True
         #         context.chat_data["activity"]["attempts"] = 0
-        print(data_user_bot_id, ':::', context.chat_data)
-        bdbu.update_user_context_db(user_bot_id=data_user_bot_id, context=context, user_db_data=context.chat_data)
+        print(pk_sk_user_id, ':::', context.chat_data)
+        bdbu.update_user_context_db(pk_sk_id=pk_sk_user_id, context=context, user_db_data=context.chat_data)
 
 
 async def setup_timer_REP(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
