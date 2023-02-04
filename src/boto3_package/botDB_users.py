@@ -380,7 +380,7 @@ def update_user_record(update=None, context=None, user_db_data=None):      # !!!
     return user_data_dict, text
 
 
-def user_scan_filter(bot_name=""):
+def user_service_query(bot_name=""):
 
     list_of_items = botUsers_table.table_query_serv(sort_key_prefix=bot_name)
 

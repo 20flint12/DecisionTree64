@@ -588,7 +588,7 @@ async def restart_service(context: ContextTypes.DEFAULT_TYPE):
 
         bot_name = context.bot.name
 
-        list_of_items, count = bdbu.user_scan_filter(bot_name=bot_name)
+        list_of_items, count = bdbu.user_service_query(bot_name=bot_name)
 
         user_counter = -1
 
