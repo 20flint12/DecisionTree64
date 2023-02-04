@@ -143,13 +143,15 @@ async def done(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     return ConversationHandler.END
 
 
-async def show_user_db_data(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+async def show_bot_user_db_data(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Display the gathered info."""
     user = update.effective_user
     bot = context.bot
     user_bot_id = str(user.id) + "#" + str(bot.id)
 
     user_db_data = bdbu.get_user_db_data(pk=user_bot_id)
+    if user_db_data is None:
+        user_db_data = {'ERROR': "No such user record!"}
     print(user_bot_id, user_db_data)
 
     text = "Збережені параметри:"
@@ -160,30 +162,57 @@ async def show_user_db_data(update: Update, context: ContextTypes.DEFAULT_TYPE) 
     await update.message.reply_text(text)
 
 
-async def repair_user_db_data(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+async def repair_bot_data(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Download user data to context.user_data"""
     user = update.effective_user
     bot = context.bot
     user_bot_id = str(user.id) + "#" + str(bot.id)
 
     user_db_data = bdbu.get_user_db_data(pk=user_bot_id)
-    # if len(user_db_data) == 0:
-
-    # context.application.chat_data.clear()
-    # context.application.chat_data.update({})
-    # chat_data = dict(context.application.chat_data)
-    # chat_data.clear()
-    # context.application.chat_data = chat_data
 
     if "context_user_data" in user_db_data:
-        # context.user_data.update({})
+        context.user_data.clear()
         context.user_data.update(user_db_data['context_user_data'])
-
-        # context.chat_data.update({})
+        context.chat_data.clear()
         context.chat_data.update(user_db_data)
+        mark = "(Ok!)"
     else:
         context.user_data.clear()
         context.chat_data.clear()
+        mark = "(Wrong!)"
+
+    text = "Збережені параметри:"
+    text += "\n*** context.user_data ***" + dict_fields_to_str(context.user_data)
+    text += "\n*** context.chat_data ***" + dict_fields_to_str(context.chat_data)
+    text += "\n*** user_db_data ***" + mark + dict_fields_to_str(user_db_data)
+
+    await update.message.reply_text(text)
+
+
+async def repair_user_db_data(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Display the gathered info."""
+    user = update.effective_user
+    bot = context.bot
+    user_bot_id = str(user.id) + "#" + str(bot.id)
+
+    # user_db_data = bdbu.get_user_db_data(pk=user_bot_id)
+    # print(user_bot_id, user_db_data)
+
+    prep_user_db_data = {}
+
+    if context.chat_data:
+        prep_user_db_data = context.chat_data
+
+    # if "activity" in prep_user_db_data and prep_user_db_data["activity"] and prep_user_db_data["activity"] is not None:
+    #     att = int(prep_user_db_data["activity"]["attempts"])    # !!! when wrong request !!!
+    #     prep_user_db_data["activity"]["attempts"] = att + 1
+    #     if att >= 5:
+    #         prep_user_db_data["activity"]["state"] = False      # !!! check this state to know how work with user !!!
+    #     else:
+    #         prep_user_db_data["activity"]["state"] = True
+    #         prep_user_db_data["activity"]["attempts"] = 0
+
+    user_db_data, text = bdbu.update_user_record(update=update, context=context, user_db_data=prep_user_db_data)
 
     text = "Збережені параметри:"
     text += "\n*** context.user_data ***" + dict_fields_to_str(context.user_data)
@@ -261,7 +290,8 @@ observer_conversation_handler = ConversationHandler(
 )
 
 observer_handler = CommandHandler("obs", observer_setup)
-show_user_db_data_handler = CommandHandler("show_data", show_user_db_data)
-repair_user_db_data_handler = CommandHandler("repair_data", repair_user_db_data)
+show_bot_user_db_data_handler = CommandHandler("show_data", show_bot_user_db_data)
+repair_bot_data_handler = CommandHandler("repair_bot_data", repair_bot_data)
+repair_user_db_data_handler = CommandHandler("repair_db_data", repair_user_db_data)
 
 

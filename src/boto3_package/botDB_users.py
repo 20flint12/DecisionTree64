@@ -334,7 +334,7 @@ def update_user_record(update=None, context=None, user_db_data=None):      # !!!
     bot = context.bot
     user_bot_id = str(user.id) + "#" + str(bot.id)
 
-    user_name = str(user.first_name) + " " + str(user.last_name) + " - " + str(user.username)
+    user_name = str(user.first_name) + " " + str(user.last_name)    # + " - " + str(user.username)
     bot_name = str(bot.name) + " (" + str(bot.first_name) + ")"
     user_bot_name = bot_name + " & " + user_name
 
@@ -433,57 +433,59 @@ if __name__ == '__main__':
 
     # user_db_data = {}
 
-    # user_db_data = get_user_db_data(pk="4774374724#122233333")
-    # print("**** 1 ****")
-    # pprint(user_db_data)
-    # #  '''
-    # # {'activity': "{'attempts': 2, 'state': True, 'enable': True, 'last_error': ''}",
-    # #   'context_user_data': "{'����������': 'WARSAW', '��������': '1.111', "
-    # #                        "'�����������': '2331'}",
-    # #   'last_time': '2023-01-30 12:59:05',
-    # #   'payment': '{}',
-    # #   'pk_user_bot_id': '4774374724#122233333',
-    # #   'sk_user_bot_name': 'Serhii Surmylo @ Biblyka_bot'}
-    # #   '''
-    #
-    #
-    #
-    # # context_user_data = None
-    # context_user_data = {
-    #     f'{opc.key_Geolocation}': 'WARSAWmod2',
-    #     f'{opc.key_Interval}': '2.224',
-    #     f'{opc.key_Reminder}': '2222'
-    # }
-    #
-    # # user_db_data["activity"] = ""
-    # # user_db_data["activity"] = None
-    # user_db_data["activity"]["attempts"] += 1                   # !!! when wrong request !!!
-    # if user_db_data["activity"]["attempts"] >= 5:
-    #     user_db_data["activity"]["state"] = False               # !!! check this state to know how work with user !!!
-    #     user_db_data["activity"]["last_error"] = "Overload2"    # !!! check this state to know how work with user !!!
-    # else:
-    #     user_db_data["activity"]["state"] = True
-    #     user_db_data["activity"]["attempts"] = 0
-    #     user_db_data["activity"]["last_error"] = "-"
-    #
-    # user_db_data["payment"]["term"] = 11.009
-    #
-    #
-    #
-    # data_dict, text = _test_update_user_record(context_user_data=context_user_data, user_db_data=user_db_data)
-    # print("**** 2 ****")
-    # pprint(data_dict)
-    # print(text)
-    #
-    #
-    #
-    #
-    # # user_db_data = get_user_db_data(pk="4774374724#122233333")
-    # # pprint(user_db_data)
+    user_db_data = get_user_db_data(pk="4774374724#122233333")
+    print("**** 1 ****")
+    pprint(user_db_data)
+    #  '''
+    # {'activity': "{'attempts': 2, 'state': True, 'enable': True, 'last_error': ''}",
+    #   'context_user_data': "{'����������': 'WARSAW', '��������': '1.111', "
+    #                        "'�����������': '2331'}",
+    #   'last_time': '2023-01-30 12:59:05',
+    #   'payment': '{}',
+    #   'pk_user_bot_id': '4774374724#122233333',
+    #   'sk_user_bot_name': 'Serhii Surmylo @ Biblyka_bot'}
+    #   '''
 
-    list_of_items = botUsers_table.table_query(sort_key_prefix="@biblika_bot")
-    print(len(list_of_items))
-    pprint(list_of_items, underscore_numbers=True)
+
+
+    # context_user_data = None
+    context_user_data = {
+        f'{opc.key_Geolocation}': 'WARSAWmod2',
+        f'{opc.key_Interval}': '2.224',
+        f'{opc.key_Reminder}': '2222'
+    }
+
+    # user_db_data["activity"] = ""
+    # user_db_data["activity"] = None
+    user_db_data["activity"]["attempts"] += 1                   # !!! when wrong request !!!
+    if user_db_data["activity"]["attempts"] >= 5:
+        user_db_data["activity"]["state"] = False               # !!! check this state to know how work with user !!!
+        user_db_data["activity"]["last_error"] = "Overload2"    # !!! check this state to know how work with user !!!
+    else:
+        user_db_data["activity"]["state"] = True
+        user_db_data["activity"]["attempts"] = 0
+        user_db_data["activity"]["last_error"] = "-"
+
+    user_db_data["payment"]["term"] = 11.009
+
+
+
+    data_dict, text = _test_update_user_record(context_user_data=context_user_data, user_db_data=user_db_data)
+    print("**** 2 ****")
+    pprint(data_dict)
+    print(text)
+
+
+
+
+    # user_db_data = get_user_db_data(pk="4774374724#122233333")
+    # pprint(user_db_data)
+
+
+
+    # list_of_items = botUsers_table.table_query2(sort_key_prefix="@biblika_bot")
+    # print(len(list_of_items))
+    # pprint(list_of_items, underscore_numbers=True)
 
 
 

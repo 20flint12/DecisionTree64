@@ -136,7 +136,7 @@ async def setup_timer_REP(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
             data=user_bot_id,
             first=10
         )
-        job_rep.job.misfire_grace_time = 30
+        job_rep.job.misfire_grace_time = 300
 
         text += "\n" + str(job_rep.name) + " " + str(job_rep.next_t)[:19]
         # text += str(job_rep.name) + " timer successfully set."

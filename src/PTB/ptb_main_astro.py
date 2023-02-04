@@ -16,6 +16,7 @@ from pprint import pprint
 
 from datetime import datetime, time
 import pytz
+import time as t
 
 import src.ephem_routines.ephem_package.geo_place as geo
 import src.ephem_routines.ephem_package.moon_day as md
@@ -220,7 +221,7 @@ def parse_Geolocation_Interval(context: ContextTypes.DEFAULT_TYPE, parse_args=Fa
             interval = str(context.args[1])
             valid_interval = bdbu.PrmOrig.ARG
 
-    print("parse_Geolocation_Interval> (", valid_geo_name, geo_name, "), (", valid_interval, interval, ")")
+    print(user_bot_id, ":: parse_Geolocation_Interval> (", valid_geo_name, geo_name, "), (", valid_interval, interval, ")")
 
     return (valid_geo_name, geo_name), (valid_interval, interval)
 
@@ -579,8 +580,6 @@ initial_pass = False
 
 async def restart_service(context: ContextTypes.DEFAULT_TYPE):
 
-    import time as t
-
     global initial_pass
 
     if not initial_pass:
@@ -615,7 +614,7 @@ async def restart_service(context: ContextTypes.DEFAULT_TYPE):
 
                 job_rep = context.job_queue.run_repeating(
                     rwt.callback_timer_REP,
-                    interval=3600 + 5*user_counter,     # 3 sec divergence
+                    interval=3600 + 10*user_counter,     # 3 sec divergence
                     name=user_bot_id + "#REP",
                     user_id=chat_id,
                     chat_id=chat_id,
@@ -623,7 +622,7 @@ async def restart_service(context: ContextTypes.DEFAULT_TYPE):
                     first=10,
                 )
                 job_rep.job.misfire_grace_time = 30
-                # t.sleep(0.1)
+                t.sleep(1)
                 text += "\n" + str(job_rep.name) + " " + str(job_rep.next_t)[:19]
 
                 # Restore timer for reminder
@@ -650,8 +649,8 @@ async def restart_service(context: ContextTypes.DEFAULT_TYPE):
                         data=user_bot_id,
                         job_kwargs={},
                     )
-                    job_daily.job.misfire_grace_time = 30
-                    # t.sleep(0.1)
+                    job_daily.job.misfire_grace_time = 300
+                    t.sleep(1)
                     text += "\n" + str(job_daily.name) + " " + str(job_daily.next_t)[:19]
 
                 try:
@@ -691,8 +690,9 @@ def main() -> None:
 
     application.add_handler(opc.observer_conversation_handler)      # /obs
     # application.add_handler(opc.observer_handler)
-    application.add_handler(opc.show_user_db_data_handler)
-    application.add_handler(opc.repair_user_db_data_handler)
+    application.add_handler(opc.show_bot_user_db_data_handler)      # /show_data
+    application.add_handler(opc.repair_bot_data_handler)            # /repair_bot_data
+    application.add_handler(opc.repair_user_db_data_handler)        # /repair_db_data
 
     application.add_handler(CommandHandler("rep", rwt.setup_timer_REP))
     application.add_handler(CommandHandler("pause", rwt.pause_timer_REP))
@@ -704,7 +704,8 @@ def main() -> None:
 
     # Schedule the function to run every 10 seconds
     # application.job_queue.run_repeating(maintenance_service, interval=30, first=5)
-    application.job_queue.run_once(restart_service, 10)
+    application.job_queue.run_once(restart_service, 1)
+    # t.sleep(20)
 
     # ...and the error handler
     # application.add_error_handler(error_handler)
