@@ -201,6 +201,19 @@ class dynamoDB_table(object):
         items = response['Items']
         return items
 
+    def table_query2(self, sort_key_prefix='None'):
+
+        from boto3.dynamodb.conditions import Key, Attr
+
+        fe = Attr(self._sort_key).begins_with(sort_key_prefix);
+
+        response = self.table.scan(
+            FilterExpression=fe
+        )
+
+        items = response['Items']
+        return items
+
     def populate_from_csv(self):
         text = ""
 
@@ -373,7 +386,7 @@ def update_user_record(update=None, context=None, user_db_data=None):      # !!!
 
 def user_scan_filter(bot_name=""):
 
-    list_of_items = botUsers_table.table_query(sort_key_prefix=bot_name)
+    list_of_items = botUsers_table.table_query_serv(sort_key_prefix=bot_name)
 
     count = len(list_of_items)
 
