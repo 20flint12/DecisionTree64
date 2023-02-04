@@ -586,7 +586,9 @@ async def restart_service(context: ContextTypes.DEFAULT_TYPE):
     if not initial_pass:
         initial_pass = True
 
-        list_of_items, count = bdbu.user_scan_filter()
+        bot_name = context.bot.name
+
+        list_of_items, count = bdbu.user_scan_filter(bot_name=bot_name)
 
         user_counter = -1
 
