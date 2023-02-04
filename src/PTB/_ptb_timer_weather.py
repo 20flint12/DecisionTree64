@@ -58,9 +58,9 @@ def remove_job_if_exists(name: str, context: ContextTypes.DEFAULT_TYPE) -> bool:
 
 async def callback_timer_REP(context: ContextTypes.DEFAULT_TYPE):
     job = context.job
-    data_user_chat_id = job.data
+    data_user_bot_id = job.data
 
-    # user_db_data = bdbu.get_user_db_data(pk=data_user_chat_id)
+    # user_db_data = bdbu.get_user_db_data(pk=data_user_bot_id)
     #
     # # print(chat_id, ":: ", context.chat_data, "\n*************************", user_db_data)
     # if context.chat_data == user_db_data:
@@ -68,7 +68,7 @@ async def callback_timer_REP(context: ContextTypes.DEFAULT_TYPE):
     #     # print("++++++")
     # else:
     #     print("------")
-    #     print(data_user_chat_id, ":: \n", context.chat_data, "---------------\n", user_db_data)
+    #     print(data_user_bot_id, ":: \n", context.chat_data, "---------------\n", user_db_data)
     #
     #     if context.chat_data is None:
     #         pass
@@ -89,9 +89,10 @@ async def callback_timer_REP(context: ContextTypes.DEFAULT_TYPE):
     text = job.name + ' @ ' + str(job.next_t)[:19] + "\n" + str(context.job_queue.jobs())[25:]
     # logger.info(text)
 
-    (valid_geo_name, geo_name), (valid_interval, interval) = pma.parse_Geolocation_Interval(context, parse_args=False)
+    (valid_geo_name, geo_name), (valid_interval, interval) = \
+        pma.parse_Geolocation_Interval(context, parse_args=False, user_bot_id=data_user_bot_id)
 
-    logger.info("%s: callback_timer_REP -> geo_name=%s moment=%s", data_user_chat_id, geo_name, interval)
+    logger.info("%s: callback_timer_REP -> geo_name=%s moment=%s", data_user_bot_id, geo_name, interval)
 
     observer_obj = geo.Observer(geo_name=geo_name, unaware_datetime=datetime.today())
     text = ""
@@ -103,7 +104,7 @@ async def callback_timer_REP(context: ContextTypes.DEFAULT_TYPE):
     try:
         await context.bot.send_message(chat_id=job.chat_id, text=text)
     except Exception as e:
-        print(data_user_chat_id, ":: callback_timer_REP *** Exception *** - ", e)
+        print(data_user_bot_id, ":: callback_timer_REP *** Exception *** - ", e)
 
 
 async def setup_timer_REP(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
