@@ -188,16 +188,12 @@ class dynamoDB_table(object):
         items = response['Items']
         return items
 
-    def table_query(self, sort_key_prefix='None'):
-
+    def table_query(self, _pk=""):
         from boto3.dynamodb.conditions import Key, Attr
 
-        fe = Attr(self._sort_key).begins_with(sort_key_prefix);
-
-        response = self.table.scan(
-            FilterExpression=fe
+        response = self.table.query(
+            KeyConditionExpression=Key(self._partition_key).eq(_pk)
         )
-
         items = response['Items']
         return items
 
