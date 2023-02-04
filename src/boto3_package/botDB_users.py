@@ -297,9 +297,15 @@ def _test_update_user_record(context_user_data=None, user_db_data=None, ):
         if user_db_data["activity"]:
             activity_dict = user_db_data["activity"]
         else:
-            activity_dict = {'attempts': -1, 'state': True, 'enable': False, 'notify_REP': True, 'repeat_time': 1800}
+            activity_dict = {'attempts': -1, 'state': True,
+                             'enable_daily': False,
+                             'daily_utc_time': [0, 0, 1],
+                             'notify_REP': True, 'repeat_time': 1800}
     else:
-        activity_dict ={'attempts': -2, 'state': True, 'enable': False, 'notify_REP': True, 'repeat_time': 1800}
+        activity_dict = {'attempts': -2, 'state': True,
+                         'enable_daily': False,
+                         'daily_utc_time': [0, 0, 1],
+                         'notify_REP': True, 'repeat_time': 1800}
     upd_user_db_data['activity'] = json.dumps(activity_dict)
 
 
@@ -314,7 +320,7 @@ def _test_update_user_record(context_user_data=None, user_db_data=None, ):
     return user_data_dict, text
 
 
-def update_user_record(update=None, context=None, user_db_data=None):      # !!! user_db_data store in context_chat_data
+def update_user_record_db(update=None, context=None, user_db_data=None):      # !!! user_db_data store in context_chat_data
     '''
     user_db_data = {
         'pk_chat_id': '333344452',
@@ -341,6 +347,71 @@ def update_user_record(update=None, context=None, user_db_data=None):      # !!!
     user_data_dict = {
         f'{botUsers_table.partition_key}': user_bot_id,
         f'{botUsers_table.sort_key}': user_bot_name,
+    }
+
+    upd_user_db_data = {}
+
+    if context.user_data is not None:           # =================================== context_user_data
+        upd_user_db_data['context_user_data'] = json.dumps(context.user_data)
+    # print(upd_user_db_data)
+
+
+    if "payment" in user_db_data:           # =================================== payment
+        if user_db_data["payment"] or user_db_data["payment"] is not None:
+            payment_dict = user_db_data["payment"]
+        else:
+            payment_dict = {"term": 20}
+    else:
+        payment_dict = {"term": 10}
+    upd_user_db_data['payment'] = json.dumps(payment_dict)
+
+
+    if "activity" in user_db_data:          # =================================== activity
+        if user_db_data["activity"]:
+            activity_dict = user_db_data["activity"]
+        else:
+            activity_dict = {'attempts': -1, 'state': True,
+                             'enable_daily': False,
+                             'daily_utc_time': [0, 0, 1],
+                             'notify_REP': True, 'repeat_time': 1800}
+    else:
+        activity_dict = {'attempts': -2, 'state': True,
+                         'enable_daily': False,
+                         'daily_utc_time': [0, 0, 1],
+                         'notify_REP': True, 'repeat_time': 1800}
+    upd_user_db_data['activity'] = json.dumps(activity_dict)
+
+
+    user_data_dict.update(upd_user_db_data)
+
+    resp = botUsers_table.put(user_data_dict=user_data_dict)
+
+    text += "\n" + str(resp["ResponseMetadata"]["RequestId"])[:12] + "... "
+    text += "" + str(resp["ResponseMetadata"]["HTTPStatusCode"]) + "/" + str(resp["ResponseMetadata"]["RetryAttempts"])
+
+    return user_data_dict, text
+
+
+def update_user_context_db(user_bot_id='', context=None, user_db_data=None):      # !!! user_db_data store in context_chat_data
+    '''
+    user_db_data = {
+        'pk_chat_id': '333344452',
+
+        'activity': {'attempts': 2, 'state': True, 'enable': True, 'last_error': ''},
+        'payment': {},
+        'context_user_data': {
+            f'{opc.key_Geolocation}': 'WARSfAW444',
+            f'{opc.key_Interval}': '3.212',
+            f'{opc.key_Reminder}': '1134'
+            }
+        }
+    '''
+    text = ""
+
+
+    user_data_dict = {
+        f'{botUsers_table.partition_key}': user_bot_id,
+        # f'{botUsers_table.sort_key}': user_bot_name,
     }
 
     upd_user_db_data = {}

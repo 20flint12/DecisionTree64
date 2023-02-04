@@ -101,10 +101,34 @@ async def callback_timer_REP(context: ContextTypes.DEFAULT_TYPE):
     data_dict, out_text = mr.main_put_record(observer=observer_obj, job_name=job.name)
     text += "\n" + str(data_dict)
     text += out_text
+
+
+
+
     try:
         await context.bot.send_message(chat_id=job.chat_id, text=text)
     except Exception as e:
         print(data_user_bot_id, ":: callback_timer_REP *** Exception *** - ", e)
+
+        context.chat_data["activity"]["attempts"] += 1  # !!! when wrong request !!!
+        if context.chat_data["activity"]["attempts"] >= 5:
+            context.chat_data["activity"]["state"] = False  # !!! check this state to know how work with user !!!
+            context.chat_data["activity"]["last_error"] = "Overload2"  # !!! check this state to know how work with user !!!
+        else:
+            context.chat_data["activity"]["state"] = True
+            context.chat_data["activity"]["attempts"] = 0
+            context.chat_data["activity"]["last_error"] = str(e)
+
+        # if "activity" in context.chat_data and context.chat_data["activity"]:
+        #     att = int(context.chat_data["activity"]["attempts"])  # !!! when wrong request !!!
+        #     context.chat_data["activity"]["attempts"] = att + 10
+        #     if att >= 5:
+        #         context.chat_data["activity"]["state"] = False  # !!! check this state to know how work with user !!!
+        #     else:
+        #         context.chat_data["activity"]["state"] = True
+        #         context.chat_data["activity"]["attempts"] = 0
+        print(data_user_bot_id, ':::', context.chat_data)
+        bdbu.update_user_context_db(user_bot_id=data_user_bot_id, context=context, user_db_data=context.chat_data)
 
 
 async def setup_timer_REP(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:

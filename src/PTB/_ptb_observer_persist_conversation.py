@@ -109,16 +109,16 @@ async def received_information(update: Update, context: ContextTypes.DEFAULT_TYP
     user_db_data = {}
     user_db_data['context_user_data'] = context.user_data   # update field
 
-    if "activity" in user_db_data and user_db_data["activity"] and user_db_data["activity"] is not None:
-        att = int(user_db_data["activity"]["attempts"])    # !!! when wrong request !!!
-        user_db_data["activity"]["attempts"] = att + 1
-        if att >= 5:
-            user_db_data["activity"]["state"] = False      # !!! check this state to know how work with user !!!
-        else:
-            user_db_data["activity"]["state"] = True
-            user_db_data["activity"]["attempts"] = 0
+    # if "activity" in user_db_data and user_db_data["activity"] and user_db_data["activity"] is not None:
+    #     att = int(user_db_data["activity"]["attempts"])    # !!! when wrong request !!!
+    #     user_db_data["activity"]["attempts"] = att + 1
+    #     if att >= 5:
+    #         user_db_data["activity"]["state"] = False      # !!! check this state to know how work with user !!!
+    #     else:
+    #         user_db_data["activity"]["state"] = True
+    #         user_db_data["activity"]["attempts"] = 0
 
-    bdbu.update_user_record(update=update, context=context, user_db_data=user_db_data)
+    bdbu.update_user_record_db(update=update, context=context, user_db_data=user_db_data)
 
     user_db_data = bdbu.get_user_db_data(pk=user_bot_id)    # get new data in context.chat_data
     context.chat_data.clear()                               # to delete a value from chat_data
@@ -212,7 +212,7 @@ async def repair_user_db_data(update: Update, context: ContextTypes.DEFAULT_TYPE
     #         prep_user_db_data["activity"]["state"] = True
     #         prep_user_db_data["activity"]["attempts"] = 0
 
-    user_db_data, text = bdbu.update_user_record(update=update, context=context, user_db_data=prep_user_db_data)
+    user_db_data, text = bdbu.update_user_record_db(update=update, context=context, user_db_data=prep_user_db_data)
 
     text = "Збережені параметри:"
     text += "\n*** context.user_data ***" + dict_fields_to_str(context.user_data)

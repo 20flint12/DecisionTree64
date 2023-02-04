@@ -259,7 +259,7 @@ def parse_Reminder(update: Update, context: ContextTypes.DEFAULT_TYPE, observer=
 
         user_db_data = context.chat_data        # ???
         user_db_data["activity"]["daily_utc_time"] = [dt_hhmm_utc.hour, dt_hhmm_utc.minute, dt_hhmm_utc.second]
-        bdbu.update_user_record(update=update, context=context, user_db_data=user_db_data)
+        bdbu.update_user_record_db(update=update, context=context, user_db_data=user_db_data)
 
     except ValueError:
 
@@ -550,7 +550,7 @@ async def setup_timer_DAILY(update: Update, context: ContextTypes.DEFAULT_TYPE) 
 
     user_db_data = context.chat_data  # ???
     user_db_data["activity"]["enable_daily"] = True
-    bdbu.update_user_record(update=update, context=context, user_db_data=user_db_data)
+    bdbu.update_user_record_db(update=update, context=context, user_db_data=user_db_data)
 
     await update.effective_message.reply_text(text)
 
