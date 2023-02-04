@@ -364,9 +364,15 @@ def update_user_record(update=None, context=None, user_db_data=None):      # !!!
         if user_db_data["activity"]:
             activity_dict = user_db_data["activity"]
         else:
-            activity_dict = {'attempts': -1, 'state': True, 'enable': False, 'notify_REP': True, 'repeat_time': 1800}
+            activity_dict = {'attempts': -1, 'state': True,
+                             'enable_daily': False,
+                             'daily_utc_time': [0, 0, 1],
+                             'notify_REP': True, 'repeat_time': 1800}
     else:
-        activity_dict = {'attempts': -2, 'state': True, 'enable': False, 'notify_REP': True, 'repeat_time': 1800}
+        activity_dict = {'attempts': -2, 'state': True,
+                         'enable_daily': False,
+                         'daily_utc_time': [0, 0, 1],
+                         'notify_REP': True, 'repeat_time': 1800}
     upd_user_db_data['activity'] = json.dumps(activity_dict)
 
 

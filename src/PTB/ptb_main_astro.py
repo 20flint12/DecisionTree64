@@ -548,7 +548,9 @@ async def setup_timer_DAILY(update: Update, context: ContextTypes.DEFAULT_TYPE) 
 
     text += "\nТаймер нагадування запущений!" + job_daily.name + str(job_daily.next_t.time())
 
-    # bdbu.update_user_record(update=update, context=context)
+    user_db_data = context.chat_data  # ???
+    user_db_data["activity"]["enable_daily"] = True
+    bdbu.update_user_record(update=update, context=context, user_db_data=user_db_data)
 
     await update.effective_message.reply_text(text)
 
@@ -621,16 +623,14 @@ async def restart_service(context: ContextTypes.DEFAULT_TYPE):
                     data=user_bot_id,
                     first=10,
                 )
-                job_rep.job.misfire_grace_time = 30
+                job_rep.job.misfire_grace_time = 300
                 t.sleep(1)
                 text += "\n" + str(job_rep.name) + " " + str(job_rep.next_t)[:19]
 
                 # Restore timer for reminder
                 user_db_data.setdefault('activity', "{}")                   # for non-existent fields in the database !!!
                 activity = json.loads(user_db_data['activity'])
-                print(activity)
-                # print(activity.get('enable_daily', False))
-                # print(activity.get('daily_utc_time', [10, 10, 10]))
+                print(user_counter, "::", user_bot_id, activity)
                 enable_daily = activity.get('enable_daily', False)
                 daily_utc_time = activity.get('daily_utc_time', [10, 10, 10])
 
