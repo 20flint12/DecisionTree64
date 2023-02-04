@@ -108,7 +108,7 @@ async def callback_timer_REP(context: ContextTypes.DEFAULT_TYPE):
     try:
         await context.bot.send_message(chat_id=job.chat_id, text=text)
     except Exception as e:
-        print(data_user_bot_id, ":: callback_timer_REP *** Exception *** - ", e)
+        print(pk_sk_user_id, ":: callback_timer_REP *** Exception *** - ", e)
 
         context.chat_data["activity"]["attempts"] += 1  # !!! when wrong request !!!
         if context.chat_data["activity"]["attempts"] >= 5:
@@ -128,7 +128,7 @@ async def callback_timer_REP(context: ContextTypes.DEFAULT_TYPE):
         #         context.chat_data["activity"]["state"] = True
         #         context.chat_data["activity"]["attempts"] = 0
         print(pk_sk_user_id, ':::', context.chat_data)
-        bdbu.update_user_context_db(pk_sk_id=pk_sk_user_id, context=context, user_db_data=context.chat_data)
+        bdbu.update_user_context_db(pk_sk_id=pk_sk_user_id, user_db_data=context.chat_data)
 
 
 async def setup_timer_REP(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
