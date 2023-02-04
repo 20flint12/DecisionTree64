@@ -618,7 +618,7 @@ async def restart_service(context: ContextTypes.DEFAULT_TYPE):
 
                 job_rep = context.job_queue.run_repeating(
                     rwt.callback_timer_REP,
-                    interval=36 + 10*user_counter,     # 3 sec divergence
+                    interval=3600 + 10*user_counter,     # 3 sec divergence
                     name=user_bot_id + "#REP",
                     user_id=chat_id,
                     chat_id=chat_id,
