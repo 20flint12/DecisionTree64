@@ -382,7 +382,7 @@ def update_user_record(update=None, context=None, user_db_data=None):      # !!!
 
 def user_service_query(bot_name=""):
 
-    list_of_items = botUsers_table.table_query_serv(sort_key_prefix=bot_name)
+    list_of_items = botUsers_table.table_query2(sort_key_prefix=bot_name)
 
     count = len(list_of_items)
 
