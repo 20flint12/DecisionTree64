@@ -434,7 +434,6 @@ async def callback_timer_DAILY(context: ContextTypes.DEFAULT_TYPE) -> None:
     user_name = context.chat_data[bdbu.botUsers_table.sort_key]
 
     photo_name = job.name + "_photo.png"     # 442763659_photo.jpg
-    pk_sk_user_id = job.data
 
     (valid_geo_name, geo_name), (valid_interval, interval) = \
         parse_Geolocation_Interval(context, parse_args=False, user_bot_id=user_bot_id)

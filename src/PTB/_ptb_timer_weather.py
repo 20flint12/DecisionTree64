@@ -81,22 +81,24 @@ async def callback_timer_REP(context: ContextTypes.DEFAULT_TYPE):
     context.chat_data["payment"]["term"] += 1       # to check temporary
     print("***", context.chat_data["payment"])
 
-    try:
-        await context.bot.send_message(chat_id=job.chat_id, text=text)
-    except Exception as e:
+    if context.chat_data["activity"]["notify_REP"]:
 
-        context.chat_data["activity"]["attempts"] += 1  # !!! when wrong request !!!
+        try:
+            await context.bot.send_message(chat_id=job.chat_id, text=text)
+        except Exception as e:
 
-        if context.chat_data["activity"]["state"] and (context.chat_data["activity"]["attempts"] >= 10):
-            context.chat_data["activity"]["state"] = False      # !!! check this state to know how work with user !!!
-            context.chat_data["activity"]["last_error"] = str(e)
+            context.chat_data["activity"]["attempts"] += 1  # !!! when wrong request !!!
 
-            bdbu.update_user_context_db(pk_sk_id={'pk': user_bot_id, 'sk': user_name}, user_db_data=context.chat_data)
-        else:
-            context.chat_data["activity"]["state"] = True
-            context.chat_data["activity"]["last_error"] = "-"
+            if context.chat_data["activity"]["state"] and (context.chat_data["activity"]["attempts"] >= 10):
+                context.chat_data["activity"]["state"] = False      # !!! check this state to know how work with user !!!
+                context.chat_data["activity"]["last_error"] = str(e)
 
-        print(user_bot_id, ":: callback_timer_REP *** Exception *** - ", e, context.chat_data["activity"])
+                bdbu.update_user_context_db(pk_sk_id={'pk': user_bot_id, 'sk': user_name}, user_db_data=context.chat_data)
+            else:
+                context.chat_data["activity"]["state"] = True
+                context.chat_data["activity"]["last_error"] = "-"
+
+            print(user_bot_id, ":: callback_timer_REP *** Exception *** - ", e, context.chat_data["activity"])
 
 
 async def setup_timer_REP(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -127,7 +129,7 @@ async def setup_timer_REP(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
             name=user_bot_id + "#REP",
             user_id=int(chat_id),
             chat_id=int(chat_id),
-            data={'pk': user_bot_id, 'sk': user_name},
+            # data={'pk': user_bot_id, 'sk': user_name},
             first=10
         )
         job_rep.job.misfire_grace_time = 300
