@@ -382,16 +382,18 @@ def _plot_annotations_of_sun_days(observer=None, days=1., axe=None, horiz_range=
         zenit_day = ephem.Date((sun_dict['sun_sett'] + sun_dict['sun_rise']) / 2)
         cur_unaware = zenit_day.datetime()
 
-        annot_text = format_datetime(cur_unaware, "d MMM EEE", locale='uk_UA')
-        # annot_text = str(cur_unaware.strftime(geo.dt_format_plot))
-        coords = (-0.6 * horiz_range, mdates.date2num(cur_unaware))
+        if begin_unaware + timedelta(days=0.2) < cur_unaware < end_unaware - timedelta(days=0.2):
 
-        axe.annotate(annot_text,
-                     xy=coords,
-                     fontsize=8.5,
-                     horizontalalignment='center',
-                     verticalalignment='top'
-                     )
+            annot_text = format_datetime(cur_unaware, "d MMM EEE", locale='uk_UA')
+            # annot_text = str(cur_unaware.strftime(geo.dt_format_plot))
+            coords = (-0.6 * horiz_range, mdates.date2num(cur_unaware))
+
+            axe.annotate(annot_text,
+                         xy=coords,
+                         fontsize=8.5,
+                         horizontalalignment='center',
+                         verticalalignment='top'
+                         )
 
 
 def _plot_annotations_of_moon_days(observer=None, days=1., axe=None, horiz_range=1):
@@ -403,26 +405,28 @@ def _plot_annotations_of_moon_days(observer=None, days=1., axe=None, horiz_range
 
     print("_plot_annotations_of_moon_days ???", observer.get_geo_name)
 
-    # while end_unaware > cur_unaware:
-    #     if cur_unaware == begin_unaware:                            # init pass
-    #         pass                                                    # init calculation
-    #     else:
-    #         cur_unaware = cur_unaware + timedelta(days=24.5 / 24)   # next calculation
-    #
-    #     observer.unaware_update_utc(cur_unaware)
-    #     moon_dict, moon_text = md.main_moon_day(observer=observer)  # modified observer
-    #     lbl_moon_noon = ephem.Date((moon_dict['moon_sett'] + moon_dict['moon_rise']) / 2)
-    #     cur_unaware = lbl_moon_noon.datetime()
-    #
-    #     annot_text = str(moon_dict["moon_day"]) + " міс. д."
-    #     coords = (0.6 * horiz_range, mdates.date2num(cur_unaware))
-    #
-    #     axe.annotate(annot_text,
-    #                  xy=coords,
-    #                  fontsize=8,
-    #                  horizontalalignment='center',
-    #                  verticalalignment='center'
-    #                  )
+    while end_unaware > cur_unaware:
+        if cur_unaware == begin_unaware:                            # init pass
+            pass                                                    # init calculation
+        else:
+            cur_unaware = cur_unaware + timedelta(days=24.5 / 24)   # next calculation
+
+        observer.unaware_update_utc(cur_unaware)
+        moon_dict, moon_text = md.main_moon_day(observer=observer)  # modified observer
+        lbl_moon_noon = ephem.Date((moon_dict['moon_sett'] + moon_dict['moon_rise']) / 2)
+        cur_unaware = lbl_moon_noon.datetime()
+
+        if begin_unaware + timedelta(days=0.2) < cur_unaware < end_unaware - timedelta(days=0.2):
+
+            annot_text = str(moon_dict["moon_day"]) + " міс. д."
+            coords = (0.6 * horiz_range, mdates.date2num(cur_unaware))
+
+            axe.annotate(annot_text,
+                         xy=coords,
+                         fontsize=8,
+                         horizontalalignment='center',
+                         verticalalignment='center'
+                         )
 
 
 def _plot_annotations_of_moon_phases(observer=None, days=1., axe=None, horiz_range=1):
@@ -443,24 +447,27 @@ def _plot_annotations_of_moon_phases(observer=None, days=1., axe=None, horiz_ran
         lbl_moon_phmiddle = ephem.Date((moonph_dict['prev_utc'] + moonph_dict['next_utc']) / 2)
         cur_unaware = lbl_moon_phmiddle.datetime()
 
-        annot_text = str(moonph_dict["prev"]).replace(" ", "\n")
-        coords = (-0.0 * horiz_range, ephem.Date(moonph_dict['prev_utc']).datetime())
-        # print(annot_text, coords)
-        axe.annotate(annot_text,
-                     xy=coords,
-                     fontsize=7.5,
-                     horizontalalignment='center',
-                     verticalalignment='center',
-                     )
-        annot_text = str(moonph_dict["next"]).replace(" ", "\n")
-        coords = (-0.0 * horiz_range, ephem.Date(moonph_dict['next_utc']).datetime())
-        # print(annot_text, coords)
-        axe.annotate(annot_text,
-                     xy=coords,
-                     fontsize=7.5,
-                     horizontalalignment='center',
-                     verticalalignment='center',
-                     )
+        # if cur_unaware > begin_unaware + timedelta(days=0.5) or \
+        #         cur_unaware < end_unaware - timedelta(days=0.5):
+        if True:
+            annot_text = str(moonph_dict["prev"]).replace(" ", "\n")
+            coords = (-0.0 * horiz_range, ephem.Date(moonph_dict['prev_utc']).datetime())
+            # print(annot_text, coords)
+            axe.annotate(annot_text,
+                         xy=coords,
+                         fontsize=7.5,
+                         horizontalalignment='center',
+                         verticalalignment='center',
+                         )
+            annot_text = str(moonph_dict["next"]).replace(" ", "\n")
+            coords = (-0.0 * horiz_range, ephem.Date(moonph_dict['next_utc']).datetime())
+            # print(annot_text, coords)
+            axe.annotate(annot_text,
+                         xy=coords,
+                         fontsize=7.5,
+                         horizontalalignment='center',
+                         verticalalignment='center',
+                         )
 
 
 def _plot_annotations_of_moon_elements(annotation_elem_dict=None, axe=None, horiz_range=1):
@@ -510,9 +517,9 @@ def _plot_annotations_of_zodiacs(annotation_moon_dict=None, annotation_sun_dict=
 
 if __name__ == '__main__':
 
-    geo_name = 'Kremenchuk'
+    # geo_name = 'Kremenchuk'
     # geo_name = 'Astana'
-    # geo_name = 'Mragowo'
+    geo_name = 'Mragowo'
     # geo_name = 'Boston'
     # geo_name = 'Kharkiv'
 
@@ -523,19 +530,19 @@ if __name__ == '__main__':
     text += str(observer_obj)
     # print(text)
     # #######################################################################################
-    # plot_color_of_the_days(observer=observer_obj, days=3.5, file_name="plot_astro_summary.png", chat_job="442763659#REP")
+    plot_color_of_the_days(observer=observer_obj, days=3.5, file_name="plot_astro_summary.png", job_name="442763659#REP")
 
     # observer_obj.unaware_update_utc(in_unaware_datetime)
-    # plot_color_of_the_days(observer=observer_obj, days=3, file_name="plot_astro_summary.png", chat_job="442763659#REP")
+    # plot_color_of_the_days(observer=observer_obj, days=3, file_name="plot_astro_summary.png", job_name="442763659#REP")
     #
     # observer_obj.unaware_update_utc(in_unaware_datetime)
-    plot_color_of_the_days(observer=observer_obj, days=5, file_name="plot_astro_summary.png", job_name="442763659#REP")
+    # plot_color_of_the_days(observer=observer_obj, days=5, file_name="plot_astro_summary.png", job_name="442763659#REP")
     #
     # observer_obj.unaware_update_utc(in_unaware_datetime)
-    # plot_color_of_the_days(observer=observer_obj, days=6, file_name="plot_astro_summary.png", chat_job="442763659#REP")
+    # plot_color_of_the_days(observer=observer_obj, days=6, file_name="plot_astro_summary.png", job_name="442763659#REP")
     #
     # observer_obj.unaware_update_utc(in_unaware_datetime)
-    # plot_color_of_the_days(observer=observer_obj, days=10, file_name="plot_astro_summary.png", chat_job="442763659#REP")
+    # plot_color_of_the_days(observer=observer_obj, days=10, file_name="plot_astro_summary.png", job_name="442763659#REP")
     #
     # observer_obj.unaware_update_utc(in_unaware_datetime)
-    # plot_color_of_the_days(observer=observer_obj, days=15, file_name="plot_astro_summary.png", chat_job="442763659#REP")
+    # plot_color_of_the_days(observer=observer_obj, days=15, file_name="plot_astro_summary.png", job_name="442763659#REP")
