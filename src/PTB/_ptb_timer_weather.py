@@ -137,6 +137,8 @@ async def setup_timer_REP(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
     chat_id = update.effective_message.chat_id
     bot = context.bot
     user_bot_id = str(chat_id) + "#" + str(bot.id)
+    # user_bot_id = user_db_data[bdbu.botUsers_table.partition_key]  # string
+    user_name = context.chat_data['sk_user_bot_name']
     job_name = user_bot_id + "#REP"
 
     text = ""
@@ -157,7 +159,7 @@ async def setup_timer_REP(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
             name=user_bot_id + "#REP",
             user_id=chat_id,
             chat_id=chat_id,
-            data=user_bot_id,
+            data={'pk': user_bot_id, 'sk': user_name},
             first=10
         )
         job_rep.job.misfire_grace_time = 300

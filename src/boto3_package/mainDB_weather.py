@@ -143,9 +143,16 @@ class dynamoDB_table(object):
 
         from boto3.dynamodb.conditions import Key, Attr
 
-        response = self.table.query(
-            KeyConditionExpression=Key(self._partition_key).eq(_pk) & Key(self._sort_key).between(_between_low, _between_high)
+        # response = self.table.query(
+        #     KeyConditionExpression=Key(self._partition_key).eq(_pk) & Key(self._sort_key).between(_between_low, _between_high)
+        # )
+
+        fe = Attr(self._sort_key).between(_between_low, _between_high)
+
+        response = self.table.scan(
+            FilterExpression=fe
         )
+
         items = response['Items']
         return items
 
@@ -156,7 +163,7 @@ class dynamoDB_table(object):
             weather_dict = self._df.loc[i].to_dict()
             # print(weather_dict)
 
-            resp = self.put(job_name="chat_job", data_dict=weather_dict)
+            resp = self.put(job_name="chat_job_id", data_dict=weather_dict)
             # print(".")
             text += str(resp) + "\n"
 
@@ -234,6 +241,8 @@ def main_query_filter(lists_of_items, geo_name="", attr="weather", field="T"):
     value_list = []
     value_dict = {}
 
+    print(">", geo_name)
+
     for item in lists_of_items:
 
         sort_key = item[recordWeather_table.sort_key]
@@ -265,8 +274,8 @@ if __name__ == '__main__':
 
 
     # geo_name = 'Mragowo'
-    geo_name = 'ASTANA'
-    # geo_name = 'Kremenchuk'
+    # geo_name = 'ASTANA'
+    geo_name = 'Kremenchuk'
     local_unaware_datetime = datetime.datetime.now()
     observer_obj = geo.Observer(geo_name=geo_name, unaware_datetime=local_unaware_datetime)
     text = ""
@@ -287,7 +296,7 @@ if __name__ == '__main__':
 
 
 
-    list_of_items = recordWeather_table.table_query(_pk="5354533983#1042106378#REP",
+    list_of_items = recordWeather_table.table_query(_pk="5354533983#345369460#REP",
                                                     _between_low="2021-01-21 14:41:49",
                                                     _between_high="2024-01-21 12:37:00")
 

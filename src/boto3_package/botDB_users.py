@@ -201,7 +201,7 @@ class dynamoDB_table(object):
 
         from boto3.dynamodb.conditions import Key, Attr
 
-        fe = Attr(self._sort_key).begins_with(sort_key_prefix);
+        fe = Attr(self._sort_key).begins_with(sort_key_prefix)
 
         response = self.table.scan(
             FilterExpression=fe
