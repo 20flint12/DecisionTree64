@@ -556,7 +556,8 @@ async def setup_timer_DAILY(update: Update, context: ContextTypes.DEFAULT_TYPE) 
     #     },
     # )
 
-    text += "\nТаймер нагадування запущений!" + job_daily.name + str(job_daily.next_t.time())
+    text += "\nТаймер нагадування запущений!"
+    text += "\n" + str(job_daily.name) + " - " + str(job_daily.next_t.time())
 
     user_db_data = context.chat_data  # ???
     user_db_data["activity"]["enable_daily"] = True
@@ -672,7 +673,7 @@ async def restart_service(context: ContextTypes.DEFAULT_TYPE):
                     )
                     job_daily.job.misfire_grace_time = 300
                     t.sleep(1)
-                    text += "\n" + str(job_daily.name) + "-" + str(job_daily.next_t.time())
+                    text += "\n" + str(job_daily.name) + " - " + str(job_daily.next_t.time())
 
                 try:
                     await context.bot.send_message(chat_id=int(chat_id), text=text)

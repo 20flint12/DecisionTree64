@@ -257,7 +257,7 @@ def main_query_filter(lists_of_items, geo_name="", attr="weather", field="T"):
             value = attr_dict[field]
         else:
             value = 0
-        print(">", sort_key_val, city, item[attr], value)
+        # print(">", sort_key_val, city, item[attr], value)
 
         # Filter by city
         if geo_name.upper() == city:
