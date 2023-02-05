@@ -593,6 +593,17 @@ async def restart_service(context: ContextTypes.DEFAULT_TYPE):
 
         list_of_items, count = bdbu.user_service_query(bot_name=bot_name)
 
+        pers_data = context.application.chat_data
+        # pprint(pers_data)
+        for itm in pers_data:
+            print('>>>>>>', itm)
+            if not isinstance(itm, str):
+                # The variable is a string
+                print('>>>', itm, pers_data[itm]['context_user_data'])
+                pass
+                # del context.appication.chat_data['itm']
+                # delattr(context.application, 'chat_data')
+
         user_counter = -1
 
         if count > 0:
@@ -620,8 +631,8 @@ async def restart_service(context: ContextTypes.DEFAULT_TYPE):
                     rwt.callback_timer_REP,
                     interval=3600 + 10*user_counter,     # 3 sec divergence
                     name=user_bot_id + "#REP",
-                    user_id=chat_id,
-                    chat_id=chat_id,
+                    user_id=int(chat_id),
+                    chat_id=int(chat_id),
                     data={'pk': user_bot_id, 'sk': user_name},
                     first=10,
                 )
@@ -646,8 +657,8 @@ async def restart_service(context: ContextTypes.DEFAULT_TYPE):
                             tzinfo=pytz.timezone('UTC')),
                         days=(0, 1, 2, 3, 4, 5, 6),
                         name=user_bot_id + "#DAILY",
-                        user_id=chat_id,
-                        chat_id=chat_id,
+                        user_id=int(chat_id),
+                        chat_id=int(chat_id),
                         data={'pk': user_bot_id, 'sk': user_name},
                         job_kwargs={},
                     )
@@ -656,7 +667,7 @@ async def restart_service(context: ContextTypes.DEFAULT_TYPE):
                     text += "\n" + str(job_daily.name) + "-" + str(job_daily.next_t.time())
 
                 try:
-                    await context.bot.send_message(chat_id=chat_id, text=text)
+                    await context.bot.send_message(chat_id=int(chat_id), text=text)
 
                 except Exception as e:
                     pass

@@ -303,6 +303,7 @@ if __name__ == '__main__':
     # pprint(list_of_items)
     # print(text)
     data_dict, avg = main_query_filter(list_of_items, geo_name=geo_name, attr="weather", field="P")
+    print(geo_name)
     pprint(data_dict)
 
     # pw.plot_weather(data_list=data_list, file_name="user_photo2.jpg")

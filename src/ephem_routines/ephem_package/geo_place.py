@@ -67,7 +67,8 @@ class Observer:
 
         # str_obj += "\n" + repr(self.timezone)
         str_obj += "\n" + self._geo_name
-        str_obj += " [{:7.3f},".format(self.location.latitude) + " {:7.3f}]".format(self.location.longitude)
+        if self.location is not None:
+            str_obj += " [{:7.3f},".format(self.location.latitude) + " {:7.3f}]".format(self.location.longitude)
         str_obj += "\n" + self.timezone_name + " (" + str(self._aware.utcoffset()) + ")"
         str_obj += " [DST " + str(self._aware.dst()) + "]"
 
@@ -105,18 +106,26 @@ class Observer:
         from geopy.geocoders import Nominatim               # pip install geopy
         geolocator = Nominatim(user_agent="user_agent")
         self.location = geolocator.geocode(self._geo_name)   # Kremenchuk Boston
-        self._place.lat = str(self.location.latitude)
-        self._place.lon = str(self.location.longitude)
+        if self.location is not None:
+            self._place.lat = str(self.location.latitude)
+            self._place.lon = str(self.location.longitude)
 
-        # ToDo for setting by coordinate. Now just for monitoring
-        self._latitude = self._place.lat
-        self._longitude = self._place.lon
+            # ToDo for setting by coordinate. Now just for monitoring
+            self._latitude = self._place.lat
+            self._longitude = self._place.lon
+        else:
+            self._latitude = 50
+            self._longitude = 30
+
         # print(self.geo_name, self.location.latitude, self.location.longitude)
 
     def get_tz_by_coord(self):
         from timezonefinder import TimezoneFinder
         timezone = TimezoneFinder()
-        self.timezone_name = timezone.timezone_at(lng=self.location.longitude, lat=self.location.latitude)
+        if self.location is not None:
+            self.timezone_name = timezone.timezone_at(lng=self.location.longitude, lat=self.location.latitude)
+        else:
+            self.timezone_name = 'UTC'
         # print(self.timezone_name)
 
     def unaware_to_aware_by_tz(self):

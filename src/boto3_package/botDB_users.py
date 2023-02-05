@@ -416,12 +416,18 @@ def update_user_context_db(pk_sk_id=None, user_db_data=None):      # !!! user_db
 
     upd_user_db_data = {}
 
-    # if context.user_data is not None:           # =================================== context_user_data
-    #     upd_user_db_data['context_user_data'] = json.dumps(context.user_data)
-    # print(upd_user_db_data)
+
+    if 'context_user_data' in user_db_data:     # =================================== context_user_data
+        if user_db_data["context_user_data"] or user_db_data["context_user_data"] is not None:
+            context_user_data_dict = user_db_data["context_user_data"]
+        else:
+            context_user_data_dict = {{"Geolocation": "OLSZHTYN", "Interval": "1.23", "Reminder": "0833"}}
+    else:
+        context_user_data_dict = {{"Geolocation": "OLSZHTYN", "Interval": "2.34", "Reminder": "0833"}}
+    upd_user_db_data['payment'] = json.dumps(context_user_data_dict)
 
 
-    if "payment" in user_db_data:           # =================================== payment
+    if "payment" in user_db_data:               # =================================== payment
         if user_db_data["payment"] or user_db_data["payment"] is not None:
             payment_dict = user_db_data["payment"]
         else:
@@ -431,7 +437,7 @@ def update_user_context_db(pk_sk_id=None, user_db_data=None):      # !!! user_db
     upd_user_db_data['payment'] = json.dumps(payment_dict)
 
 
-    if "activity" in user_db_data:          # =================================== activity
+    if "activity" in user_db_data:              # =================================== activity
         if user_db_data["activity"]:
             activity_dict = user_db_data["activity"]
         else:

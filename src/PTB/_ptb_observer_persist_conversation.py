@@ -154,7 +154,9 @@ async def show_bot_user_db_data(update: Update, context: ContextTypes.DEFAULT_TY
         user_db_data = {'ERROR': "No such user record!"}
     print(user_bot_id, user_db_data)
 
-    text = "Збережені параметри:"
+    # j_c = str(context.job_queue.jobs().count())
+
+    text = "Збережені параметри: "
     text += "\n*** context.user_data ***" + dict_fields_to_str(context.user_data)
     text += "\n*** context.chat_data ***" + dict_fields_to_str(context.chat_data)
     text += "\n*** user_db_data ***" + dict_fields_to_str(user_db_data)
