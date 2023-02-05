@@ -148,7 +148,6 @@ class dynamoDB_table(object):
         # )
 
         fe = Attr(self._sort_key).between(_between_low, _between_high)
-
         response = self.table.scan(
             FilterExpression=fe
         )
@@ -241,7 +240,7 @@ def main_query_filter(lists_of_items, geo_name="", attr="weather", field="T"):
     value_list = []
     value_dict = {}
 
-    print(">", geo_name)
+    # print(">", geo_name)
 
     for item in lists_of_items:
 
@@ -250,9 +249,10 @@ def main_query_filter(lists_of_items, geo_name="", attr="weather", field="T"):
         location_dict = json.loads(item['location'])
         attr_dict = json.loads(item[attr])
 
+        # city = location_dict['geo'].decode("utf-8")
         city = location_dict['geo']
         value = attr_dict[field]
-        print(">", sort_key, city, item[attr], value)
+        # print(">", sort_key, city, item[attr], value)
 
         # Filter by city
         if geo_name.upper() == city:

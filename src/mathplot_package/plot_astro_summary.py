@@ -510,8 +510,8 @@ def _plot_annotations_of_zodiacs(annotation_moon_dict=None, annotation_sun_dict=
 
 if __name__ == '__main__':
 
-    # geo_name = 'Kremenchuk'
-    geo_name = 'Astana'
+    geo_name = 'Kremenchuk'
+    # geo_name = 'Astana'
     # geo_name = 'Mragowo'
     # geo_name = 'Boston'
     # geo_name = 'Kharkiv'
