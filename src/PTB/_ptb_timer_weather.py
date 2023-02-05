@@ -58,41 +58,17 @@ def remove_job_if_exists(name: str, context: ContextTypes.DEFAULT_TYPE) -> bool:
 
 async def callback_timer_REP(context: ContextTypes.DEFAULT_TYPE):
     job = context.job
-    pk_sk_user_id = job.data
 
-    # user_db_data = bdbu.get_user_db_data(pk=data_user_bot_id)
-    #
-    # # print(chat_id, ":: ", context.chat_data, "\n*************************", user_db_data)
-    # if context.chat_data == user_db_data:
-    #     pass
-    #     # print("++++++")
-    # else:
-    #     print("------")
-    #     print(data_user_bot_id, ":: \n", context.chat_data, "---------------\n", user_db_data)
-    #
-    #     if context.chat_data is None:
-    #         pass
-    #         # context.chat_data.clear()
-    #         # context.chat_data = {}
-    #     else:
-    #         context.chat_data.clear()
-    #     context.chat_data.update(user_db_data)
-    #
-    #     if context.user_data is None:
-    #         pass
-    #         # context.user_data.clear()
-    #         # context.user_data = {}
-    #     else:
-    #         context.user_data.clear()
-    #     context.user_data.update(user_db_data['context_user_data'])
+    user_bot_id = context.chat_data[bdbu.botUsers_table.partition_key]
+    user_name = context.chat_data[bdbu.botUsers_table.sort_key]
 
     text = job.name + ' @ ' + str(job.next_t)[:19] + "\n" + str(context.job_queue.jobs())[25:]
     # logger.info(text)
 
     (valid_geo_name, geo_name), (valid_interval, interval) = \
-        pma.parse_Geolocation_Interval(context, parse_args=False, user_bot_id=pk_sk_user_id['pk'])
+        pma.parse_Geolocation_Interval(context, parse_args=False, user_bot_id=user_bot_id)
 
-    logger.info("%s: callback_timer_REP -> geo_name=%s moment=%s", pk_sk_user_id, geo_name, interval)
+    logger.info("%s: callback_timer_REP -> geo_name=%s moment=%s", user_bot_id, geo_name, interval)
 
     observer_obj = geo.Observer(geo_name=geo_name, unaware_datetime=datetime.today())
     text = ""
@@ -102,34 +78,25 @@ async def callback_timer_REP(context: ContextTypes.DEFAULT_TYPE):
     text += "\n" + str(data_dict)
     text += out_text
 
-
-    context.chat_data["activity"]["attempts"] += 1  # !!! when wrong request !!!
-    print(context.chat_data["activity"])
+    context.chat_data["payment"]["term"] += 1       # to check temporary
+    print("***", context.chat_data["payment"])
 
     try:
         await context.bot.send_message(chat_id=job.chat_id, text=text)
     except Exception as e:
-        print(pk_sk_user_id, ":: callback_timer_REP *** Exception *** - ", e)
 
         context.chat_data["activity"]["attempts"] += 1  # !!! when wrong request !!!
-        if context.chat_data["activity"]["attempts"] >= 5:
-            context.chat_data["activity"]["state"] = False  # !!! check this state to know how work with user !!!
-            context.chat_data["activity"]["last_error"] = "Overload2"  # !!! check this state to know how work with user !!!
-        else:
-            context.chat_data["activity"]["state"] = True
-            context.chat_data["activity"]["attempts"] = 0
+
+        if context.chat_data["activity"]["state"] and (context.chat_data["activity"]["attempts"] >= 10):
+            context.chat_data["activity"]["state"] = False      # !!! check this state to know how work with user !!!
             context.chat_data["activity"]["last_error"] = str(e)
 
-        # if "activity" in context.chat_data and context.chat_data["activity"]:
-        # #     att = int(context.chat_data["activity"]["attempts"])  # !!! when wrong request !!!
-        # #     context.chat_data["activity"]["attempts"] = att + 10
-        # #     if att >= 5:
-        # #         context.chat_data["activity"]["state"] = False  # !!! check this state to know how work with user !!!
-        # #     else:
-        # #         context.chat_data["activity"]["state"] = True
-        # #         context.chat_data["activity"]["attempts"] = 0
-        # print(pk_sk_user_id, ':::', context.chat_data)
-        # bdbu.update_user_context_db(pk_sk_id=pk_sk_user_id, user_db_data=context.chat_data)
+            bdbu.update_user_context_db(pk_sk_id={'pk': user_bot_id, 'sk': user_name}, user_db_data=context.chat_data)
+        else:
+            context.chat_data["activity"]["state"] = True
+            context.chat_data["activity"]["last_error"] = "-"
+
+        print(user_bot_id, ":: callback_timer_REP *** Exception *** - ", e, context.chat_data["activity"])
 
 
 async def setup_timer_REP(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:

@@ -244,20 +244,25 @@ def main_query_filter(lists_of_items, geo_name="", attr="weather", field="T"):
 
     for item in lists_of_items:
 
-        sort_key = item[recordWeather_table.sort_key]
+        sort_key_val = item[recordWeather_table.sort_key]
 
         location_dict = json.loads(item['location'])
         attr_dict = json.loads(item[attr])
 
         # city = location_dict['geo'].decode("utf-8")
         city = location_dict['geo']
-        value = attr_dict[field]
-        # print(">", sort_key, city, item[attr], value)
+
+        # ToDo do not use invalid dict!
+        if field in attr_dict:
+            value = attr_dict[field]
+        else:
+            value = 0
+        print(">", sort_key_val, city, item[attr], value)
 
         # Filter by city
         if geo_name.upper() == city:
 
-            value_dict[sort_key] = float(value)
+            value_dict[sort_key_val] = float(value)
             value_list.append(float(value))
 
     average = 0

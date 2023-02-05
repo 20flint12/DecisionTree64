@@ -228,6 +228,9 @@ def parse_Geolocation_Interval(context: ContextTypes.DEFAULT_TYPE, parse_args=Fa
 
 def parse_Reminder(update: Update, context: ContextTypes.DEFAULT_TYPE, observer=None):
 
+    user_bot_id = context.chat_data[bdbu.botUsers_table.partition_key]
+    user_name = context.chat_data[bdbu.botUsers_table.sort_key]
+
     context.chat_data["context_user_data"].setdefault(opc.key_Reminder, "0000")
 
     # ---------------------------------------------------
@@ -252,15 +255,12 @@ def parse_Reminder(update: Update, context: ContextTypes.DEFAULT_TYPE, observer=
     try:
         dt_hhmm_unaware = datetime.strptime("2000-01-01 " + reminder, "%Y-%m-%d %H%M")
 
-        # ToDo in Observer
-        # dt_hhmm = pytz.timezone("UTC").localize(dt_hhmm)
         # valid_reminder = bdbu.ParamOrigin.VALID_TIME
         dt_hhmm_utc = observer.dt_unaware_to_utc(dt_hhmm_unaware)
 
         user_db_data = context.chat_data        # ???
         user_db_data["activity"]["daily_utc_time"] = [dt_hhmm_utc.hour, dt_hhmm_utc.minute, dt_hhmm_utc.second]
-        bdbu.update_user_record_db(update=update, context=context, user_db_data=user_db_data)
-        # bdbu.update_user_context_db(pk_sk_id=None, user_db_data=None)
+        bdbu.update_user_context_db(pk_sk_id={'pk': user_bot_id, 'sk': user_name}, user_db_data=user_db_data)
 
     except ValueError:
 
@@ -428,12 +428,16 @@ async def summary(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 async def callback_timer_DAILY(context: ContextTypes.DEFAULT_TYPE) -> None:
     """Send the alarm message."""
     job = context.job
-    chat_id = str(job.chat_id)
+    bot_id = context.bot.id
+    user_bot_id = str(job.chat_id) + "#" + str(bot_id)
+    # user_bot_id = context.chat_data[bdbu.botUsers_table.partition_key]    # undef when wrong context!
+    user_name = context.chat_data[bdbu.botUsers_table.sort_key]
+
     photo_name = job.name + "_photo.png"     # 442763659_photo.jpg
     pk_sk_user_id = job.data
 
     (valid_geo_name, geo_name), (valid_interval, interval) = \
-        parse_Geolocation_Interval(context, parse_args=False, user_bot_id=pk_sk_user_id['pk'])
+        parse_Geolocation_Interval(context, parse_args=False, user_bot_id=user_bot_id)
     logger.info("%s:: callback_timer_DAILY> geo_name=%s moment=%s", job.name, geo_name, interval)
 
     observer_obj = geo.Observer(geo_name=geo_name, unaware_datetime=datetime.today())
@@ -460,7 +464,7 @@ async def callback_timer_DAILY(context: ContextTypes.DEFAULT_TYPE) -> None:
         await context.bot.send_message(chat_id=job.chat_id, text=text)
     except Exception as e:
         pass
-        print(chat_id, "alarm:: An exception occurred ************** !!!!!!!!!!!!!!!!!!!!!", e)
+        print(job.chat_id, "alarm:: An exception occurred ************** !!!!!!!!!!!!!!!!!!!!!", e)
 
     # ++++++++++++++++++++++
     mp.plot_color_of_the_days(observer=observer_obj, days=4, file_name=photo_name, job_name=job.name)
@@ -471,7 +475,7 @@ async def callback_timer_DAILY(context: ContextTypes.DEFAULT_TYPE) -> None:
         await context.bot.send_photo(chat_id=job.chat_id, photo=open(photo_name, 'rb'))
     except Exception as e:
         pass
-        print(chat_id, "alarm:: An exception occurred ************** !!!!!!!!!!!!!!!!!!!!!", e)
+        print(job.chat_id, "alarm:: An exception occurred ************** !!!!!!!!!!!!!!!!!!!!!", e)
 
 
 def remove_job_if_exists(job_name: str, context: ContextTypes.DEFAULT_TYPE) -> bool:
@@ -489,10 +493,13 @@ async def setup_timer_DAILY(update: Update, context: ContextTypes.DEFAULT_TYPE) 
 
     # user = update.effective_user
     chat_id = update.effective_message.chat_id
-    bot = context.bot
-    user_bot_id = str(chat_id) + "#" + str(bot.id)
+    # bot = context.bot
+    # user_bot_id = str(chat_id) + "#" + str(bot.id)
     # user_bot_id = user_db_data[bdbu.botUsers_table.partition_key]  # string
-    user_name = context.chat_data['sk_user_bot_name']
+    # user_name = context.chat_data['sk_user_bot_name']
+    user_bot_id = context.chat_data[bdbu.botUsers_table.partition_key]
+    user_name = context.chat_data[bdbu.botUsers_table.sort_key]
+
     job_name = user_bot_id + "#DAILY"
 
     (valid_geo_name, geo_name), (valid_interval, interval) = parse_Geolocation_Interval(context, parse_args=False)
@@ -531,7 +538,7 @@ async def setup_timer_DAILY(update: Update, context: ContextTypes.DEFAULT_TYPE) 
         name=user_bot_id + "#DAILY",
         chat_id=int(chat_id),
         user_id=int(chat_id),
-        data={'pk': user_bot_id, 'sk': user_name},
+        # data={'pk': user_bot_id, 'sk': user_name},
         job_kwargs={
             # 'trigger': 'cron',
             # 'days': 'mon-fri,sun',
@@ -553,7 +560,6 @@ async def setup_timer_DAILY(update: Update, context: ContextTypes.DEFAULT_TYPE) 
 
     user_db_data = context.chat_data  # ???
     user_db_data["activity"]["enable_daily"] = True
-    # bdbu.update_user_record_db(update=update, context=context, user_db_data=user_db_data)
     bdbu.update_user_context_db(pk_sk_id={'pk': user_bot_id, 'sk': user_name}, user_db_data=user_db_data)
 
     await update.effective_message.reply_text(text)
@@ -635,7 +641,7 @@ async def restart_service(context: ContextTypes.DEFAULT_TYPE):
                     name=user_bot_id + "#REP",
                     user_id=int(chat_id),
                     chat_id=int(chat_id),
-                    data={'pk': user_bot_id, 'sk': user_name},
+                    # data={'pk': user_bot_id, 'sk': user_name},
                     first=10,
                 )
                 job_rep.job.misfire_grace_time = 300
@@ -661,7 +667,7 @@ async def restart_service(context: ContextTypes.DEFAULT_TYPE):
                         name=user_bot_id + "#DAILY",
                         user_id=int(chat_id),
                         chat_id=int(chat_id),
-                        data={'pk': user_bot_id, 'sk': user_name},
+                        # data={'pk': user_bot_id, 'sk': user_name},
                         job_kwargs={},
                     )
                     job_daily.job.misfire_grace_time = 300

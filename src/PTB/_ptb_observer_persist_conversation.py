@@ -92,15 +92,15 @@ async def custom_choice(update: Update, context: ContextTypes.DEFAULT_TYPE) -> i
 async def received_information(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """Store info provided by user and ask for the next category."""
     # user_id = str(update.effective_user.id)
-    user = update.effective_user
-    bot = context.bot
-    user_bot_id = str(user.id) + "#" + str(bot.id)
+    # user = update.effective_user
+    # bot = context.bot
+    # user_bot_id = str(user.id) + "#" + str(bot.id)
 
     # chat_id = update.effective_message.chat_id
     # bot = context.bot
     # user_bot_id = str(chat_id) + "#" + str(bot.id)
-    # # user_bot_id = user_db_data[bdbu.botUsers_table.partition_key]  # string
-    user_name = context.chat_data['sk_user_bot_name']
+    user_bot_id = context.chat_data[bdbu.botUsers_table.partition_key]
+    user_name = context.chat_data[bdbu.botUsers_table.sort_key]
 
     text = update.message.text
 
@@ -109,27 +109,12 @@ async def received_information(update: Update, context: ContextTypes.DEFAULT_TYP
         context.user_data[category] = text.upper()
         del context.user_data["choice"]
 
-    # user_db_data = bdbu.get_user_db_data(pk=user_bot_id)    # get old data
-    # pprint(user_db_data)
-
     user_db_data = context.chat_data
     user_db_data['context_user_data'] = context.user_data   # update field
 
-    # if "activity" in user_db_data and user_db_data["activity"] and user_db_data["activity"] is not None:
-    #     att = int(user_db_data["activity"]["attempts"])    # !!! when wrong request !!!
-    #     user_db_data["activity"]["attempts"] = att + 1
-    #     if att >= 5:
-    #         user_db_data["activity"]["state"] = False      # !!! check this state to know how work with user !!!
-    #     else:
-    #         user_db_data["activity"]["state"] = True
-    #         user_db_data["activity"]["attempts"] = 0
-    print('@@@', user_db_data)
-    # bdbu.update_user_record_db(update=update, context=context, user_db_data=user_db_data)
-    bdbu.update_user_context_db(pk_sk_id={'pk': user_bot_id, 'sk': user_name}, user_db_data=user_db_data)
+    print('@@@', user_bot_id, "::", user_db_data.keys(), user_db_data['context_user_data'])
 
-    # user_db_data = bdbu.get_user_db_data(pk=user_bot_id)    # get new data in context.chat_data
-    # context.chat_data.clear()                               # to delete a value from chat_data
-    # context.chat_data.update(user_db_data)                  # contain current updated user_db_data to work with
+    bdbu.update_user_context_db(pk_sk_id={'pk': user_bot_id, 'sk': user_name}, user_db_data=user_db_data)
 
     await update.message.reply_text(
         f"Задані параметри збережені: {dict_fields_to_str(context.user_data)} \nМожна змінювати ці параметри.",
@@ -159,7 +144,7 @@ async def show_bot_user_db_data(update: Update, context: ContextTypes.DEFAULT_TY
     user_db_data = bdbu.get_user_db_data(pk=user_bot_id)
     if user_db_data is None:
         user_db_data = {'ERROR': "No such user record!"}
-    print(user_bot_id, user_db_data)
+    print(user_bot_id, "::", user_db_data.keys(), user_db_data['context_user_data'])
 
     # j_c = str(context.job_queue.jobs().count())
 
@@ -173,9 +158,9 @@ async def show_bot_user_db_data(update: Update, context: ContextTypes.DEFAULT_TY
 
 async def repair_bot_data(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Download user data to context.user_data"""
-    user = update.effective_user
-    bot = context.bot
-    user_bot_id = str(user.id) + "#" + str(bot.id)
+    # user = update.effective_user
+    # bot = context.bot
+    user_bot_id = str(update.effective_user.id) + "#" + str(context.bot.id)
 
     user_db_data = bdbu.get_user_db_data(pk=user_bot_id)
 
@@ -200,29 +185,18 @@ async def repair_bot_data(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
 
 async def repair_user_db_data(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Display the gathered info."""
-    user = update.effective_user
-    bot = context.bot
-    user_bot_id = str(user.id) + "#" + str(bot.id)
 
-    # user_db_data = bdbu.get_user_db_data(pk=user_bot_id)
-    # print(user_bot_id, user_db_data)
+    if not context.chat_data:
+        await update.message.reply_text("context.chat_data wrong!")
 
-    prep_user_db_data = {}
+    # user = update.effective_user
+    # bot = context.bot
+    # user_bot_id = str(user.id) + "#" + str(bot.id)
+    user_bot_id = context.chat_data[bdbu.botUsers_table.partition_key]
+    user_name = context.chat_data[bdbu.botUsers_table.sort_key]
 
-    if context.chat_data:
-        prep_user_db_data = context.chat_data
-
-    # if "activity" in prep_user_db_data and prep_user_db_data["activity"] and prep_user_db_data["activity"] is not None:
-    #     att = int(prep_user_db_data["activity"]["attempts"])    # !!! when wrong request !!!
-    #     prep_user_db_data["activity"]["attempts"] = att + 1
-    #     if att >= 5:
-    #         prep_user_db_data["activity"]["state"] = False      # !!! check this state to know how work with user !!!
-    #     else:
-    #         prep_user_db_data["activity"]["state"] = True
-    #         prep_user_db_data["activity"]["attempts"] = 0
-
-    user_db_data, text = bdbu.update_user_record_db(update=update, context=context, user_db_data=prep_user_db_data)
-    # user_db_data, text = bdbu.update_user_context_db(pk_sk_id=None, user_db_data=None)
+    user_db_data, text = bdbu.update_user_context_db(pk_sk_id={'pk': user_bot_id, 'sk': user_name},
+                                                     user_db_data=context.chat_data)
 
     text = "Збережені параметри:"
     text += "\n*** context.user_data ***" + dict_fields_to_str(context.user_data)
