@@ -260,6 +260,7 @@ def parse_Reminder(update: Update, context: ContextTypes.DEFAULT_TYPE, observer=
         user_db_data = context.chat_data        # ???
         user_db_data["activity"]["daily_utc_time"] = [dt_hhmm_utc.hour, dt_hhmm_utc.minute, dt_hhmm_utc.second]
         bdbu.update_user_record_db(update=update, context=context, user_db_data=user_db_data)
+        # bdbu.update_user_context_db(pk_sk_id=None, user_db_data=None)
 
     except ValueError:
 
@@ -528,8 +529,8 @@ async def setup_timer_DAILY(update: Update, context: ContextTypes.DEFAULT_TYPE) 
                   second=dt_hhmm_utc.second, tzinfo=pytz.timezone('UTC')),
         days=(0, 1, 2, 3, 4, 5, 6),
         name=user_bot_id + "#DAILY",
-        chat_id=chat_id,
-        user_id=chat_id,
+        chat_id=int(chat_id),
+        user_id=int(chat_id),
         data={'pk': user_bot_id, 'sk': user_name},
         job_kwargs={
             # 'trigger': 'cron',
@@ -552,7 +553,8 @@ async def setup_timer_DAILY(update: Update, context: ContextTypes.DEFAULT_TYPE) 
 
     user_db_data = context.chat_data  # ???
     user_db_data["activity"]["enable_daily"] = True
-    bdbu.update_user_record_db(update=update, context=context, user_db_data=user_db_data)
+    # bdbu.update_user_record_db(update=update, context=context, user_db_data=user_db_data)
+    bdbu.update_user_context_db(pk_sk_id={'pk': user_bot_id, 'sk': user_name}, user_db_data=user_db_data)
 
     await update.effective_message.reply_text(text)
 

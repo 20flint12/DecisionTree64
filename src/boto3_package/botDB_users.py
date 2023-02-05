@@ -424,7 +424,7 @@ def update_user_context_db(pk_sk_id=None, user_db_data=None):      # !!! user_db
             context_user_data_dict = {{"Geolocation": "OLSZHTYN", "Interval": "1.23", "Reminder": "0833"}}
     else:
         context_user_data_dict = {{"Geolocation": "OLSZHTYN", "Interval": "2.34", "Reminder": "0833"}}
-    upd_user_db_data['payment'] = json.dumps(context_user_data_dict)
+    upd_user_db_data['context_user_data'] = json.dumps(context_user_data_dict)
 
 
     if "payment" in user_db_data:               # =================================== payment

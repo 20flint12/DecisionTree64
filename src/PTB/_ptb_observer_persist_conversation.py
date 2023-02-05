@@ -96,6 +96,12 @@ async def received_information(update: Update, context: ContextTypes.DEFAULT_TYP
     bot = context.bot
     user_bot_id = str(user.id) + "#" + str(bot.id)
 
+    # chat_id = update.effective_message.chat_id
+    # bot = context.bot
+    # user_bot_id = str(chat_id) + "#" + str(bot.id)
+    # # user_bot_id = user_db_data[bdbu.botUsers_table.partition_key]  # string
+    user_name = context.chat_data['sk_user_bot_name']
+
     text = update.message.text
 
     if "choice" in context.user_data and context.user_data["choice"] and context.user_data["choice"] is not None:
@@ -106,7 +112,7 @@ async def received_information(update: Update, context: ContextTypes.DEFAULT_TYP
     # user_db_data = bdbu.get_user_db_data(pk=user_bot_id)    # get old data
     # pprint(user_db_data)
 
-    user_db_data = {}
+    user_db_data = context.chat_data
     user_db_data['context_user_data'] = context.user_data   # update field
 
     # if "activity" in user_db_data and user_db_data["activity"] and user_db_data["activity"] is not None:
@@ -117,12 +123,13 @@ async def received_information(update: Update, context: ContextTypes.DEFAULT_TYP
     #     else:
     #         user_db_data["activity"]["state"] = True
     #         user_db_data["activity"]["attempts"] = 0
+    print('@@@', user_db_data)
+    # bdbu.update_user_record_db(update=update, context=context, user_db_data=user_db_data)
+    bdbu.update_user_context_db(pk_sk_id={'pk': user_bot_id, 'sk': user_name}, user_db_data=user_db_data)
 
-    bdbu.update_user_record_db(update=update, context=context, user_db_data=user_db_data)
-
-    user_db_data = bdbu.get_user_db_data(pk=user_bot_id)    # get new data in context.chat_data
-    context.chat_data.clear()                               # to delete a value from chat_data
-    context.chat_data.update(user_db_data)                  # contain current updated user_db_data to work with
+    # user_db_data = bdbu.get_user_db_data(pk=user_bot_id)    # get new data in context.chat_data
+    # context.chat_data.clear()                               # to delete a value from chat_data
+    # context.chat_data.update(user_db_data)                  # contain current updated user_db_data to work with
 
     await update.message.reply_text(
         f"Задані параметри збережені: {dict_fields_to_str(context.user_data)} \nМожна змінювати ці параметри.",
@@ -215,6 +222,7 @@ async def repair_user_db_data(update: Update, context: ContextTypes.DEFAULT_TYPE
     #         prep_user_db_data["activity"]["attempts"] = 0
 
     user_db_data, text = bdbu.update_user_record_db(update=update, context=context, user_db_data=prep_user_db_data)
+    # user_db_data, text = bdbu.update_user_context_db(pk_sk_id=None, user_db_data=None)
 
     text = "Збережені параметри:"
     text += "\n*** context.user_data ***" + dict_fields_to_str(context.user_data)
@@ -288,10 +296,9 @@ observer_conversation_handler = ConversationHandler(
     fallbacks=[MessageHandler(filters.Regex("^Готово$"), done)],
     name="astro_conversation",
     persistent=True,
-    # persistent=False,
 )
 
-observer_handler = CommandHandler("obs", observer_setup)
+# observer_handler = CommandHandler("obs", observer_setup)
 show_bot_user_db_data_handler = CommandHandler("show_data", show_bot_user_db_data)
 repair_bot_data_handler = CommandHandler("repair_bot_data", repair_bot_data)
 repair_user_db_data_handler = CommandHandler("repair_db_data", repair_user_db_data)
