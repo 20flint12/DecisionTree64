@@ -266,7 +266,7 @@ def parse_Reminder(update: Update, context: ContextTypes.DEFAULT_TYPE, observer=
 
         valid_reminder = bdbu.PrmOrig(valid_reminder) + bdbu.PrmOrig.INVALID_TIME
 
-    print("parse_Reminder> (", bdbu.PrmOrig(valid_reminder), ") ", dt_hhmm_unaware.time(), " utc:", dt_hhmm_utc.time())
+    print(user_bot_id, " :: parse_Reminder> (", bdbu.PrmOrig(valid_reminder), ") ", dt_hhmm_unaware.time(), " utc:", dt_hhmm_utc.time())
 
     return valid_reminder, dt_hhmm_unaware, dt_hhmm_utc
 
@@ -647,7 +647,7 @@ async def restart_service(context: ContextTypes.DEFAULT_TYPE):
                 )
                 job_rep.job.misfire_grace_time = 300
                 t.sleep(1)
-                text += "\n" + str(job_rep.name) + "-" + str(job_rep.next_t.time())[:8]
+                text += "\n" + str(job_rep.name) + " - " + str(job_rep.next_t.time())[:8]
 
                 # Restore timer for reminder
                 user_db_data.setdefault('activity', "{}")                   # for non-existent fields in the database !!!

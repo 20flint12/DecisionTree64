@@ -216,7 +216,6 @@ class dynamoDB_table(object):
         for i in range(0, len(self._df)):
             data_csv_dict = self._df.loc[i].to_dict()
             # print("> ", data_csv_dict)
-            # {'chat_pk': 4774374724, 'name_sk': '2022-12-11 21:11:17', 'last_action': '2022-12-11 21:11:17', 'setting': '{'Геолокація': 'WARSAW', 'Інтервал': '1.111', 'Нагадування': '2331'}'}
 
             resp = self.put(user_data_dict=data_csv_dict)
 
@@ -413,6 +412,7 @@ def update_user_context_db(pk_sk_id=None, user_db_data=None):      # !!! user_db
         f'{botUsers_table.partition_key}': pk_sk_id['pk'],
         f'{botUsers_table.sort_key}': pk_sk_id['sk'],
     }
+
 
     upd_user_db_data = {}
 
