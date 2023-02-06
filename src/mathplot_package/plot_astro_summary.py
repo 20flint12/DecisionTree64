@@ -172,6 +172,7 @@ def plot_color_of_the_days(observer=None, days=1., file_name="plot_astro_summary
     # vert_range = lbl_dates[-1] - lbl_dates[0]
     vertical_half_range = days      # full range 2*days
 
+    print(2*days, "hours_per_point= ", 2*days/arr_size*24, "points_per_hour=", arr_size/48/days)
 
 
     # ///////////////////////  WEATHER  /////////////////////////////////////
@@ -209,8 +210,8 @@ def plot_color_of_the_days(observer=None, days=1., file_name="plot_astro_summary
 
         # Replace value_P
         # weather_P[idx] = value_P
-        weather_P[idx:idx+8] = value_P            # and N elements more
-        weather_T[idx:idx+8] = value_T            # and N elements more
+        weather_P[idx:idx+7] = value_P            # and N elements more
+        weather_T[idx:idx+7] = value_T            # and N elements more
         # weather_P[idx] = np.full(10, value_P)
 
 

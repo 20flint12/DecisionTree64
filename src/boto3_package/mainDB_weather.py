@@ -212,7 +212,8 @@ def main_put_record(observer=None, job_name="12345678#REP1"):
     observer.get_tz_by_coord()
 
     # Observer data
-    observer_dict = {"geo": observer.get_geo_name, "tz": observer.timezone_name}
+    # observer_dict = {"geo": observer.get_geo_name, "tz": observer.timezone_name}
+    observer_dict = {"geo": observer.get_geo_name}
     data_dict["location"] = json.dumps(observer_dict)
 
     # Weather data
