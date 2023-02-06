@@ -167,7 +167,8 @@ def plot_color_of_the_days(observer=None, days=1., file_name="plot_astro_summary
     arr_size = len(lbl_dates)
 
     # vert_range = lbl_dates[-1] - lbl_dates[0]
-    vert_range = days * 2
+    vertical_half_range = days      # full range 2*days
+
 
 
     # ///////////////////////  WEATHER  /////////////////////////////////////
@@ -212,14 +213,14 @@ def plot_color_of_the_days(observer=None, days=1., file_name="plot_astro_summary
     Z = np.zeros(arr_size).reshape(arr_size, 1)
     Z[:, 0] = weather_array
 
-    horiz_half = vert_range / axe1.bbox.height * axe1.bbox.width / 2
+    horizont_half_range = vertical_half_range / axe1.bbox.height * axe1.bbox.width
 
     im = axe0.imshow(Z,
                      interpolation='bicubic',
                      aspect='auto',
                      cmap='summer',
                      origin='upper',
-                     extent=[-horiz_half, horiz_half, lbl_dates[-1], lbl_dates[0]],
+                     extent=[-horizont_half_range, horizont_half_range, lbl_dates[-1], lbl_dates[0]],
                      vmax=Z.max(), vmin=Z.min()
                      )
 
@@ -232,16 +233,17 @@ def plot_color_of_the_days(observer=None, days=1., file_name="plot_astro_summary
     Z = np.zeros(arr_size * gcolumn).reshape(arr_size, gcolumn)
     Z[:, 0] = elements_array
 
-    horiz_half = vert_range / axe1.bbox.height * axe1.bbox.width / 2
+    horizont_half_range = vertical_half_range / axe1.bbox.height * axe1.bbox.width
 
-    _plot_annotations_of_moon_elements(annotation_elem_dict=annot_moon_elem, axe=axe1, horiz_range=horiz_half)
+    _plot_annotations_of_moon_elements(annotation_elem_dict=annot_moon_elem, axe=axe1,
+                                       ratio_v_h=(vertical_half_range, horizont_half_range))
 
     CYCLING_OVERLAP = 120 * (2 / 4) / 2 * pz.OVERLAP_COEF
     im = axe1.imshow(Z,
                      interpolation='nearest',
                      cmap=pz.elements_cmap,
                      origin='upper',
-                     extent=[-horiz_half, horiz_half, lbl_dates[-1], lbl_dates[0]],
+                     extent=[-horizont_half_range, horizont_half_range, lbl_dates[-1], lbl_dates[0]],
                      # vmin=0.0, vmax=120.0,
                      vmin=0 - CYCLING_OVERLAP, vmax=120 + CYCLING_OVERLAP,
                      )
@@ -259,15 +261,15 @@ def plot_color_of_the_days(observer=None, days=1., file_name="plot_astro_summary
     Z = np.zeros(arr_size * gcolumn).reshape(arr_size, gcolumn)
     Z[:, 0] = moon_lun
 
-    horiz_half = vert_range / axe2.bbox.height * axe2.bbox.width / 2
-    _plot_annotations_of_moon_phases(observer=observer, days=days, axe=axe2, horiz_range=horiz_half)
-
+    horizont_half_range = vertical_half_range / axe2.bbox.height * axe2.bbox.width
+    _plot_annotations_of_moon_phases(observer=observer, days=days, axe=axe2,
+                                     ratio_v_h=(vertical_half_range, horizont_half_range))
     CYCLING_OVERLAP = 0.239
     im = axe2.imshow(Z,
                      interpolation='nearest',
                      cmap=pl.lunation_cmap,
                      origin='upper',
-                     extent=[-horiz_half, horiz_half, lbl_dates[-1], lbl_dates[0]],
+                     extent=[-horizont_half_range, horizont_half_range, lbl_dates[-1], lbl_dates[0]],
                      # vmin=0.0, vmax=1.0,
                      # vmin=-0.239, vmax=1.239,
                      vmin=0-CYCLING_OVERLAP, vmax=1+CYCLING_OVERLAP,
@@ -293,16 +295,18 @@ def plot_color_of_the_days(observer=None, days=1., file_name="plot_astro_summary
     Z[:, 3] = m_angle
     Z[:, 4] = m_angle
 
-    horiz_half = vert_range / axe3.bbox.height * axe3.bbox.width / 2
+    horizont_half_range = vertical_half_range / axe3.bbox.height * axe3.bbox.width
 
-    _plot_annotations_of_sun_days(observer=observer, days=days, axe=axe3, horiz_range=horiz_half)
-    _plot_annotations_of_moon_days(observer=observer, days=days, axe=axe3, horiz_range=horiz_half)
+    _plot_annotations_of_sun_days(observer=observer, days=days, axe=axe3,
+                                  ratio_v_h=(vertical_half_range, horizont_half_range))
+    _plot_annotations_of_moon_days(observer=observer, days=days, axe=axe3,
+                                   ratio_v_h=(vertical_half_range, horizont_half_range))
 
     im = axe3.imshow(Z,
                      interpolation='nearest',  # 'nearest', 'bilinear', 'bicubic'
                      cmap="twilight_shifted",
                      origin='upper',
-                     extent=[-horiz_half, horiz_half, lbl_dates[-1], lbl_dates[0]],
+                     extent=[-horizont_half_range, horizont_half_range, lbl_dates[-1], lbl_dates[0]],
                      vmin=Z.min(), vmax=Z.max()
                      )
 
@@ -320,19 +324,19 @@ def plot_color_of_the_days(observer=None, days=1., file_name="plot_astro_summary
     # Z[:, 3] = sun_zod
     Z[:, 1] = sun_zod
 
-    horiz_half = vert_range / axe4.bbox.height * axe4.bbox.width / 2
+    horizont_half_range = vertical_half_range / axe4.bbox.height * axe4.bbox.width
 
     _plot_annotations_of_zodiacs(annotation_moon_dict=annot_moon_zod,
                                  annotation_sun_dict=annot_sun_zod,
                                  axe=axe4,
-                                 horiz_range=horiz_half)
+                                 ratio_v_h=(vertical_half_range, horizont_half_range))
 
     CYCLING_OVERLAP = 360 * (2 / 12) / 2 * pz.OVERLAP_COEF
     im = axe4.imshow(Z,
                      interpolation='nearest',  # 'nearest', 'bilinear', 'bicubic'
                      cmap=pz.zodiac_cmap,
                      origin='upper',
-                     extent=[-horiz_half, horiz_half, lbl_dates[-1], lbl_dates[0]],
+                     extent=[-horizont_half_range, horizont_half_range, lbl_dates[-1], lbl_dates[0]],
                      # vmin=0, vmax=360,
                      vmin=0 - CYCLING_OVERLAP, vmax=360 + CYCLING_OVERLAP,
                      )
@@ -362,7 +366,7 @@ def plot_color_of_the_days(observer=None, days=1., file_name="plot_astro_summary
     plt.show()
 
 
-def _plot_annotations_of_sun_days(observer=None, days=1., axe=None, horiz_range=1):
+def _plot_annotations_of_sun_days(observer=None, days=1., axe=None, ratio_v_h=(1, 1)):
 
     observer.restore_unaware()
     begin_unaware = observer.get_unaware - timedelta(days=days)
@@ -386,7 +390,7 @@ def _plot_annotations_of_sun_days(observer=None, days=1., axe=None, horiz_range=
 
             annot_text = format_datetime(cur_unaware, "d MMM EEE", locale='uk_UA')
             # annot_text = str(cur_unaware.strftime(geo.dt_format_plot))
-            coords = (-0.6 * horiz_range, mdates.date2num(cur_unaware))
+            coords = (-0.6 * ratio_v_h[1], mdates.date2num(cur_unaware))
 
             axe.annotate(annot_text,
                          xy=coords,
@@ -396,7 +400,7 @@ def _plot_annotations_of_sun_days(observer=None, days=1., axe=None, horiz_range=
                          )
 
 
-def _plot_annotations_of_moon_days(observer=None, days=1., axe=None, horiz_range=1):
+def _plot_annotations_of_moon_days(observer=None, days=1., axe=None, ratio_v_h=(1, 1)):
 
     observer.restore_unaware()
     begin_unaware = observer.get_unaware - timedelta(days=days)
@@ -419,7 +423,7 @@ def _plot_annotations_of_moon_days(observer=None, days=1., axe=None, horiz_range
         if begin_unaware + timedelta(days=0.2) < cur_unaware < end_unaware - timedelta(days=0.2):
 
             annot_text = str(moon_dict["moon_day"]) + " міс. д."
-            coords = (0.6 * horiz_range, mdates.date2num(cur_unaware))
+            coords = (0.6 * ratio_v_h[1], mdates.date2num(cur_unaware))
 
             axe.annotate(annot_text,
                          xy=coords,
@@ -429,7 +433,7 @@ def _plot_annotations_of_moon_days(observer=None, days=1., axe=None, horiz_range
                          )
 
 
-def _plot_annotations_of_moon_phases(observer=None, days=1., axe=None, horiz_range=1):
+def _plot_annotations_of_moon_phases(observer=None, days=1., axe=None, ratio_v_h=(1, 1)):
 
     observer.restore_unaware()
     begin_unaware = observer.get_unaware - timedelta(days=days)
@@ -451,7 +455,7 @@ def _plot_annotations_of_moon_phases(observer=None, days=1., axe=None, horiz_ran
         #         cur_unaware < end_unaware - timedelta(days=0.5):
         if True:
             annot_text = str(moonph_dict["prev"]).replace(" ", "\n")
-            coords = (-0.0 * horiz_range, ephem.Date(moonph_dict['prev_utc']).datetime())
+            coords = (-0.0 * ratio_v_h[1], ephem.Date(moonph_dict['prev_utc']).datetime())
             # print(annot_text, coords)
             axe.annotate(annot_text,
                          xy=coords,
@@ -460,7 +464,7 @@ def _plot_annotations_of_moon_phases(observer=None, days=1., axe=None, horiz_ran
                          verticalalignment='center',
                          )
             annot_text = str(moonph_dict["next"]).replace(" ", "\n")
-            coords = (-0.0 * horiz_range, ephem.Date(moonph_dict['next_utc']).datetime())
+            coords = (-0.0 * ratio_v_h[1], ephem.Date(moonph_dict['next_utc']).datetime())
             # print(annot_text, coords)
             axe.annotate(annot_text,
                          xy=coords,
@@ -470,13 +474,13 @@ def _plot_annotations_of_moon_phases(observer=None, days=1., axe=None, horiz_ran
                          )
 
 
-def _plot_annotations_of_moon_elements(annotation_elem_dict=None, axe=None, horiz_range=1):
+def _plot_annotations_of_moon_elements(annotation_elem_dict=None, axe=None, ratio_v_h=(1, 1)):
 
     for i in annotation_elem_dict:
         # print(i, annotation_elem_dict[i])
 
         annot_text = str(i).replace(" ", "\n")
-        coords = (-0.0 * horiz_range, annotation_elem_dict[i])
+        coords = (-0.0 * ratio_v_h[1], annotation_elem_dict[i])
 
         axe.annotate(annot_text,
                      xy=coords,
@@ -486,13 +490,13 @@ def _plot_annotations_of_moon_elements(annotation_elem_dict=None, axe=None, hori
                      )
 
 
-def _plot_annotations_of_zodiacs(annotation_moon_dict=None, annotation_sun_dict=None, axe=None, horiz_range=1):
+def _plot_annotations_of_zodiacs(annotation_moon_dict=None, annotation_sun_dict=None, axe=None, ratio_v_h=(1, 1)):
 
     for i in annotation_moon_dict:
         # print(i, annotation_moon_dict[i])
 
         annot_text = str(i)
-        coords = (-0.5 * horiz_range, annotation_moon_dict[i])
+        coords = (-0.5 * ratio_v_h[1], annotation_moon_dict[i])
 
         axe.annotate(annot_text,
                      xy=coords,
@@ -505,7 +509,7 @@ def _plot_annotations_of_zodiacs(annotation_moon_dict=None, annotation_sun_dict=
         # print(i, annotation_sun_dict[i])
 
         annot_text = str(i)
-        coords = (0.5 * horiz_range, annotation_sun_dict[i])
+        coords = (0.5 * ratio_v_h[1], annotation_sun_dict[i])
 
         axe.annotate(annot_text,
                      xy=coords,
