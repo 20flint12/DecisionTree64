@@ -152,10 +152,11 @@ class dynamoDB_table(object):
 file_name = "moon_day.csv"
 script_dir = os.path.dirname(os.path.abspath(__file__))
 file_path = os.path.join(script_dir, file_name)
-print(file_path)
 
 moonDay_table = dynamoDB_table(path_file_csv=file_path)
-print(moonDay_table)
+
+print(os.path.basename(__file__), ">>>", file_path)
+print(os.path.basename(__file__), ">>>", moonDay_table)
 
 
 def main_create_populate_moon_day_table():

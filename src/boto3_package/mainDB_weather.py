@@ -172,10 +172,11 @@ class dynamoDB_table(object):
 file_name = "record_weather.csv"
 script_dir = os.path.dirname(os.path.abspath(__file__))
 file_path = os.path.join(script_dir, file_name)
-print(file_path)
 
 recordWeather_table = dynamoDB_table(path_file_csv=file_path)
-print(recordWeather_table)
+
+print(os.path.basename(__file__), ">>>", file_path)
+print(os.path.basename(__file__), ">>>", recordWeather_table)
 
 
 def main_create_populate_record_weather():
@@ -226,16 +227,17 @@ def main_put_record(observer=None, job_name="12345678#REP1"):
     return data_dict, text
 
 
-def main_query_filter(lists_of_items, geo_name="", attr="weather", field="T"):
+def main_query_filter(lists_of_items, geo_name="", attr="weather", field=None):
     '''
     :param lists_of_items:
     :param geo_name:
     :param attr:
     :param field:
     :return:
-
-    'location': {"geo":{"S":"KREMENCHUK"},"tz":{"S":"Europe/Kyiv"}}
     '''
+
+    if field is None:
+        field = ["P", "T"]
 
     value_list = []
     value_dict = {}
@@ -252,24 +254,24 @@ def main_query_filter(lists_of_items, geo_name="", attr="weather", field="T"):
         # city = location_dict['geo'].decode("utf-8")
         city = location_dict['geo']
 
-        # ToDo do not use invalid dict!
-        if field in attr_dict:
-            value = attr_dict[field]
-        else:
-            value = 0
-        # print(">", sort_key_val, city, item[attr], value)
+        # # ToDo do not use invalid dict!
+        # if field in attr_dict:
+        #     value = attr_dict[field]
+        # else:
+        #     value = 0
+        # # print(">", sort_key_val, city, item[attr], value)
 
         # Filter by city
         if geo_name.upper() == city:
 
-            value_dict[sort_key_val] = float(value)
-            value_list.append(float(value))
+            value_dict[sort_key_val] = attr_dict
+            # value_list.append(float(value))
 
-    average = 0
-    if len(value_list) > 0:
-        average = sum(value_list) / len(value_list)
+    # average = 0
+    # if len(value_list) > 0:
+    #     average = sum(value_list) / len(value_list)
 
-    return value_dict, average
+    return value_dict
 
 
 if __name__ == '__main__':
@@ -307,8 +309,8 @@ if __name__ == '__main__':
 
     # pprint(list_of_items)
     # print(text)
-    data_dict, avg = main_query_filter(list_of_items, geo_name=geo_name, attr="weather", field="P")
+    data_dict = main_query_filter(list_of_items, geo_name=geo_name, attr="weather", field=["P", "T"])
     print(geo_name)
     pprint(data_dict)
 
-    # pw.plot_weather(data_list=data_list, file_name="user_photo2.jpg")
+    # pw.plot_weather(data_dict=data_dict, file_name="user_photo2.jpg")

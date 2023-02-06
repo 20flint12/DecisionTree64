@@ -24,12 +24,15 @@ import src.boto3_package.mainDB_weather as b3w
 from babel.dates import format_datetime
 
 
+LABEL_OFFSET = 0.02     # actually for font high
+
+
 def plot_color_of_the_days(observer=None, days=1., file_name="plot_astro_summary.png", job_name=''):
     # print("unaware date2num=", mdates.date2num(observer.get_unaware))
 
     begin_unaware = observer.get_unaware - timedelta(days=days)
     end_unaware = observer.get_unaware + timedelta(days=days)
-    # print(begin_unaware, " - ", end_unaware)
+    print(begin_unaware, " - ", end_unaware)
 
     unaware_dates = np.linspace(begin_unaware.timestamp(), end_unaware.timestamp(), 1000)
 
@@ -147,7 +150,7 @@ def plot_color_of_the_days(observer=None, days=1., file_name="plot_astro_summary
     axe4.set_title(f'Зодіак', fontsize=10)
 
     axe5 = plt.subplot2grid((1, 10), (0, 9), colspan=1)
-    axe5.set_title(f'-', fontsize=10)
+    axe5.set_title(f'Темпер.', fontsize=10)
 
 
     axes = (axe0, axe1, axe2, axe3, axe4, axe5)
@@ -172,24 +175,24 @@ def plot_color_of_the_days(observer=None, days=1., file_name="plot_astro_summary
 
 
     # ///////////////////////  WEATHER  /////////////////////////////////////
-
-    print(begin_unaware, " - ", end_unaware)            # 2023-01-18 10:22:27.276605  -  2023-01-25 10:22:27.276605
-
     list_of_items = b3w.recordWeather_table.table_query(_pk=job_name,
                                                         _between_low=str(begin_unaware),  # "2021-01-21 14:41:49"
                                                         _between_high=str(end_unaware)
                                                         )
     # pprint(list_of_items)
 
-    data_dict, avg = b3w.main_query_filter(list_of_items, geo_name=observer.get_geo_name, attr="weather", field="P")
+    data_dict = b3w.main_query_filter(list_of_items, geo_name=observer.get_geo_name, attr="weather", field="P")
     data_len = len(data_dict)
-    # print('len=', data_len, data_dict)
+
+    # min_P = min(data_dict.values()['P'])
+    min_P_T = min((int(d['P']), int(d['T'])) for d in data_dict.values())
+    print('len=', data_len, min_P_T)
 
 
     # Create avg array of weather data
     # avg = 770    # np.average(ycolors)
-    weather_array = np.full(arr_size, avg)
-
+    weather_P = np.full(arr_size, min_P_T[0])
+    weather_T = np.full(arr_size, min_P_T[1])
 
     # Modify avg array with weather data
     for item in data_dict:
@@ -200,25 +203,44 @@ def plot_color_of_the_days(observer=None, days=1., file_name="plot_astro_summary
         desired_date = mdates.date2num(dt_cur)
         idx = min(range(len(lbl_dates)), key=lambda i: abs(lbl_dates[i] - desired_date))
 
-        value = data_dict[item]
-        # print(item, dt_cur, desired_date, idx, value)
+        value_P = data_dict[item]['P']
+        value_T = data_dict[item]['T']
+        # print(item, dt_cur, desired_date, idx, value_P)
 
-        # Replace value
-        # weather_array[idx] = value
-        weather_array[idx:idx+8] = value
-        # weather_array[idx] = np.full(10, value)
+        # Replace value_P
+        # weather_P[idx] = value_P
+        weather_P[idx:idx+8] = value_P            # and N elements more
+        weather_T[idx:idx+8] = value_T            # and N elements more
+        # weather_P[idx] = np.full(10, value_P)
 
-    # print(weather_array)
+
+    # print(weather_P)
 
     Z = np.zeros(arr_size).reshape(arr_size, 1)
-    Z[:, 0] = weather_array
+    Z[:, 0] = weather_P
 
-    horizont_half_range = vertical_half_range / axe1.bbox.height * axe1.bbox.width
+    horizont_half_range = vertical_half_range / axe0.bbox.height * axe0.bbox.width
 
     im = axe0.imshow(Z,
                      interpolation='bicubic',
                      aspect='auto',
                      cmap='summer',
+                     origin='upper',
+                     extent=[-horizont_half_range, horizont_half_range, lbl_dates[-1], lbl_dates[0]],
+                     vmax=Z.max(), vmin=Z.min()
+                     )
+
+
+
+    Z = np.zeros(arr_size).reshape(arr_size, 1)
+    Z[:, 0] = weather_T
+
+    horizont_half_range = vertical_half_range / axe5.bbox.height * axe5.bbox.width
+
+    im = axe5.imshow(Z,
+                     interpolation='bicubic',
+                     aspect='auto',
+                     cmap='winter',
                      origin='upper',
                      extent=[-horizont_half_range, horizont_half_range, lbl_dates[-1], lbl_dates[0]],
                      vmax=Z.max(), vmin=Z.min()
@@ -372,7 +394,6 @@ def _plot_annotations_of_sun_days(observer=None, days=1., axe=None, ratio_v_h=(1
     begin_unaware = observer.get_unaware - timedelta(days=days)
     end_unaware = observer.get_unaware + timedelta(days=days)
     cur_unaware = begin_unaware
-    # print(begin_unaware, " - ", end_unaware)
 
     while end_unaware > cur_unaware:
 
@@ -383,10 +404,11 @@ def _plot_annotations_of_sun_days(observer=None, days=1., axe=None, ratio_v_h=(1
 
         observer.unaware_update_utc12(cur_unaware)              # adjusting calculation (between rise and setting)
         sun_dict, sun_text = sr.main_sun_rise_sett(observer=observer)   # modified observer
-        zenit_day = ephem.Date((sun_dict['sun_sett'] + sun_dict['sun_rise']) / 2)
-        cur_unaware = zenit_day.datetime()
+        zenit_sun = ephem.Date((sun_dict['sun_sett'] + sun_dict['sun_rise']) / 2)
+        cur_unaware = zenit_sun.datetime()
 
-        if begin_unaware + timedelta(days=0.2) < cur_unaware < end_unaware - timedelta(days=0.2):
+        if begin_unaware + timedelta(days=ratio_v_h[0] * LABEL_OFFSET) < cur_unaware < \
+                end_unaware - timedelta(days=ratio_v_h[0] * LABEL_OFFSET):
 
             annot_text = format_datetime(cur_unaware, "d MMM EEE", locale='uk_UA')
             # annot_text = str(cur_unaware.strftime(geo.dt_format_plot))
@@ -407,8 +429,6 @@ def _plot_annotations_of_moon_days(observer=None, days=1., axe=None, ratio_v_h=(
     end_unaware = observer.get_unaware + timedelta(days=days)
     cur_unaware = begin_unaware
 
-    print("_plot_annotations_of_moon_days ???", observer.get_geo_name)
-
     while end_unaware > cur_unaware:
         if cur_unaware == begin_unaware:                            # init pass
             pass                                                    # init calculation
@@ -417,10 +437,24 @@ def _plot_annotations_of_moon_days(observer=None, days=1., axe=None, ratio_v_h=(
 
         observer.unaware_update_utc(cur_unaware)
         moon_dict, moon_text = md.main_moon_day(observer=observer)  # modified observer
-        lbl_moon_noon = ephem.Date((moon_dict['moon_sett'] + moon_dict['moon_rise']) / 2)
-        cur_unaware = lbl_moon_noon.datetime()
+        zenit_moon = (moon_dict['moon_sett'] + moon_dict['moon_rise']) / 2
+        moon_noon_unaware = ephem.Date(zenit_moon)
 
-        if begin_unaware + timedelta(days=0.2) < cur_unaware < end_unaware - timedelta(days=0.2):
+        # if moon_dict['moon_sett'] < moon_dict['moon_rise']:
+        #     moon_noon_unaware = ephem.Date(zenit_moon)
+        # else:
+        #     moon_noon_unaware = ephem.Date(zenit_moon + 24.5 / 24)
+
+        # Check for infinite loop !!!
+        if moon_noon_unaware.datetime() < cur_unaware:
+            print("_plot_annotations_of_moon_days  cur_unaware=", cur_unaware, "moon_noon_unaware=", moon_noon_unaware.datetime())
+        else:
+            print("_plot_annotations_of_moon_days  cur_unaware=", cur_unaware)
+
+        cur_unaware = moon_noon_unaware.datetime()
+
+        if begin_unaware + timedelta(days=ratio_v_h[0] * LABEL_OFFSET) < cur_unaware < \
+                end_unaware - timedelta(days=ratio_v_h[0] * LABEL_OFFSET):
 
             annot_text = str(moon_dict["moon_day"]) + " міс. д."
             coords = (0.6 * ratio_v_h[1], mdates.date2num(cur_unaware))

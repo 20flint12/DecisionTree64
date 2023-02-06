@@ -227,10 +227,11 @@ class dynamoDB_table(object):
 file_name = "user_bot_chat.csv"
 script_dir = os.path.dirname(os.path.abspath(__file__))
 file_path = os.path.join(script_dir, file_name)
-print(file_path)
 
 botUsers_table = dynamoDB_table(path_file_csv=file_path)
-print(botUsers_table)
+
+print(os.path.basename(__file__), ">>>", file_path)
+print(os.path.basename(__file__), ">>>", botUsers_table)
 
 
 def main_create_populate_bot_users():

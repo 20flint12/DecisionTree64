@@ -16,21 +16,21 @@ colors = [
 weather_cmap = LinearSegmentedColormap.from_list('elements_cmap', colors, N=960)
 
 
-def plot_weather(data_list=None, file_name="user_photo2.jpg"):
+def plot_weather(data_dict=None, file_name="user_photo2.jpg"):
 
     # plt.style.use('_mpl-gallery-nogrid')
     fig, axes = plt.subplots(nrows=1, ncols=2, figsize=(4, 7))
     fig.subplots_adjust(top=0.95, bottom=.05, left=0.15, right=.95, wspace=0.00)
     # ************************************************************************
 
-    len_arr = len(data_list)
+    len_arr = len(data_dict)
     len_append = len_arr
     print("len_arr=", len_arr)
     # ***********************************************************
 
     xs = np.linspace(0, len_arr+len_append, len_arr+len_append)
 
-    ycolors = np.array(data_list)
+    ycolors = np.array(data_dict)
     ys = np.append(ycolors, np.full(len_append, np.average(ycolors)))
 
 
@@ -73,7 +73,7 @@ if __name__ == '__main__':
               84, 84, 84, 84, 84, 84, 84, 84, 84, 84, 84, 84, 84, 84, 84, 84, 84, 84, 84, 84, 84, 84, 84, 84, 84, 84, 87, 87,
               87, 87, 87]
 
-    plot_weather(data_list=values, file_name="user_photo2.jpg")
+    plot_weather(data_dict=values, file_name="user_photo2.jpg")
 
 
 
