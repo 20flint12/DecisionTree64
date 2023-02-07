@@ -27,14 +27,15 @@ from babel.dates import format_datetime
 LABEL_OFFSET = 0.02     # actually for font high
 
 
-def plot_color_of_the_days(observer=None, span=(1., 1.), days_before=1., days_after=1., file_name="plot_astro_summary.png", job_name=''):
+def plot_color_of_the_days(observer=None, span=(1., 1.), file_name="plot_astro_summary.png", job_name=''):
     # print("unaware date2num=", mdates.date2num(observer.get_unaware))
 
     begin_unaware = observer.get_unaware - timedelta(days=span[0])
     end_unaware = observer.get_unaware + timedelta(days=span[1])
-    print(begin_unaware, " - ", end_unaware)
+    DATES_SIZE = 1000
+    print(begin_unaware, " - ", end_unaware, "len=", DATES_SIZE)
 
-    unaware_dates = np.linspace(begin_unaware.timestamp(), end_unaware.timestamp(), 1000)
+    unaware_dates = np.linspace(begin_unaware.timestamp(), end_unaware.timestamp(), DATES_SIZE)
 
     moon_element = []
     moon_lunat = []
@@ -46,7 +47,7 @@ def plot_color_of_the_days(observer=None, span=(1., 1.), days_before=1., days_af
     # moon_dist = []
     sun_angle = []
     moon_angle = []
-    lebel_dates = []
+    label_dates = []
 
     blocked_m_long = False
     blocked_s_long = False
@@ -58,7 +59,7 @@ def plot_color_of_the_days(observer=None, span=(1., 1.), days_before=1., days_af
     for cur_unaware_dt in unaware_dates:
 
         observer.unaware_update_utc((datetime.fromtimestamp(cur_unaware_dt)))
-        lebel_dates.append(mdates.date2num(observer.get_unaware))
+        label_dates.append(mdates.date2num(observer.get_unaware))
         # print(cur_unaware_dt, " | ", observer.get_unaware, " / ", observer.get_utc)
 
 
@@ -167,15 +168,12 @@ def plot_color_of_the_days(observer=None, span=(1., 1.), days_before=1., days_af
         axe.yaxis.set_major_locator(mdates.DayLocator(interval=1))
 
 
-    arr_size = len(lebel_dates)
 
-    # vertical_full_range = lebel_dates[-1] - lebel_dates[0]
-    vertical_half_range = days_before      # full range 2*days
+    # vertical_full_span = label_dates[-1] - label_dates[0]
+    vertical_full_span = span[0] + span[1]
+    points_per_hour = int(DATES_SIZE / (span[0] + span[1]) / 24) + 1
 
-    # points_per_hour = int(arr_size / (days_before * 2) / 24) + 1
-    points_per_hour = int(arr_size / (span[0] + span[1]) / 24) + 1
-    # print("arr_size=", arr_size, "days=", 2 * days_before, "points_per_hour=", points_per_hour)
-    print("arr_size=", arr_size, "days=", span[0] + span[1], "points_per_hour=", points_per_hour)
+    print("DATES_SIZE=", DATES_SIZE, "days=", span[0] + span[1], "points_per_hour=", points_per_hour)
 
 
     # ///////////////////////  WEATHER  /////////////////////////////////////
@@ -195,8 +193,8 @@ def plot_color_of_the_days(observer=None, span=(1., 1.), days_before=1., days_af
 
     # Create avg array of weather data
     # avg = 770    # np.average(ycolors)
-    weather_P = np.full(arr_size, min_P_T[0])
-    weather_T = np.full(arr_size, min_P_T[1])
+    weather_P = np.full(DATES_SIZE, min_P_T[0])
+    weather_T = np.full(DATES_SIZE, min_P_T[1])
 
     # Modify avg array with weather data
     for item in data_dict:
@@ -210,7 +208,7 @@ def plot_color_of_the_days(observer=None, span=(1., 1.), days_before=1., days_af
 
         # Find and replace origin element
         desired_date = mdates.date2num(dt_aware_cur)
-        idx = min(range(len(lebel_dates)), key=lambda i: abs(lebel_dates[i] - desired_date))
+        idx = min(range(len(label_dates)), key=lambda i: abs(label_dates[i] - desired_date))
 
         value_P = data_dict[item]['P']
         value_T = data_dict[item]['T']
@@ -225,33 +223,33 @@ def plot_color_of_the_days(observer=None, span=(1., 1.), days_before=1., days_af
 
     # print(weather_P)
 
-    Z = np.zeros(arr_size).reshape(arr_size, 1)
+    Z = np.zeros(DATES_SIZE).reshape(DATES_SIZE, 1)
     Z[:, 0] = weather_P
 
-    horizont_half_range = vertical_half_range / axe0.bbox.height * axe0.bbox.width
+    horizont_full_span = vertical_full_span / axe0.bbox.height * axe0.bbox.width
 
     im = axe0.imshow(Z,
                      interpolation='bicubic',
                      aspect='auto',
                      cmap='summer',
                      origin='upper',
-                     extent=[-horizont_half_range, horizont_half_range, lebel_dates[-1], lebel_dates[0]],
+                     extent=[-horizont_full_span/2, horizont_full_span/2, label_dates[-1], label_dates[0]],
                      vmax=Z.max(), vmin=Z.min()
                      )
 
 
 
-    Z = np.zeros(arr_size).reshape(arr_size, 1)
+    Z = np.zeros(DATES_SIZE).reshape(DATES_SIZE, 1)
     Z[:, 0] = weather_T
 
-    horizont_half_range = vertical_half_range / axe5.bbox.height * axe5.bbox.width
+    horizont_full_span = vertical_full_span / axe5.bbox.height * axe5.bbox.width
 
     im = axe5.imshow(Z,
                      interpolation='bicubic',
                      aspect='auto',
                      cmap='winter',
                      origin='upper',
-                     extent=[-horizont_half_range, horizont_half_range, lebel_dates[-1], lebel_dates[0]],
+                     extent=[-horizont_full_span/2, horizont_full_span/2, label_dates[-1], label_dates[0]],
                      vmax=Z.max(), vmin=Z.min()
                      )
 
@@ -261,20 +259,20 @@ def plot_color_of_the_days(observer=None, span=(1., 1.), days_before=1., days_af
     elements_array = np.mod(moon_lon, 120)
 
     gcolumn = 1
-    Z = np.zeros(arr_size * gcolumn).reshape(arr_size, gcolumn)
+    Z = np.zeros(DATES_SIZE * gcolumn).reshape(DATES_SIZE, gcolumn)
     Z[:, 0] = elements_array
 
-    horizont_half_range = vertical_half_range / axe1.bbox.height * axe1.bbox.width
+    horizont_full_span = vertical_full_span / axe1.bbox.height * axe1.bbox.width
 
     _plot_annotations_of_moon_elements(annotation_elem_dict=annot_moon_elem, axe=axe1,
-                                       ratio_v_h=(vertical_half_range, horizont_half_range))
+                                       ratio_v_h=(vertical_full_span, horizont_full_span))
 
     CYCLING_OVERLAP = 120 * (2 / 4) / 2 * pz.OVERLAP_COEF
     im = axe1.imshow(Z,
                      interpolation='nearest',
                      cmap=pz.elements_cmap,
                      origin='upper',
-                     extent=[-horizont_half_range, horizont_half_range, lebel_dates[-1], lebel_dates[0]],
+                     extent=[-horizont_full_span/2, horizont_full_span/2, label_dates[-1], label_dates[0]],
                      # vmin=0.0, vmax=120.0,
                      vmin=0 - CYCLING_OVERLAP, vmax=120 + CYCLING_OVERLAP,
                      )
@@ -289,18 +287,18 @@ def plot_color_of_the_days(observer=None, span=(1., 1.), days_before=1., days_af
     # sun_zod = np.array(sun_lon)
 
     gcolumn = 1
-    Z = np.zeros(arr_size * gcolumn).reshape(arr_size, gcolumn)
+    Z = np.zeros(DATES_SIZE * gcolumn).reshape(DATES_SIZE, gcolumn)
     Z[:, 0] = moon_lun
 
-    horizont_half_range = vertical_half_range / axe2.bbox.height * axe2.bbox.width
+    horizont_full_span = vertical_full_span / axe2.bbox.height * axe2.bbox.width
     _plot_annotations_of_moon_phases(observer=observer, days=span[0], axe=axe2,
-                                     ratio_v_h=(vertical_half_range, horizont_half_range))
+                                     ratio_v_h=(vertical_full_span/2, horizont_full_span/2))
     CYCLING_OVERLAP = 0.239
     im = axe2.imshow(Z,
                      interpolation='nearest',
                      cmap=pl.lunation_cmap,
                      origin='upper',
-                     extent=[-horizont_half_range, horizont_half_range, lebel_dates[-1], lebel_dates[0]],
+                     extent=[-horizont_full_span/2, horizont_full_span/2, label_dates[-1], label_dates[0]],
                      # vmin=0.0, vmax=1.0,
                      # vmin=-0.239, vmax=1.239,
                      vmin=0-CYCLING_OVERLAP, vmax=1+CYCLING_OVERLAP,
@@ -319,25 +317,25 @@ def plot_color_of_the_days(observer=None, span=(1., 1.), days_before=1., days_af
     m_angle = np.array(ycolors)
 
     gcolumn = 5
-    Z = np.zeros(arr_size * gcolumn).reshape(arr_size, gcolumn)
+    Z = np.zeros(DATES_SIZE * gcolumn).reshape(DATES_SIZE, gcolumn)
     Z[:, 0] = s_angle
     Z[:, 1] = s_angle
     Z[:, 2] = (s_angle + m_angle) / 2
     Z[:, 3] = m_angle
     Z[:, 4] = m_angle
 
-    horizont_half_range = vertical_half_range / axe3.bbox.height * axe3.bbox.width
+    horizont_full_span = vertical_full_span / axe3.bbox.height * axe3.bbox.width
 
     _plot_annotations_of_sun_days(observer=observer, days=span[0], axe=axe3,
-                                  ratio_v_h=(vertical_half_range, horizont_half_range))
+                                  ratio_v_h=(vertical_full_span/2, horizont_full_span/2))
     _plot_annotations_of_moon_days(observer=observer, days=span[0], axe=axe3,
-                                   ratio_v_h=(vertical_half_range, horizont_half_range))
+                                   ratio_v_h=(vertical_full_span/2, horizont_full_span/2))
 
     im = axe3.imshow(Z,
                      interpolation='nearest',  # 'nearest', 'bilinear', 'bicubic'
                      cmap="twilight_shifted",
                      origin='upper',
-                     extent=[-horizont_half_range, horizont_half_range, lebel_dates[-1], lebel_dates[0]],
+                     extent=[-horizont_full_span/2, horizont_full_span/2, label_dates[-1], label_dates[0]],
                      vmin=Z.min(), vmax=Z.max()
                      )
 
@@ -348,26 +346,26 @@ def plot_color_of_the_days(observer=None, span=(1., 1.), days_before=1., days_af
     sun_zod = np.array(sun_lon)
 
     gcolumn = 2
-    Z = np.zeros(arr_size * gcolumn).reshape(arr_size, gcolumn)
+    Z = np.zeros(DATES_SIZE * gcolumn).reshape(DATES_SIZE, gcolumn)
     Z[:, 0] = moon_zod
     # Z[:, 1] = moon_zod
     # Z[:, 2] = moon_zod
     # Z[:, 3] = sun_zod
     Z[:, 1] = sun_zod
 
-    horizont_half_range = vertical_half_range / axe4.bbox.height * axe4.bbox.width
+    horizont_full_span = vertical_full_span / axe4.bbox.height * axe4.bbox.width
 
     _plot_annotations_of_zodiacs(annotation_moon_dict=annot_moon_zod,
                                  annotation_sun_dict=annot_sun_zod,
                                  axe=axe4,
-                                 ratio_v_h=(vertical_half_range, horizont_half_range))
+                                 ratio_v_h=(vertical_full_span/2, horizont_full_span/2))
 
     CYCLING_OVERLAP = 360 * (2 / 12) / 2 * pz.OVERLAP_COEF
     im = axe4.imshow(Z,
                      interpolation='nearest',  # 'nearest', 'bilinear', 'bicubic'
                      cmap=pz.zodiac_cmap,
                      origin='upper',
-                     extent=[-horizont_half_range, horizont_half_range, lebel_dates[-1], lebel_dates[0]],
+                     extent=[-horizont_full_span/2, horizont_full_span/2, label_dates[-1], label_dates[0]],
                      # vmin=0, vmax=360,
                      vmin=0 - CYCLING_OVERLAP, vmax=360 + CYCLING_OVERLAP,
                      )
@@ -375,7 +373,7 @@ def plot_color_of_the_days(observer=None, span=(1., 1.), days_before=1., days_af
 
     # //////////////////////  FOOTPRINT  ////////////////////////////////////
 
-    axe0.set_xlabel("Геолокація: " + observer._geo_name,
+    axe0.set_xlabel("Геолокація: " + observer.get_geo_name,
                     labelpad=6,
                     loc='left',
                     fontsize=9
@@ -577,7 +575,7 @@ if __name__ == '__main__':
     text += str(observer_obj)
     # print(text)
     # #######################################################################################
-    plot_color_of_the_days(observer=observer_obj, span=(3.5, 3.5), days_before=3.5, days_after=3.5, file_name="plot_astro_summary.png", job_name="442763659#REP")
+    plot_color_of_the_days(observer=observer_obj, span=(5, 2), file_name="plot_astro_summary.png", job_name="442763659#REP")
 
     # observer_obj.unaware_update_utc(in_unaware_datetime)
     # plot_color_of_the_days(observer=observer_obj, days=3, file_name="plot_astro_summary.png", job_name="442763659#REP")

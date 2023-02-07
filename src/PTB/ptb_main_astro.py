@@ -466,7 +466,7 @@ async def callback_timer_DAILY(context: ContextTypes.DEFAULT_TYPE) -> None:
         print(job.chat_id, "alarm:: An exception occurred ************** !!!!!!!!!!!!!!!!!!!!!", e)
 
     # ++++++++++++++++++++++
-    mp.plot_color_of_the_days(observer=observer_obj, span=(4, 4), days_before=4, days_after=4, file_name=photo_name, job_name=job.name)
+    mp.plot_color_of_the_days(observer=observer_obj, span=(5, 2), file_name=photo_name, job_name=job.name)
 
     logger.info("send_photo %s", photo_name)
 
@@ -571,7 +571,7 @@ async def color_of_the_days(update: Update, context: ContextTypes.DEFAULT_TYPE) 
     text = ""
     text += str(observer_obj)
     # ++++++++++++++++++++++
-    mp.plot_color_of_the_days(observer=observer_obj, span=(4, 4), days_before=4, days_after=4, file_name=photo_name, job_name=chat_job_name)
+    mp.plot_color_of_the_days(observer=observer_obj, span=(5, 2), file_name=photo_name, job_name=chat_job_name)
 
     logger.info("color_of_the_days - %s", photo_name)
     await update.message.reply_photo(photo=open(photo_name, 'rb'))
