@@ -177,9 +177,11 @@ def plot_color_of_the_days(observer=None, span=(1., 1.), file_name="plot_astro_s
 
 
     # ///////////////////////  WEATHER  /////////////////////////////////////
+    begin_utc = observer.dt_unaware_to_utc(begin_unaware)
+    end_utc = observer.dt_unaware_to_utc(end_unaware)
     list_of_items = b3w.recordWeather_table.table_query(_pk=job_name,
-                                                        _between_low=str(begin_unaware),  # "2021-01-21 14:41:49"
-                                                        _between_high=str(end_unaware)
+                                                        _between_low=str(begin_utc),  # "2021-01-21 14:41:49"
+                                                        _between_high=str(end_utc)
                                                         )
     # pprint(list_of_items)
 
