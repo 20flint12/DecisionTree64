@@ -466,7 +466,7 @@ async def callback_timer_DAILY(context: ContextTypes.DEFAULT_TYPE) -> None:
         print(job.chat_id, "alarm:: An exception occurred ************** !!!!!!!!!!!!!!!!!!!!!", e)
 
     # ++++++++++++++++++++++
-    mp.plot_color_of_the_days(observer=observer_obj, days=4, file_name=photo_name, job_name=job.name)
+    mp.plot_color_of_the_days(observer=observer_obj, span=(4, 4), days_before=4, days_after=4, file_name=photo_name, job_name=job.name)
 
     logger.info("send_photo %s", photo_name)
 
@@ -475,16 +475,6 @@ async def callback_timer_DAILY(context: ContextTypes.DEFAULT_TYPE) -> None:
     except Exception as e:
         pass
         print(job.chat_id, "alarm:: An exception occurred ************** !!!!!!!!!!!!!!!!!!!!!", e)
-
-
-def remove_job_if_exists(job_name: str, context: ContextTypes.DEFAULT_TYPE) -> bool:
-    """Remove job with given name. Returns whether job was removed."""
-    current_jobs = context.job_queue.get_jobs_by_name(job_name)
-    if not current_jobs:
-        return False
-    for job in current_jobs:
-        job.schedule_removal()
-    return True
 
 
 async def setup_timer_DAILY(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -525,7 +515,7 @@ async def setup_timer_DAILY(update: Update, context: ContextTypes.DEFAULT_TYPE) 
 
 
     # ############# Specify timer with valid [HHMM] ###############
-    job_removed = remove_job_if_exists(job_name, context)
+    job_removed = rwt.remove_job_if_exists(job_name, context)
     if job_removed:
         text += "\nСтарий таймер видалено."
 
@@ -581,7 +571,7 @@ async def color_of_the_days(update: Update, context: ContextTypes.DEFAULT_TYPE) 
     text = ""
     text += str(observer_obj)
     # ++++++++++++++++++++++
-    mp.plot_color_of_the_days(observer=observer_obj, days=4, file_name=photo_name, job_name=chat_job_name)
+    mp.plot_color_of_the_days(observer=observer_obj, span=(4, 4), days_before=4, days_after=4, file_name=photo_name, job_name=chat_job_name)
 
     logger.info("color_of_the_days - %s", photo_name)
     await update.message.reply_photo(photo=open(photo_name, 'rb'))

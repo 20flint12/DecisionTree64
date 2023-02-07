@@ -27,11 +27,11 @@ from babel.dates import format_datetime
 LABEL_OFFSET = 0.02     # actually for font high
 
 
-def plot_color_of_the_days(observer=None, days=1., file_name="plot_astro_summary.png", job_name=''):
+def plot_color_of_the_days(observer=None, span=(1., 1.), days_before=1., days_after=1., file_name="plot_astro_summary.png", job_name=''):
     # print("unaware date2num=", mdates.date2num(observer.get_unaware))
 
-    begin_unaware = observer.get_unaware - timedelta(days=days)
-    end_unaware = observer.get_unaware + timedelta(days=days)
+    begin_unaware = observer.get_unaware - timedelta(days=span[0])
+    end_unaware = observer.get_unaware + timedelta(days=span[1])
     print(begin_unaware, " - ", end_unaware)
 
     unaware_dates = np.linspace(begin_unaware.timestamp(), end_unaware.timestamp(), 1000)
@@ -46,7 +46,7 @@ def plot_color_of_the_days(observer=None, days=1., file_name="plot_astro_summary
     # moon_dist = []
     sun_angle = []
     moon_angle = []
-    lbl_dates = []
+    lebel_dates = []
 
     blocked_m_long = False
     blocked_s_long = False
@@ -55,15 +55,15 @@ def plot_color_of_the_days(observer=None, days=1., file_name="plot_astro_summary
     annot_sun_zod = {}
     last_sun_str = ""
 
-    for cur_un_dt in unaware_dates:
+    for cur_unaware_dt in unaware_dates:
 
-        observer.unaware_update_utc((datetime.fromtimestamp(cur_un_dt)))
-        lbl_dates.append(mdates.date2num(observer.get_unaware))
-        # print(cur_un_dt, " | ", observer.get_unaware, " / ", observer.get_utc)
+        observer.unaware_update_utc((datetime.fromtimestamp(cur_unaware_dt)))
+        lebel_dates.append(mdates.date2num(observer.get_unaware))
+        # print(cur_unaware_dt, " | ", observer.get_unaware, " / ", observer.get_utc)
 
 
-        # if unaware_dates.index(cur_un_dt) == 0:
-        # if np.where(unaware_dates == cur_un_dt)[0] == 0:
+        # if unaware_dates.index(cur_unaware_dt) == 0:
+        # if np.where(unaware_dates == cur_unaware_dt)[0] == 0:
         #     print(zd.format_zodiacal_longitude())
         # else:
         #     print(zd.format_zodiacal_longitude())
@@ -123,7 +123,7 @@ def plot_color_of_the_days(observer=None, days=1., file_name="plot_astro_summary
         malt_dict, alt_text = zd.main_moon_altitude(observer=observer)      # unmodified observer
         moon_angle.append(malt_dict["moon_angle"])
 
-        # print(cur_un_dt, " | ", observer.get_unaware, " \ ", observer.get_utc)
+        # print(cur_unaware_dt, " | ", observer.get_unaware, " \ ", observer.get_utc)
 
     # ************************************************************************
     plt.style.use('_mpl-gallery-nogrid')
@@ -167,12 +167,15 @@ def plot_color_of_the_days(observer=None, days=1., file_name="plot_astro_summary
         axe.yaxis.set_major_locator(mdates.DayLocator(interval=1))
 
 
-    arr_size = len(lbl_dates)
+    arr_size = len(lebel_dates)
 
-    # vert_range = lbl_dates[-1] - lbl_dates[0]
-    vertical_half_range = days      # full range 2*days
+    # vertical_full_range = lebel_dates[-1] - lebel_dates[0]
+    vertical_half_range = days_before      # full range 2*days
 
-    print(2*days, "hours_per_point= ", 2*days/arr_size*24, "points_per_hour=", arr_size/48/days)
+    # points_per_hour = int(arr_size / (days_before * 2) / 24) + 1
+    points_per_hour = int(arr_size / (span[0] + span[1]) / 24) + 1
+    # print("arr_size=", arr_size, "days=", 2 * days_before, "points_per_hour=", points_per_hour)
+    print("arr_size=", arr_size, "days=", span[0] + span[1], "points_per_hour=", points_per_hour)
 
 
     # ///////////////////////  WEATHER  /////////////////////////////////////
@@ -198,20 +201,25 @@ def plot_color_of_the_days(observer=None, days=1., file_name="plot_astro_summary
     # Modify avg array with weather data
     for item in data_dict:
 
-        dt_cur = datetime.strptime(item, geo.dt_format_rev)
+        dt_utc_cur = datetime.strptime(item, geo.dt_format_rev)
+
+        # ToDo Convert to unaware_date
+        # ...
+        dt_aware_cur = observer.dt_utc_to_aware_by_tz(dt_utc_cur)
+
 
         # Find and replace origin element
-        desired_date = mdates.date2num(dt_cur)
-        idx = min(range(len(lbl_dates)), key=lambda i: abs(lbl_dates[i] - desired_date))
+        desired_date = mdates.date2num(dt_aware_cur)
+        idx = min(range(len(lebel_dates)), key=lambda i: abs(lebel_dates[i] - desired_date))
 
         value_P = data_dict[item]['P']
         value_T = data_dict[item]['T']
-        # print(item, dt_cur, desired_date, idx, value_P)
+        # print(item, dt_utc_cur, desired_date, idx, value_P)
 
         # Replace value_P
         # weather_P[idx] = value_P
-        weather_P[idx:idx+7] = value_P            # and N elements more
-        weather_T[idx:idx+7] = value_T            # and N elements more
+        weather_P[idx:idx+points_per_hour] = value_P            # and N elements more
+        weather_T[idx:idx+points_per_hour] = value_T            # and N elements more
         # weather_P[idx] = np.full(10, value_P)
 
 
@@ -227,7 +235,7 @@ def plot_color_of_the_days(observer=None, days=1., file_name="plot_astro_summary
                      aspect='auto',
                      cmap='summer',
                      origin='upper',
-                     extent=[-horizont_half_range, horizont_half_range, lbl_dates[-1], lbl_dates[0]],
+                     extent=[-horizont_half_range, horizont_half_range, lebel_dates[-1], lebel_dates[0]],
                      vmax=Z.max(), vmin=Z.min()
                      )
 
@@ -243,7 +251,7 @@ def plot_color_of_the_days(observer=None, days=1., file_name="plot_astro_summary
                      aspect='auto',
                      cmap='winter',
                      origin='upper',
-                     extent=[-horizont_half_range, horizont_half_range, lbl_dates[-1], lbl_dates[0]],
+                     extent=[-horizont_half_range, horizont_half_range, lebel_dates[-1], lebel_dates[0]],
                      vmax=Z.max(), vmin=Z.min()
                      )
 
@@ -266,7 +274,7 @@ def plot_color_of_the_days(observer=None, days=1., file_name="plot_astro_summary
                      interpolation='nearest',
                      cmap=pz.elements_cmap,
                      origin='upper',
-                     extent=[-horizont_half_range, horizont_half_range, lbl_dates[-1], lbl_dates[0]],
+                     extent=[-horizont_half_range, horizont_half_range, lebel_dates[-1], lebel_dates[0]],
                      # vmin=0.0, vmax=120.0,
                      vmin=0 - CYCLING_OVERLAP, vmax=120 + CYCLING_OVERLAP,
                      )
@@ -285,14 +293,14 @@ def plot_color_of_the_days(observer=None, days=1., file_name="plot_astro_summary
     Z[:, 0] = moon_lun
 
     horizont_half_range = vertical_half_range / axe2.bbox.height * axe2.bbox.width
-    _plot_annotations_of_moon_phases(observer=observer, days=days, axe=axe2,
+    _plot_annotations_of_moon_phases(observer=observer, days=span[0], axe=axe2,
                                      ratio_v_h=(vertical_half_range, horizont_half_range))
     CYCLING_OVERLAP = 0.239
     im = axe2.imshow(Z,
                      interpolation='nearest',
                      cmap=pl.lunation_cmap,
                      origin='upper',
-                     extent=[-horizont_half_range, horizont_half_range, lbl_dates[-1], lbl_dates[0]],
+                     extent=[-horizont_half_range, horizont_half_range, lebel_dates[-1], lebel_dates[0]],
                      # vmin=0.0, vmax=1.0,
                      # vmin=-0.239, vmax=1.239,
                      vmin=0-CYCLING_OVERLAP, vmax=1+CYCLING_OVERLAP,
@@ -320,16 +328,16 @@ def plot_color_of_the_days(observer=None, days=1., file_name="plot_astro_summary
 
     horizont_half_range = vertical_half_range / axe3.bbox.height * axe3.bbox.width
 
-    _plot_annotations_of_sun_days(observer=observer, days=days, axe=axe3,
+    _plot_annotations_of_sun_days(observer=observer, days=span[0], axe=axe3,
                                   ratio_v_h=(vertical_half_range, horizont_half_range))
-    _plot_annotations_of_moon_days(observer=observer, days=days, axe=axe3,
+    _plot_annotations_of_moon_days(observer=observer, days=span[0], axe=axe3,
                                    ratio_v_h=(vertical_half_range, horizont_half_range))
 
     im = axe3.imshow(Z,
                      interpolation='nearest',  # 'nearest', 'bilinear', 'bicubic'
                      cmap="twilight_shifted",
                      origin='upper',
-                     extent=[-horizont_half_range, horizont_half_range, lbl_dates[-1], lbl_dates[0]],
+                     extent=[-horizont_half_range, horizont_half_range, lebel_dates[-1], lebel_dates[0]],
                      vmin=Z.min(), vmax=Z.max()
                      )
 
@@ -359,7 +367,7 @@ def plot_color_of_the_days(observer=None, days=1., file_name="plot_astro_summary
                      interpolation='nearest',  # 'nearest', 'bilinear', 'bicubic'
                      cmap=pz.zodiac_cmap,
                      origin='upper',
-                     extent=[-horizont_half_range, horizont_half_range, lbl_dates[-1], lbl_dates[0]],
+                     extent=[-horizont_half_range, horizont_half_range, lebel_dates[-1], lebel_dates[0]],
                      # vmin=0, vmax=360,
                      vmin=0 - CYCLING_OVERLAP, vmax=360 + CYCLING_OVERLAP,
                      )
@@ -569,7 +577,7 @@ if __name__ == '__main__':
     text += str(observer_obj)
     # print(text)
     # #######################################################################################
-    plot_color_of_the_days(observer=observer_obj, days=3.5, file_name="plot_astro_summary.png", job_name="442763659#REP")
+    plot_color_of_the_days(observer=observer_obj, span=(3.5, 3.5), days_before=3.5, days_after=3.5, file_name="plot_astro_summary.png", job_name="442763659#REP")
 
     # observer_obj.unaware_update_utc(in_unaware_datetime)
     # plot_color_of_the_days(observer=observer_obj, days=3, file_name="plot_astro_summary.png", job_name="442763659#REP")

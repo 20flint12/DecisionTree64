@@ -45,10 +45,9 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
-
-def remove_job_if_exists(name: str, context: ContextTypes.DEFAULT_TYPE) -> bool:
+def remove_job_if_exists(job_name: str, context: ContextTypes.DEFAULT_TYPE) -> bool:
     """Remove job with given name. Returns whether job was removed."""
-    current_jobs = context.job_queue.get_jobs_by_name(name)
+    current_jobs = context.job_queue.get_jobs_by_name(job_name)
     if not current_jobs:
         return False
     for job in current_jobs:
