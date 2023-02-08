@@ -24,10 +24,12 @@ import src.boto3_package.mainDB_weather as b3w
 from babel.dates import format_datetime
 
 
-LABEL_OFFSET = 0.02     # actually for font high
+ANN_DAYS_OFFSET = 0.02     # actually for font high
+ANN_ELEM_OFFSET = 0.04     # actually for font high
+ANN_PHAS_OFFSET = 0.04     # actually for font high
 
 
-def plot_color_of_the_days(observer=None, span=(1., 1.), file_name="plot_astro_summary.png", job_name=''):
+def plot_color_of_the_days(observer=None, span=(3., 3.), file_name="plot_astro_summary.png", job_name=''):
     # print("unaware date2num=", mdates.date2num(observer.get_unaware))
 
     begin_unaware = observer.get_unaware - timedelta(days=span[0])
@@ -293,7 +295,7 @@ def plot_color_of_the_days(observer=None, span=(1., 1.), file_name="plot_astro_s
     Z[:, 0] = moon_lun
 
     horizont_full_span = vertical_full_span / axe2.bbox.height * axe2.bbox.width
-    _plot_annotations_of_moon_phases(observer=observer, days=span[0], axe=axe2,
+    _plot_annotations_of_moon_phases(observer=observer, span=span, axe=axe2,
                                      ratio_v_h=(vertical_full_span/2, horizont_full_span/2))
     CYCLING_OVERLAP = 0.239
     im = axe2.imshow(Z,
@@ -328,9 +330,9 @@ def plot_color_of_the_days(observer=None, span=(1., 1.), file_name="plot_astro_s
 
     horizont_full_span = vertical_full_span / axe3.bbox.height * axe3.bbox.width
 
-    _plot_annotations_of_sun_days(observer=observer, days=span[0], axe=axe3,
+    _plot_annotations_of_sun_days(observer=observer, span=span, axe=axe3,
                                   ratio_v_h=(vertical_full_span/2, horizont_full_span/2))
-    _plot_annotations_of_moon_days(observer=observer, days=span[0], axe=axe3,
+    _plot_annotations_of_moon_days(observer=observer, span=span, axe=axe3,
                                    ratio_v_h=(vertical_full_span/2, horizont_full_span/2))
 
     im = axe3.imshow(Z,
@@ -397,11 +399,15 @@ def plot_color_of_the_days(observer=None, span=(1., 1.), file_name="plot_astro_s
     plt.show()
 
 
-def _plot_annotations_of_sun_days(observer=None, days=1., axe=None, ratio_v_h=(1, 1)):
+def _plot_annotations_of_sun_days(observer=None, span=(3., 3.), axe=None, ratio_v_h=(1., 1.)):
 
     observer.restore_unaware()
-    begin_unaware = observer.get_unaware - timedelta(days=days)
-    end_unaware = observer.get_unaware + timedelta(days=days)
+    # begin_unaware = observer.get_unaware - timedelta(days=span)
+    # end_unaware = observer.get_unaware + timedelta(days=span)
+    begin_unaware = observer.get_unaware - timedelta(days=span[0])
+    end_unaware = observer.get_unaware + timedelta(days=span[1])
+
+
     cur_unaware = begin_unaware
 
     while end_unaware > cur_unaware:
@@ -416,9 +422,10 @@ def _plot_annotations_of_sun_days(observer=None, days=1., axe=None, ratio_v_h=(1
         zenit_sun = ephem.Date((sun_dict['sun_sett'] + sun_dict['sun_rise']) / 2)
         cur_unaware = zenit_sun.datetime()
 
-        if begin_unaware + timedelta(days=ratio_v_h[0] * LABEL_OFFSET) < cur_unaware < \
-                end_unaware - timedelta(days=ratio_v_h[0] * LABEL_OFFSET):
+        if begin_unaware + timedelta(days=ratio_v_h[0] * ANN_DAYS_OFFSET) < cur_unaware < \
+                end_unaware - timedelta(days=ratio_v_h[0] * ANN_DAYS_OFFSET):
 
+            # print(begin_unaware, cur_unaware, end_unaware)
             annot_text = format_datetime(cur_unaware, "d MMM EEE", locale='uk_UA')
             # annot_text = str(cur_unaware.strftime(geo.dt_format_plot))
             coords = (-0.6 * ratio_v_h[1], mdates.date2num(cur_unaware))
@@ -431,11 +438,14 @@ def _plot_annotations_of_sun_days(observer=None, days=1., axe=None, ratio_v_h=(1
                          )
 
 
-def _plot_annotations_of_moon_days(observer=None, days=1., axe=None, ratio_v_h=(1, 1)):
+def _plot_annotations_of_moon_days(observer=None, span=(3., 3.), axe=None, ratio_v_h=(1., 1.)):
 
     observer.restore_unaware()
-    begin_unaware = observer.get_unaware - timedelta(days=days)
-    end_unaware = observer.get_unaware + timedelta(days=days)
+    # begin_unaware = observer.get_unaware - timedelta(days=span)
+    # end_unaware = observer.get_unaware + timedelta(days=span)
+    begin_unaware = observer.get_unaware - timedelta(days=span[0])
+    end_unaware = observer.get_unaware + timedelta(days=span[1])
+
     cur_unaware = begin_unaware
 
     while end_unaware > cur_unaware:
@@ -462,8 +472,8 @@ def _plot_annotations_of_moon_days(observer=None, days=1., axe=None, ratio_v_h=(
 
         cur_unaware = moon_noon_unaware.datetime()
 
-        if begin_unaware + timedelta(days=ratio_v_h[0] * LABEL_OFFSET) < cur_unaware < \
-                end_unaware - timedelta(days=ratio_v_h[0] * LABEL_OFFSET):
+        if begin_unaware + timedelta(days=ratio_v_h[0] * ANN_DAYS_OFFSET) < cur_unaware < \
+                end_unaware - timedelta(days=ratio_v_h[0] * ANN_DAYS_OFFSET):
 
             annot_text = str(moon_dict["moon_day"]) + " міс. д."
             coords = (0.6 * ratio_v_h[1], mdates.date2num(cur_unaware))
@@ -476,11 +486,11 @@ def _plot_annotations_of_moon_days(observer=None, days=1., axe=None, ratio_v_h=(
                          )
 
 
-def _plot_annotations_of_moon_phases(observer=None, days=1., axe=None, ratio_v_h=(1, 1)):
+def _plot_annotations_of_moon_phases(observer=None, span=(3., 3.), axe=None, ratio_v_h=(1., 1.)):
 
     observer.restore_unaware()
-    begin_unaware = observer.get_unaware - timedelta(days=days)
-    end_unaware = observer.get_unaware + timedelta(days=days)
+    begin_unaware = observer.get_unaware - timedelta(days=span[0])
+    end_unaware = observer.get_unaware + timedelta(days=span[1])
     cur_unaware = begin_unaware
 
     while end_unaware > cur_unaware:
@@ -517,7 +527,7 @@ def _plot_annotations_of_moon_phases(observer=None, days=1., axe=None, ratio_v_h
                          )
 
 
-def _plot_annotations_of_moon_elements(annotation_elem_dict=None, axe=None, ratio_v_h=(1, 1)):
+def _plot_annotations_of_moon_elements(annotation_elem_dict=None, axe=None, ratio_v_h=(1., 1.)):
 
     for i in annotation_elem_dict:
         # print(i, annotation_elem_dict[i])

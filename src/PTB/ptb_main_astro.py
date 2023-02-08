@@ -65,9 +65,8 @@ from telegram.error import Forbidden, TimedOut, NetworkError, ChatMigrated, Tele
 
 import socket
 hostname = socket.gethostname()     # DELL-DEV
-print(hostname)
-
 DEVELOPER_CHAT_ID = 442763659
+print("\nhostname=", hostname, "DEVELOPER_CHAT_ID=", DEVELOPER_CHAT_ID)
 
 
 # Enable logging
@@ -180,97 +179,6 @@ def get_user_bot_id(update: Update, context: ContextTypes.DEFAULT_TYPE):
     return user_bot_id
 
 
-def parse_Geolocation_Interval(context: ContextTypes.DEFAULT_TYPE, parse_args=False, user_bot_id=""):
-
-    if not context.chat_data:
-        print("!!!!!!!!!!!! not hasattr(context, 'chat_data') or not context.chat_data !!!!!!!!!!!")
-
-        user_db_data = bdbu.get_user_db_data(pk=user_bot_id)
-
-        context.chat_data.clear()
-        context.chat_data.update(user_db_data)
-
-    context.chat_data["context_user_data"].setdefault(opc.key_Geolocation, "OLSZTYN")
-    context.chat_data["context_user_data"].setdefault(opc.key_Interval, "5.555")
-    # context.user_data.setdefault(opc.key_Reminder, "0000")
-
-    # ---------------------------------------------------
-    geo_name = context.chat_data["context_user_data"][opc.key_Geolocation]
-    if geo_name == context.chat_data["context_user_data"][opc.key_Geolocation]:
-        valid_geo_name = bdbu.PrmOrig.SET
-    else:
-        valid_geo_name = bdbu.PrmOrig.DEF
-
-    interval = context.chat_data["context_user_data"][opc.key_Interval]
-    if interval == context.chat_data["context_user_data"][opc.key_Interval]:
-        valid_interval = bdbu.PrmOrig.SET
-    else:
-        valid_interval = bdbu.PrmOrig.DEF
-
-    # ===================================================
-    if hasattr(context, 'args') and parse_args:
-        arg_len = len(context.args)
-
-        if arg_len == 1:
-            geo_name = str(context.args[0])
-            valid_geo_name = bdbu.PrmOrig.ARG
-
-        elif arg_len == 2:
-            geo_name = str(context.args[0])
-            valid_geo_name = bdbu.PrmOrig.ARG
-            interval = str(context.args[1])
-            valid_interval = bdbu.PrmOrig.ARG
-
-    print(user_bot_id, ":: parse_Geolocation_Interval> (", valid_geo_name, geo_name, "), (", valid_interval, interval, ")")
-
-    return (valid_geo_name, geo_name), (valid_interval, interval)
-
-
-def parse_Reminder(update: Update, context: ContextTypes.DEFAULT_TYPE, observer=None):
-
-    user_bot_id = context.chat_data[bdbu.botUsers_table.partition_key]
-    user_name = context.chat_data[bdbu.botUsers_table.sort_key]
-
-    context.chat_data["context_user_data"].setdefault(opc.key_Reminder, "0000")
-
-    # ---------------------------------------------------
-    reminder = context.chat_data["context_user_data"][opc.key_Reminder]
-    if reminder == context.chat_data["context_user_data"][opc.key_Reminder]:
-        valid_reminder = bdbu.PrmOrig.SET
-    else:
-        valid_reminder = bdbu.PrmOrig.DEF
-
-    # ===================================================
-    if hasattr(context, 'args'):
-        arg_len = len(context.args)
-
-        if arg_len == 1:
-            reminder = str(context.args[0])
-            valid_reminder = bdbu.PrmOrig.ARG
-
-    # Check validity of time string
-    dt_hhmm_unaware = datetime.strptime("2000-01-01 0000", "%Y-%m-%d %H%M")
-    dt_hhmm_utc = datetime.strptime("2000-01-01 0000", "%Y-%m-%d %H%M")
-
-    try:
-        dt_hhmm_unaware = datetime.strptime("2000-01-01 " + reminder, "%Y-%m-%d %H%M")
-
-        # valid_reminder = bdbu.ParamOrigin.VALID_TIME
-        dt_hhmm_utc = observer.dt_unaware_to_utc(dt_hhmm_unaware)
-
-        user_db_data = context.chat_data        # ???
-        user_db_data["activity"]["daily_utc_time"] = [dt_hhmm_utc.hour, dt_hhmm_utc.minute, dt_hhmm_utc.second]
-        bdbu.update_user_context_db(pk_sk_id={'pk': user_bot_id, 'sk': user_name}, user_db_data=user_db_data)
-
-    except ValueError:
-
-        valid_reminder = bdbu.PrmOrig(valid_reminder) + bdbu.PrmOrig.INVALID_TIME
-
-    print(user_bot_id, " :: parse_Reminder> (", bdbu.PrmOrig(valid_reminder), ") ", dt_hhmm_unaware.time(), " utc:", dt_hhmm_utc.time())
-
-    return valid_reminder, dt_hhmm_unaware, dt_hhmm_utc
-
-
 async def moon_phase(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Return moon_phase to the user message."""
     user = update.effective_user
@@ -279,8 +187,8 @@ async def moon_phase(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None
     # bdbu.update_user_record(update=update, context=context)
 
     user_bot_id = get_user_bot_id(update, context)
-    (valid_geo_name, geo_name), (valid_interval, interval) = parse_Geolocation_Interval(context, parse_args=True,
-                                                                                        user_bot_id=user_bot_id)
+    (valid_geo_name, geo_name), (valid_interval, interval) = \
+        bdbu.parse_Geolocation_Interval(context=context, parse_args=True, user_bot_id=user_bot_id)
     logger.info("moon day for geo_name: %s at %s", geo_name, interval)
 
     observer_obj = geo.Observer(geo_name=geo_name, unaware_datetime=datetime.today())
@@ -299,7 +207,7 @@ async def moon_day(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     user = update.effective_user
     # bdbu.update_user_record(update=update, context=context)
 
-    (valid_geo_name, geo_name), (valid_interval, interval) = parse_Geolocation_Interval(context, parse_args=True)
+    (valid_geo_name, geo_name), (valid_interval, interval) = bdbu.parse_Geolocation_Interval(context=context, parse_args=True)
     logger.info("moon day for geo_name:  %s at %s", geo_name, interval)
 
     observer_obj = geo.Observer(geo_name=geo_name, unaware_datetime=datetime.today())
@@ -327,7 +235,7 @@ async def sun_rise(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     user = update.effective_user
     # bdbu.update_user_record(update=update, context=context)
 
-    (valid_geo_name, geo_name), (valid_interval, interval) = parse_Geolocation_Interval(context, parse_args=True)
+    (valid_geo_name, geo_name), (valid_interval, interval) = bdbu.parse_Geolocation_Interval(context=context, parse_args=True)
     logger.info("sun rise for geo_name: %s at %s", geo_name, interval)
 
     observer_obj = geo.Observer(geo_name=geo_name, unaware_datetime=datetime.today())
@@ -346,7 +254,7 @@ async def zodiac(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     user = update.effective_user
     # bdbu.update_user_record(update=update, context=context)
 
-    (valid_geo_name, geo_name), (valid_interval, interval) = parse_Geolocation_Interval(context, parse_args=True)
+    (valid_geo_name, geo_name), (valid_interval, interval) = bdbu.parse_Geolocation_Interval(context=context, parse_args=True)
     logger.info("zodiac for geo_name: %s at %s", geo_name, interval)
 
     observer_obj = geo.Observer(geo_name=geo_name, unaware_datetime=datetime.today())
@@ -371,7 +279,7 @@ async def weather(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     # bdbu.update_user_record(update=update, context=context)
 
     user_bot_id = get_user_bot_id(update, context)
-    (valid_geo_name, geo_name), (valid_interval, interval) = parse_Geolocation_Interval(context, parse_args=True,
+    (valid_geo_name, geo_name), (valid_interval, interval) = bdbu.parse_Geolocation_Interval(context=context, parse_args=True,
                                                                                         user_bot_id=user_bot_id)
     logger.info("weather for geo_name %s at %s", geo_name, interval)
 
@@ -391,7 +299,7 @@ async def summary(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     user = update.effective_user
     # bdbu.update_user_record(update=update, context=context)
 
-    (valid_geo_name, geo_name), (valid_interval, interval) = parse_Geolocation_Interval(context, parse_args=True)
+    (valid_geo_name, geo_name), (valid_interval, interval) = bdbu.parse_Geolocation_Interval(context=context, parse_args=True)
     logger.info("summary -> geo_name=%s moment=%s", geo_name, interval)
 
     observer_obj = geo.Observer(geo_name=geo_name, unaware_datetime=datetime.today())
@@ -428,15 +336,17 @@ async def summary(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 async def callback_timer_DAILY(context: ContextTypes.DEFAULT_TYPE) -> None:
     """Send the alarm message."""
     job = context.job
-    bot_id = context.bot.id
-    user_bot_id = str(job.chat_id) + "#" + str(bot_id)
-    # user_bot_id = context.chat_data[bdbu.botUsers_table.partition_key]    # undef when wrong context!
+    # bot_id = context.bot.id
+    # user_bot_id = str(job.chat_id) + "#" + str(bot_id)
+    user_bot_id = context.chat_data[bdbu.botUsers_table.partition_key]    # undef when wrong context!
     user_name = context.chat_data[bdbu.botUsers_table.sort_key]
 
-    photo_name = job.name + "_photo.png"     # 442763659_photo.jpg
+    chat_job_name = user_bot_id + "#REP"
+    photo_name = user_bot_id + "#DAILY" + "_photo.png"
+    # photo_name = job.name + "_photo.png"
 
     (valid_geo_name, geo_name), (valid_interval, interval) = \
-        parse_Geolocation_Interval(context, parse_args=False, user_bot_id=user_bot_id)
+        bdbu.parse_Geolocation_Interval(context=context, parse_args=False, user_bot_id=user_bot_id)
     logger.info("%s:: callback_timer_DAILY> geo_name=%s moment=%s", job.name, geo_name, interval)
 
     observer_obj = geo.Observer(geo_name=geo_name, unaware_datetime=datetime.today())
@@ -466,7 +376,7 @@ async def callback_timer_DAILY(context: ContextTypes.DEFAULT_TYPE) -> None:
         print(job.chat_id, "alarm:: An exception occurred ************** !!!!!!!!!!!!!!!!!!!!!", e)
 
     # ++++++++++++++++++++++
-    mp.plot_color_of_the_days(observer=observer_obj, span=(5, 2), file_name=photo_name, job_name=job.name)
+    mp.plot_color_of_the_days(observer=observer_obj, span=(5, 2), file_name=photo_name, job_name=chat_job_name)
 
     logger.info("send_photo %s", photo_name)
 
@@ -491,7 +401,7 @@ async def setup_timer_DAILY(update: Update, context: ContextTypes.DEFAULT_TYPE) 
 
     job_name = user_bot_id + "#DAILY"
 
-    (valid_geo_name, geo_name), (valid_interval, interval) = parse_Geolocation_Interval(context, parse_args=False)
+    (valid_geo_name, geo_name), (valid_interval, interval) = bdbu.parse_Geolocation_Interval(context=context, parse_args=False)
     logger.info("weather for geo_name %s at %s", geo_name, interval)
 
     observer_obj = geo.Observer(geo_name=geo_name, unaware_datetime=datetime.today())
@@ -500,7 +410,7 @@ async def setup_timer_DAILY(update: Update, context: ContextTypes.DEFAULT_TYPE) 
     # ++++++++++++++++++++++
 
     text = ""
-    valid_reminder, dt_hhmm_unaware, dt_hhmm_utc = parse_Reminder(update, context, observer=observer_obj)
+    valid_reminder, dt_hhmm_unaware, dt_hhmm_utc = bdbu.parse_Reminder(context=context, observer=observer_obj)
 
     if valid_reminder in (bdbu.PrmOrig.DEF, bdbu.PrmOrig.SET, bdbu.PrmOrig.ARG):
         text += "Заданий час: " + str(dt_hhmm_unaware.time()) + " | " + str(dt_hhmm_utc.time()) + " UTC"
@@ -558,13 +468,14 @@ async def setup_timer_DAILY(update: Update, context: ContextTypes.DEFAULT_TYPE) 
 async def color_of_the_days(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
     user = update.effective_user
-    # bdbu.update_user_record(update=update, context=context)
-
     chat_id = update.message.chat_id
-    chat_job_name = str(chat_id) + "#REP"           # 442763659#REP
-    photo_name = str(chat_id) + "_photo.png"        # 442763659_photo.jpg
 
-    (valid_geo_name, geo_name), (valid_interval, interval) = parse_Geolocation_Interval(context, parse_args=True)
+    # chat_job_name = str(chat_id) + "#DAILY"           # 442763659#REP
+    user_bot_id = context.chat_data[bdbu.botUsers_table.partition_key]
+    chat_job_name = user_bot_id + "#REP"
+    photo_name = user_bot_id + "#DAILY" + "_photo.png"
+
+    (valid_geo_name, geo_name), (valid_interval, interval) = bdbu.parse_Geolocation_Interval(context=context, parse_args=True)
     logger.info("color_of_the_days -> geo_name=%s moment=%s", geo_name, interval)
 
     observer_obj = geo.Observer(geo_name=geo_name, unaware_datetime=datetime.today())

@@ -2,12 +2,11 @@
 # pylint: disable=unused-argument, wrong-import-position
 # This program is dedicated to the public domain under the CC0 license.
 
-from datetime import datetime, time
+from datetime import datetime
 from pprint import pprint
 
 import src.ephem_routines.ephem_package.geo_place as geo
 import src.PTB._ptb_observer_persist_conversation as opc
-import src.PTB.ptb_main_astro as pma
 import src.boto3_package.mainDB_weather as mr
 import src.boto3_package.botDB_users as bdbu
 
@@ -65,7 +64,7 @@ async def callback_timer_REP(context: ContextTypes.DEFAULT_TYPE):
     # logger.info(text)
 
     (valid_geo_name, geo_name), (valid_interval, interval) = \
-        pma.parse_Geolocation_Interval(context, parse_args=False, user_bot_id=user_bot_id)
+        bdbu.parse_Geolocation_Interval(context=context, parse_args=False, user_bot_id=user_bot_id)
 
     logger.info("%s: callback_timer_REP -> geo_name=%s moment=%s", user_bot_id, geo_name, interval)
 

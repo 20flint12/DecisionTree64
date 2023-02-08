@@ -6,9 +6,6 @@ import os
 import json
 
 import src.ephem_routines.ephem_package.geo_place as geo
-import src.ephem_routines.ephem_package.moon_day as md
-import src.ephem_routines.ephem_package.sun_rise_sett as sr
-import src.ephem_routines.ephem_package.zodiac_phase as zd
 import src.weather_package.main_openweathermap as wt
 import src.mathplot_package._plot_recordWeather as pw
 

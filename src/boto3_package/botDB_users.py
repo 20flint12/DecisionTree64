@@ -1,25 +1,19 @@
 
+
 import pandas as pd
-from datetime import datetime
+from datetime import datetime, time
 from pprint import pprint
 import os
 
 import json
-from decimal import Decimal
 
 import src.ephem_routines.ephem_package.geo_place as geo
-import src.ephem_routines.ephem_package.moon_day as md
-import src.ephem_routines.ephem_package.sun_rise_sett as sr
-import src.ephem_routines.ephem_package.zodiac_phase as zd
-import src.weather_package.main_openweathermap as wt
 import src.PTB._ptb_observer_persist_conversation as opc
 
 
 try:
     import os
     import sys
-    import datetime
-    import time
     import boto3
     print("All Modules Loaded ...... ")
 except Exception as e:
@@ -117,7 +111,7 @@ class dynamoDB_table(object):
             rec_items_dict.update(user_data_dict)  # !!!
 
             # Update last_time_key current UTC now
-            utc_str = datetime.datetime.utcnow().strftime(geo.dt_format_rev)
+            utc_str = datetime.utcnow().strftime(geo.dt_format_rev)
             rec_items_dict[self._last_time_key] = utc_str
 
             # print(self._partition_key, self._sort_key, rec_items_dict)
@@ -254,6 +248,121 @@ def main_create_populate_bot_users():
     text += "\n" + botUsers_table.populate_from_csv()
 
     return text
+
+
+def parse_Geolocation_Interval(context=None, parse_args=False, user_bot_id=""):
+
+    if context is None:
+        return
+
+    if not context.chat_data:
+        print("!!!!!!!!!!!! not hasattr(context, 'chat_data') or not context.chat_data !!!!!!!!!!!")
+
+        user_db_data = get_user_db_data(pk=user_bot_id)
+
+        context.chat_data.clear()
+        context.chat_data.update(user_db_data)
+
+    context.chat_data["context_user_data"].setdefault(opc.key_Geolocation, "OLSZTYN")
+    context.chat_data["context_user_data"].setdefault(opc.key_Interval, "5-5")
+    # context.user_data.setdefault(opc.key_Reminder, "0000")
+
+    # ---------------------------------------------------
+    geo_name = context.chat_data["context_user_data"][opc.key_Geolocation]
+    if geo_name == context.chat_data["context_user_data"][opc.key_Geolocation]:
+        valid_geo_name = PrmOrig.SET
+    else:
+        valid_geo_name = PrmOrig.DEF
+
+    interval = context.chat_data["context_user_data"][opc.key_Interval]
+    if interval == context.chat_data["context_user_data"][opc.key_Interval]:
+        valid_interval = PrmOrig.SET
+    else:
+        valid_interval = PrmOrig.DEF
+
+    # ===================================================
+    if hasattr(context, 'args') and parse_args:
+        arg_len = len(context.args)
+
+        if arg_len == 1:
+            geo_name = str(context.args[0])
+            valid_geo_name = PrmOrig.ARG
+
+        elif arg_len == 2:
+            geo_name = str(context.args[0])
+            valid_geo_name = PrmOrig.ARG
+
+            interval = str(context.args[1])
+            valid_interval = PrmOrig.ARG
+
+            # Check validity of interval string
+            # ...
+            try:
+                # valid_interval = ParamOrigin.VALID_TIME
+
+                res = interval.split("-")
+                if len(res) == 2:
+                    pass
+
+                # user_db_data = context.chat_data  # ???
+                # user_db_data["activity"]["daily_utc_time"] = [dt_hhmm_utc.hour, dt_hhmm_utc.minute, dt_hhmm_utc.second]
+                # bdbu.update_user_context_db(pk_sk_id={'pk': user_bot_id, 'sk': user_name}, user_db_data=user_db_data)
+
+            except ValueError:
+
+                valid_reminder = PrmOrig(valid_interval) + PrmOrig.INVALID_TIME
+
+
+
+
+    print(user_bot_id, ":: parse_Geolocation_Interval> (", valid_geo_name, geo_name, "), (", valid_interval, interval, ")")
+
+    return (valid_geo_name, geo_name), (valid_interval, interval)
+
+
+def parse_Reminder(context=None, observer=None):
+
+    user_bot_id = context.chat_data[botUsers_table.partition_key]
+    user_name = context.chat_data[botUsers_table.sort_key]
+
+    context.chat_data["context_user_data"].setdefault(opc.key_Reminder, "0000")
+
+    # ---------------------------------------------------
+    reminder = context.chat_data["context_user_data"][opc.key_Reminder]
+    if reminder == context.chat_data["context_user_data"][opc.key_Reminder]:
+        valid_reminder = PrmOrig.SET
+    else:
+        valid_reminder = PrmOrig.DEF
+
+    # ===================================================
+    if hasattr(context, 'args'):
+        arg_len = len(context.args)
+
+        if arg_len == 1:
+            reminder = str(context.args[0])
+            valid_reminder = PrmOrig.ARG
+
+    # Check validity of time string
+    dt_hhmm_unaware = datetime.strptime("2000-01-01 0000", "%Y-%m-%d %H%M")
+    dt_hhmm_utc = datetime.strptime("2000-01-01 0000", "%Y-%m-%d %H%M")
+
+    try:
+        dt_hhmm_unaware = datetime.strptime("2000-01-01 " + reminder, "%Y-%m-%d %H%M")
+
+        # valid_reminder = ParamOrigin.VALID_TIME
+        dt_hhmm_utc = observer.dt_unaware_to_utc(dt_hhmm_unaware)
+
+        user_db_data = context.chat_data        # ???
+        user_db_data["activity"]["daily_utc_time"] = [dt_hhmm_utc.hour, dt_hhmm_utc.minute, dt_hhmm_utc.second]
+        update_user_context_db(pk_sk_id={'pk': user_bot_id, 'sk': user_name}, user_db_data=user_db_data)
+
+    except ValueError:
+
+        valid_reminder = PrmOrig(valid_reminder) + bdbu.PrmOrig.INVALID_TIME
+
+    print(user_bot_id, " :: parse_Reminder> (", PrmOrig(valid_reminder), ") ", dt_hhmm_unaware.time(), " utc:", dt_hhmm_utc.time())
+
+    return valid_reminder, dt_hhmm_unaware, dt_hhmm_utc
 
 
 def _test_update_user_record(context_user_data=None, user_db_data=None, ):
