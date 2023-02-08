@@ -448,42 +448,42 @@ def _plot_annotations_of_moon_days(observer=None, span=(3., 3.), axe=None, ratio
 
     cur_unaware = begin_unaware
 
-    while end_unaware > cur_unaware:
-        if cur_unaware == begin_unaware:                            # init pass
-            pass                                                    # init calculation
-        else:
-            cur_unaware = cur_unaware + timedelta(days=24.5 / 24)   # next calculation
-
-        observer.unaware_update_utc(cur_unaware)
-        moon_dict, moon_text = md.main_moon_day(observer=observer)  # modified observer
-        zenit_moon = (moon_dict['moon_sett'] + moon_dict['moon_rise']) / 2
-        moon_noon_unaware = ephem.Date(zenit_moon)
-
-        # if moon_dict['moon_sett'] < moon_dict['moon_rise']:
-        #     moon_noon_unaware = ephem.Date(zenit_moon)
-        # else:
-        #     moon_noon_unaware = ephem.Date(zenit_moon + 24.5 / 24)
-
-        # # Check for infinite loop !!!
-        # if moon_noon_unaware.datetime() < cur_unaware:
-        #     print("*plot_annotations_of_moon_days  cur_unaware=", moon_dict['moon_day'], cur_unaware, "moon_noon_unaware=", moon_noon_unaware.datetime())
-        # else:
-        #     print("_plot_annotations_of_moon_days  cur_unaware=", moon_dict['moon_day'], cur_unaware, "moon_noon_unaware=", moon_noon_unaware.datetime())
-        #
-        # cur_unaware = moon_noon_unaware.datetime()
-        #
-        # if begin_unaware + timedelta(days=ratio_v_h[0] * ANN_DAYS_OFFSET) < cur_unaware < \
-        #         end_unaware - timedelta(days=ratio_v_h[0] * ANN_DAYS_OFFSET):
-        #
-        #     annot_text = str(moon_dict["moon_day"]) + " міс. д."
-        #     coords = (0.6 * ratio_v_h[1], mdates.date2num(cur_unaware))
-        #
-        #     axe.annotate(annot_text,
-        #                  xy=coords,
-        #                  fontsize=8,
-        #                  horizontalalignment='center',
-        #                  verticalalignment='center'
-        #                  )
+    # while end_unaware > cur_unaware:
+    #     if cur_unaware == begin_unaware:                            # init pass
+    #         pass                                                    # init calculation
+    #     else:
+    #         cur_unaware = cur_unaware + timedelta(days=24.5 / 24)   # next calculation
+    #
+    #     observer.unaware_update_utc(cur_unaware)
+    #     moon_dict, moon_text = md.main_moon_day(observer=observer)  # modified observer
+    #     zenit_moon = (moon_dict['moon_sett'] + moon_dict['moon_rise']) / 2
+    #     moon_noon_unaware = ephem.Date(zenit_moon)
+    #
+    #     # if moon_dict['moon_sett'] < moon_dict['moon_rise']:
+    #     #     moon_noon_unaware = ephem.Date(zenit_moon)
+    #     # else:
+    #     #     moon_noon_unaware = ephem.Date(zenit_moon + 24.5 / 24)
+    #
+    #     # Check for infinite loop !!!
+    #     if moon_noon_unaware.datetime() < cur_unaware:
+    #         print("*plot_annotations_of_moon_days  cur_unaware=", moon_dict['moon_day'], cur_unaware, "moon_noon_unaware=", moon_noon_unaware.datetime())
+    #     else:
+    #         print("_plot_annotations_of_moon_days  cur_unaware=", moon_dict['moon_day'], cur_unaware, "moon_noon_unaware=", moon_noon_unaware.datetime())
+    #
+    #     cur_unaware = moon_noon_unaware.datetime()
+    #
+    #     if begin_unaware + timedelta(days=ratio_v_h[0] * ANN_DAYS_OFFSET) < cur_unaware < \
+    #             end_unaware - timedelta(days=ratio_v_h[0] * ANN_DAYS_OFFSET):
+    #
+    #         annot_text = str(moon_dict["moon_day"]) + " міс. д."
+    #         coords = (0.6 * ratio_v_h[1], mdates.date2num(cur_unaware))
+    #
+    #         axe.annotate(annot_text,
+    #                      xy=coords,
+    #                      fontsize=8,
+    #                      horizontalalignment='center',
+    #                      verticalalignment='center'
+    #                      )
 
 
 def _plot_annotations_of_moon_phases(observer=None, span=(3., 3.), axe=None, ratio_v_h=(1., 1.)):
