@@ -68,7 +68,7 @@ async def callback_timer_REP(context: ContextTypes.DEFAULT_TYPE):
 
     logger.info("%s: callback_timer_REP -> geo_name=%s moment=%s", user_bot_id, geo_name, span)
 
-    observer_obj = geo.Observer(geo_name=geo_name, unaware_datetime=datetime.today())
+    observer_obj = geo.Observer(geo_name=geo_name, input_unaware_datetime=datetime.today())
     text = ""
     text += str(observer_obj)
 

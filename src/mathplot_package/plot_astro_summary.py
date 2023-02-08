@@ -582,7 +582,7 @@ if __name__ == '__main__':
 
     # in_unaware_datetime = datetime.strptime("1976-07-25 02:37:21", geo.dt_format_rev)  # "%Y-%m-%d %H:%M:%S"
     in_unaware_datetime = datetime.today()
-    observer_obj = geo.Observer(geo_name=geo_name, unaware_datetime=in_unaware_datetime)
+    observer_obj = geo.Observer(geo_name=geo_name, input_unaware_datetime=in_unaware_datetime)
     text = ""
     text += str(observer_obj)
     # print(text)

@@ -282,7 +282,7 @@ if __name__ == '__main__':
     # geo_name = 'ASTANA'
     geo_name = 'Kremenchuk'
     local_unaware_datetime = datetime.datetime.now()
-    observer_obj = geo.Observer(geo_name=geo_name, unaware_datetime=local_unaware_datetime)
+    observer_obj = geo.Observer(geo_name=geo_name, input_unaware_datetime=local_unaware_datetime)
     text = ""
     text += str(observer_obj)
     # ###########################################################################

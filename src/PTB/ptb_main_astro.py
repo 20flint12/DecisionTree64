@@ -192,7 +192,7 @@ async def moon_phase(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None
                                                                                      user_bot_id=user_bot_id)
     logger.info("moon day for geo_name: %s at %s", geo_name, span)
 
-    observer_obj = geo.Observer(geo_name=geo_name, unaware_datetime=datetime.today())
+    observer_obj = geo.Observer(geo_name=geo_name, input_utc_datetime=datetime.utcnow())
     text = ""
     text += str(observer_obj)
     # ++++++++++++++++++++++
@@ -213,7 +213,7 @@ async def moon_day(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
                                                                                      user_bot_id=user_bot_id)
     logger.info("moon day for geo_name:  %s at %s", geo_name, span)
 
-    observer_obj = geo.Observer(geo_name=geo_name, unaware_datetime=datetime.today())
+    observer_obj = geo.Observer(geo_name=geo_name, input_utc_datetime=datetime.utcnow())
     text = ""
     text += str(observer_obj)
     # ++++++++++++++++++++++
@@ -243,7 +243,7 @@ async def sun_rise(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
                                                                                      user_bot_id=user_bot_id)
     logger.info("sun rise for geo_name: %s at %s", geo_name, span)
 
-    observer_obj = geo.Observer(geo_name=geo_name, unaware_datetime=datetime.today())
+    observer_obj = geo.Observer(geo_name=geo_name, input_utc_datetime=datetime.utcnow())
     text = ""
     text += str(observer_obj)
     # ++++++++++++++++++++++
@@ -264,7 +264,7 @@ async def zodiac(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
                                                                                      user_bot_id=user_bot_id)
     logger.info("zodiac for geo_name: %s at %s", geo_name, span)
 
-    observer_obj = geo.Observer(geo_name=geo_name, unaware_datetime=datetime.today())
+    observer_obj = geo.Observer(geo_name=geo_name, input_utc_datetime=datetime.utcnow())
     text = ""
     text += str(observer_obj)
     # ++++++++++++++++++++++
@@ -290,7 +290,7 @@ async def weather(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
                                                                                      user_bot_id=user_bot_id)
     logger.info("weather for geo_name %s at %s", geo_name, span)
 
-    observer_obj = geo.Observer(geo_name=geo_name, unaware_datetime=datetime.today())
+    observer_obj = geo.Observer(geo_name=geo_name, input_utc_datetime=datetime.utcnow())
     text = ""
     text += str(observer_obj)
     # ++++++++++++++++++++++
@@ -311,7 +311,7 @@ async def summary(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
                                                                                      user_bot_id=user_bot_id)
     logger.info("summary -> geo_name=%s moment=%s", geo_name, span)
 
-    observer_obj = geo.Observer(geo_name=geo_name, unaware_datetime=datetime.today())
+    observer_obj = geo.Observer(geo_name=geo_name, input_utc_datetime=datetime.utcnow())
     text = ""
     text += str(observer_obj)
     # ++++++++++++++++++++++
@@ -359,7 +359,7 @@ async def callback_timer_DAILY(context: ContextTypes.DEFAULT_TYPE) -> None:
                                                                                      user_bot_id=user_bot_id)
     logger.info("%s:: callback_timer_DAILY> geo_name=%s moment=%s", job.name, geo_name, span)
 
-    observer_obj = geo.Observer(geo_name=geo_name, unaware_datetime=datetime.today())
+    observer_obj = geo.Observer(geo_name=geo_name, input_utc_datetime=datetime.utcnow())
     text = ""
     text += str(observer_obj)
     # ++++++++++++++++++++++
@@ -416,7 +416,7 @@ async def setup_timer_DAILY(update: Update, context: ContextTypes.DEFAULT_TYPE) 
                                                                                      user_bot_id=user_bot_id)
     logger.info("weather for geo_name %s at %s", geo_name, span)
 
-    observer_obj = geo.Observer(geo_name=geo_name, unaware_datetime=datetime.today())
+    observer_obj = geo.Observer(geo_name=geo_name, input_unaware_datetime=datetime.today())
     text = ""
     text += str(observer_obj)
     # ++++++++++++++++++++++
@@ -492,7 +492,7 @@ async def color_of_the_days(update: Update, context: ContextTypes.DEFAULT_TYPE) 
                                                                                      user_bot_id=user_bot_id)
     logger.info("color_of_the_days -> geo_name=%s moment=%s", geo_name, span)
 
-    observer_obj = geo.Observer(geo_name=geo_name, unaware_datetime=datetime.today())
+    observer_obj = geo.Observer(geo_name=geo_name, input_utc_datetime=datetime.utcnow())
     text = ""
     text += str(observer_obj)
     # ++++++++++++++++++++++
