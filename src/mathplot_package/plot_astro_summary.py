@@ -464,26 +464,26 @@ def _plot_annotations_of_moon_days(observer=None, span=(3., 3.), axe=None, ratio
         # else:
         #     moon_noon_unaware = ephem.Date(zenit_moon + 24.5 / 24)
 
-        # Check for infinite loop !!!
-        if moon_noon_unaware.datetime() < cur_unaware:
-            print("_plot_annotations_of_moon_days  cur_unaware=", cur_unaware, "moon_noon_unaware=", moon_noon_unaware.datetime())
-        else:
-            print("_plot_annotations_of_moon_days  cur_unaware=", cur_unaware)
-
-        cur_unaware = moon_noon_unaware.datetime()
-
-        if begin_unaware + timedelta(days=ratio_v_h[0] * ANN_DAYS_OFFSET) < cur_unaware < \
-                end_unaware - timedelta(days=ratio_v_h[0] * ANN_DAYS_OFFSET):
-
-            annot_text = str(moon_dict["moon_day"]) + " міс. д."
-            coords = (0.6 * ratio_v_h[1], mdates.date2num(cur_unaware))
-
-            axe.annotate(annot_text,
-                         xy=coords,
-                         fontsize=8,
-                         horizontalalignment='center',
-                         verticalalignment='center'
-                         )
+        # # Check for infinite loop !!!
+        # if moon_noon_unaware.datetime() < cur_unaware:
+        #     print("*plot_annotations_of_moon_days  cur_unaware=", moon_dict['moon_day'], cur_unaware, "moon_noon_unaware=", moon_noon_unaware.datetime())
+        # else:
+        #     print("_plot_annotations_of_moon_days  cur_unaware=", moon_dict['moon_day'], cur_unaware, "moon_noon_unaware=", moon_noon_unaware.datetime())
+        #
+        # cur_unaware = moon_noon_unaware.datetime()
+        #
+        # if begin_unaware + timedelta(days=ratio_v_h[0] * ANN_DAYS_OFFSET) < cur_unaware < \
+        #         end_unaware - timedelta(days=ratio_v_h[0] * ANN_DAYS_OFFSET):
+        #
+        #     annot_text = str(moon_dict["moon_day"]) + " міс. д."
+        #     coords = (0.6 * ratio_v_h[1], mdates.date2num(cur_unaware))
+        #
+        #     axe.annotate(annot_text,
+        #                  xy=coords,
+        #                  fontsize=8,
+        #                  horizontalalignment='center',
+        #                  verticalalignment='center'
+        #                  )
 
 
 def _plot_annotations_of_moon_phases(observer=None, span=(3., 3.), axe=None, ratio_v_h=(1., 1.)):
@@ -575,13 +575,13 @@ def _plot_annotations_of_zodiacs(annotation_moon_dict=None, annotation_sun_dict=
 if __name__ == '__main__':
 
     # geo_name = 'Kremenchuk'
-    # geo_name = 'Astana'
-    geo_name = 'Mragowo'
+    geo_name = 'Astana'
+    # geo_name = 'Mragowo'
     # geo_name = 'Boston'
     # geo_name = 'Kharkiv'
 
     # in_unaware_datetime = datetime.strptime("1976-07-25 02:37:21", geo.dt_format_rev)  # "%Y-%m-%d %H:%M:%S"
-    in_unaware_datetime = datetime.today()
+    in_unaware_datetime = datetime.utcnow()
     observer_obj = geo.Observer(geo_name=geo_name, input_unaware_datetime=in_unaware_datetime)
     text = ""
     text += str(observer_obj)

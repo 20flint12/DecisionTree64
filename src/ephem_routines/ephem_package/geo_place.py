@@ -72,12 +72,9 @@ class Observer:
             self._set_noon = False
 
             # ToDo save self._init_unaware
-            # ...
             self._aware = self._utc.replace(tzinfo=pytz.utc).astimezone(self.timezone)
-
             self._unaware = self._aware.astimezone(self.timezone).replace(tzinfo=None)
             self._init_unaware = self._unaware
-
 
     def __str__(self):
         str_obj = ""

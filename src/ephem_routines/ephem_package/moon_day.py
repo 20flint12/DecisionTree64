@@ -308,10 +308,10 @@ if __name__ == '__main__':
     # geo_name = 'Mragowo'
     # geo_name = 'Boston'
     # geo_name = 'Kharkiv'
-    geo_name = 'Kyiv'
+    geo_name = 'ASTANA'
 
-    # local_unaware_datetime = datetime.strptime("1976-07-13 02:37:21", geo.dt_format_rev)  # "%Y-%m-%d %H:%M:%S"
-    local_unaware_datetime = datetime.today()
+    local_unaware_datetime = datetime.strptime("2023-02-09 22:06:11", geo.dt_format_rev)  # "%Y-%m-%d %H:%M:%S"
+    # local_unaware_datetime = datetime.today()
     # local_unaware_datetime = datetime.now()
 
     observer_obj = geo.Observer(geo_name=geo_name, input_unaware_datetime=local_unaware_datetime)
@@ -324,7 +324,7 @@ if __name__ == '__main__':
     text += mph_text
 
     md_dict, md_text = main_moon_day(observer=observer_obj)
-    # pprint.pprint(md_dict)
+    pprint.pprint(md_dict)
     text += md_text[0]
     # text += md_text[1]
     text += md_text[2]
