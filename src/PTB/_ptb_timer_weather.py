@@ -63,10 +63,10 @@ async def callback_timer_REP(context: ContextTypes.DEFAULT_TYPE):
     text = job.name + ' @ ' + str(job.next_t)[:19] + "\n" + str(context.job_queue.jobs())[25:]
     # logger.info(text)
 
-    (valid_geo_name, geo_name), (valid_interval, interval) = \
-        bdbu.parse_Geolocation_Interval(context=context, parse_args=False, user_bot_id=user_bot_id)
+    (valid_geo_name, geo_name), (valid_span, span) = bdbu.parse_Geolocation_Interval(context=context, parse_args=False,
+                                                                                     user_bot_id=user_bot_id)
 
-    logger.info("%s: callback_timer_REP -> geo_name=%s moment=%s", user_bot_id, geo_name, interval)
+    logger.info("%s: callback_timer_REP -> geo_name=%s moment=%s", user_bot_id, geo_name, span)
 
     observer_obj = geo.Observer(geo_name=geo_name, unaware_datetime=datetime.today())
     text = ""

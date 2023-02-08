@@ -27,10 +27,16 @@ class PrmOrig(IntEnum):
     DEF = 1
     SET = 2
     ARG = 3
-    INVALID_TIME = 10      # check VALIDITY after conversion to dt
-    DEF_INVALID = 11
-    SET_INVALID = 12
-    ARG_INVALID = 13
+
+    TIME_INVALID = 10      # check VALIDITY after conversion to dt
+    DEF_TIME_INVALID = 11
+    SET_TIME_INVALID = 12
+    ARG_TIME_INVALID = 13
+
+    SPAN_INVALID = 20      # check SPAN VALIDITY after conversion from string
+    DEF_SPAN_INVALID = 21
+    SET_SPAN_INVALID = 22
+    ARG_SPAN_INVALID = 23
 
 
 class dynamoDB_table(object):
@@ -252,6 +258,7 @@ def main_create_populate_bot_users():
 
 def parse_Geolocation_Interval(context=None, parse_args=False, user_bot_id=""):
 
+    # ToDo Handle situation !
     if context is None:
         return
 
@@ -265,7 +272,6 @@ def parse_Geolocation_Interval(context=None, parse_args=False, user_bot_id=""):
 
     context.chat_data["context_user_data"].setdefault(opc.key_Geolocation, "OLSZTYN")
     context.chat_data["context_user_data"].setdefault(opc.key_Interval, "5-5")
-    # context.user_data.setdefault(opc.key_Reminder, "0000")
 
     # ---------------------------------------------------
     geo_name = context.chat_data["context_user_data"][opc.key_Geolocation]
@@ -276,9 +282,9 @@ def parse_Geolocation_Interval(context=None, parse_args=False, user_bot_id=""):
 
     interval = context.chat_data["context_user_data"][opc.key_Interval]
     if interval == context.chat_data["context_user_data"][opc.key_Interval]:
-        valid_interval = PrmOrig.SET
+        valid_span = PrmOrig.SET
     else:
-        valid_interval = PrmOrig.DEF
+        valid_span = PrmOrig.DEF
 
     # ===================================================
     if hasattr(context, 'args') and parse_args:
@@ -293,31 +299,44 @@ def parse_Geolocation_Interval(context=None, parse_args=False, user_bot_id=""):
             valid_geo_name = PrmOrig.ARG
 
             interval = str(context.args[1])
-            valid_interval = PrmOrig.ARG
+            valid_span = PrmOrig.ARG
 
-            # Check validity of interval string
-            # ...
-            try:
-                # valid_interval = ParamOrigin.VALID_TIME
+    # Check validity of interval string
+    res = interval.split("-")
 
-                res = interval.split("-")
-                if len(res) == 2:
-                    pass
+    if len(res) == 2:
+        try:
+            if 0.1 <= float(res[0]) <= 10.:
+                days_before = float(res[0])
+            else:
+                days_before = float(res[0])
 
-                # user_db_data = context.chat_data  # ???
-                # user_db_data["activity"]["daily_utc_time"] = [dt_hhmm_utc.hour, dt_hhmm_utc.minute, dt_hhmm_utc.second]
-                # bdbu.update_user_context_db(pk_sk_id={'pk': user_bot_id, 'sk': user_name}, user_db_data=user_db_data)
+            if 0.1 <= float(res[1]) <= 10.:
+                days_after = float(res[1])
+            else:
+                days_after = float(res[1])
 
-            except ValueError:
+            # valid_span = PrmOrig.VALID_TIME
+            span = (days_before, days_after)
 
-                valid_reminder = PrmOrig(valid_interval) + PrmOrig.INVALID_TIME
+        except ValueError:
+            print("Not a float")
+            valid_span = PrmOrig(valid_span) + PrmOrig.SPAN_INVALID
+            span = (3.5, 3.5)      # default
 
+        # Save last parsed span to db
+        # user_db_data = context.chat_data  # ???
+        # user_db_data["activity"]["daily_utc_time"] = [dt_hhmm_utc.hour, dt_hhmm_utc.minute, dt_hhmm_utc.second]
+        # bdbu.update_user_context_db(pk_sk_id={'pk': user_bot_id, 'sk': user_name}, user_db_data=user_db_data)
 
+    else:
+        print("Not a splits")
+        valid_span = PrmOrig(valid_span) + PrmOrig.SPAN_INVALID
+        span = (3.5, 3.5)  # default
 
+    print(user_bot_id, ":: parse_Geolocation_Interval> (", valid_geo_name, "|", geo_name, "), (", PrmOrig(valid_span), "|", span, ")")
 
-    print(user_bot_id, ":: parse_Geolocation_Interval> (", valid_geo_name, geo_name, "), (", valid_interval, interval, ")")
-
-    return (valid_geo_name, geo_name), (valid_interval, interval)
+    return (valid_geo_name, geo_name), (valid_span, span)
 
 
 def parse_Reminder(context=None, observer=None):
@@ -358,7 +377,7 @@ def parse_Reminder(context=None, observer=None):
 
     except ValueError:
 
-        valid_reminder = PrmOrig(valid_reminder) + bdbu.PrmOrig.INVALID_TIME
+        valid_reminder = PrmOrig(valid_reminder) + PrmOrig.TIME_INVALID
 
     print(user_bot_id, " :: parse_Reminder> (", PrmOrig(valid_reminder), ") ", dt_hhmm_unaware.time(), " utc:", dt_hhmm_utc.time())
 

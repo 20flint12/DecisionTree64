@@ -176,6 +176,7 @@ def get_user_bot_id(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat_id = update.effective_message.chat_id
     bot = context.bot
     user_bot_id = str(chat_id) + "#" + str(bot.id)
+    # print(user, bot.id, bot.name, bot.first_name)
     return user_bot_id
 
 
@@ -187,9 +188,9 @@ async def moon_phase(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None
     # bdbu.update_user_record(update=update, context=context)
 
     user_bot_id = get_user_bot_id(update, context)
-    (valid_geo_name, geo_name), (valid_interval, interval) = \
-        bdbu.parse_Geolocation_Interval(context=context, parse_args=True, user_bot_id=user_bot_id)
-    logger.info("moon day for geo_name: %s at %s", geo_name, interval)
+    (valid_geo_name, geo_name), (valid_span, span) = bdbu.parse_Geolocation_Interval(context=context, parse_args=True,
+                                                                                     user_bot_id=user_bot_id)
+    logger.info("moon day for geo_name: %s at %s", geo_name, span)
 
     observer_obj = geo.Observer(geo_name=geo_name, unaware_datetime=datetime.today())
     text = ""
@@ -207,8 +208,10 @@ async def moon_day(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     user = update.effective_user
     # bdbu.update_user_record(update=update, context=context)
 
-    (valid_geo_name, geo_name), (valid_interval, interval) = bdbu.parse_Geolocation_Interval(context=context, parse_args=True)
-    logger.info("moon day for geo_name:  %s at %s", geo_name, interval)
+    user_bot_id = get_user_bot_id(update, context)
+    (valid_geo_name, geo_name), (valid_span, span) = bdbu.parse_Geolocation_Interval(context=context, parse_args=True,
+                                                                                     user_bot_id=user_bot_id)
+    logger.info("moon day for geo_name:  %s at %s", geo_name, span)
 
     observer_obj = geo.Observer(geo_name=geo_name, unaware_datetime=datetime.today())
     text = ""
@@ -235,8 +238,10 @@ async def sun_rise(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     user = update.effective_user
     # bdbu.update_user_record(update=update, context=context)
 
-    (valid_geo_name, geo_name), (valid_interval, interval) = bdbu.parse_Geolocation_Interval(context=context, parse_args=True)
-    logger.info("sun rise for geo_name: %s at %s", geo_name, interval)
+    user_bot_id = get_user_bot_id(update, context)
+    (valid_geo_name, geo_name), (valid_span, span) = bdbu.parse_Geolocation_Interval(context=context, parse_args=True,
+                                                                                     user_bot_id=user_bot_id)
+    logger.info("sun rise for geo_name: %s at %s", geo_name, span)
 
     observer_obj = geo.Observer(geo_name=geo_name, unaware_datetime=datetime.today())
     text = ""
@@ -254,8 +259,10 @@ async def zodiac(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     user = update.effective_user
     # bdbu.update_user_record(update=update, context=context)
 
-    (valid_geo_name, geo_name), (valid_interval, interval) = bdbu.parse_Geolocation_Interval(context=context, parse_args=True)
-    logger.info("zodiac for geo_name: %s at %s", geo_name, interval)
+    user_bot_id = get_user_bot_id(update, context)
+    (valid_geo_name, geo_name), (valid_span, span) = bdbu.parse_Geolocation_Interval(context=context, parse_args=True,
+                                                                                     user_bot_id=user_bot_id)
+    logger.info("zodiac for geo_name: %s at %s", geo_name, span)
 
     observer_obj = geo.Observer(geo_name=geo_name, unaware_datetime=datetime.today())
     text = ""
@@ -279,9 +286,9 @@ async def weather(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     # bdbu.update_user_record(update=update, context=context)
 
     user_bot_id = get_user_bot_id(update, context)
-    (valid_geo_name, geo_name), (valid_interval, interval) = bdbu.parse_Geolocation_Interval(context=context, parse_args=True,
-                                                                                        user_bot_id=user_bot_id)
-    logger.info("weather for geo_name %s at %s", geo_name, interval)
+    (valid_geo_name, geo_name), (valid_span, span) = bdbu.parse_Geolocation_Interval(context=context, parse_args=True,
+                                                                                     user_bot_id=user_bot_id)
+    logger.info("weather for geo_name %s at %s", geo_name, span)
 
     observer_obj = geo.Observer(geo_name=geo_name, unaware_datetime=datetime.today())
     text = ""
@@ -299,8 +306,10 @@ async def summary(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     user = update.effective_user
     # bdbu.update_user_record(update=update, context=context)
 
-    (valid_geo_name, geo_name), (valid_interval, interval) = bdbu.parse_Geolocation_Interval(context=context, parse_args=True)
-    logger.info("summary -> geo_name=%s moment=%s", geo_name, interval)
+    user_bot_id = get_user_bot_id(update, context)
+    (valid_geo_name, geo_name), (valid_span, span) = bdbu.parse_Geolocation_Interval(context=context, parse_args=True,
+                                                                                     user_bot_id=user_bot_id)
+    logger.info("summary -> geo_name=%s moment=%s", geo_name, span)
 
     observer_obj = geo.Observer(geo_name=geo_name, unaware_datetime=datetime.today())
     text = ""
@@ -345,9 +354,10 @@ async def callback_timer_DAILY(context: ContextTypes.DEFAULT_TYPE) -> None:
     photo_name = user_bot_id + "#DAILY" + "_photo.png"
     # photo_name = job.name + "_photo.png"
 
-    (valid_geo_name, geo_name), (valid_interval, interval) = \
-        bdbu.parse_Geolocation_Interval(context=context, parse_args=False, user_bot_id=user_bot_id)
-    logger.info("%s:: callback_timer_DAILY> geo_name=%s moment=%s", job.name, geo_name, interval)
+    # user_bot_id = get_user_bot_id(update, context)
+    (valid_geo_name, geo_name), (valid_span, span) = bdbu.parse_Geolocation_Interval(context=context, parse_args=False,
+                                                                                     user_bot_id=user_bot_id)
+    logger.info("%s:: callback_timer_DAILY> geo_name=%s moment=%s", job.name, geo_name, span)
 
     observer_obj = geo.Observer(geo_name=geo_name, unaware_datetime=datetime.today())
     text = ""
@@ -376,7 +386,7 @@ async def callback_timer_DAILY(context: ContextTypes.DEFAULT_TYPE) -> None:
         print(job.chat_id, "alarm:: An exception occurred ************** !!!!!!!!!!!!!!!!!!!!!", e)
 
     # ++++++++++++++++++++++
-    mp.plot_color_of_the_days(observer=observer_obj, span=(5, 2), file_name=photo_name, job_name=chat_job_name)
+    mp.plot_color_of_the_days(observer=observer_obj, span=span, file_name=photo_name, job_name=chat_job_name)
 
     logger.info("send_photo %s", photo_name)
 
@@ -401,8 +411,10 @@ async def setup_timer_DAILY(update: Update, context: ContextTypes.DEFAULT_TYPE) 
 
     job_name = user_bot_id + "#DAILY"
 
-    (valid_geo_name, geo_name), (valid_interval, interval) = bdbu.parse_Geolocation_Interval(context=context, parse_args=False)
-    logger.info("weather for geo_name %s at %s", geo_name, interval)
+    user_bot_id = get_user_bot_id(update, context)
+    (valid_geo_name, geo_name), (valid_span, span) = bdbu.parse_Geolocation_Interval(context=context, parse_args=False,
+                                                                                     user_bot_id=user_bot_id)
+    logger.info("weather for geo_name %s at %s", geo_name, span)
 
     observer_obj = geo.Observer(geo_name=geo_name, unaware_datetime=datetime.today())
     text = ""
@@ -416,8 +428,8 @@ async def setup_timer_DAILY(update: Update, context: ContextTypes.DEFAULT_TYPE) 
         text += "Заданий час: " + str(dt_hhmm_unaware.time()) + " | " + str(dt_hhmm_utc.time()) + " UTC"
         logger.info(text)
 
-    elif valid_reminder in (bdbu.PrmOrig.DEF_INVALID, bdbu.PrmOrig.SET_INVALID,
-                            bdbu.PrmOrig.ARG_INVALID):
+    elif valid_reminder in (bdbu.PrmOrig.DEF_TIME_INVALID, bdbu.PrmOrig.SET_TIME_INVALID,
+                            bdbu.PrmOrig.ARG_TIME_INVALID):
         text += "Вибачте, задайте час в форматі [HHMM] / " + str(bdbu.PrmOrig(valid_reminder))
         logger.info(text)
         await update.effective_message.reply_text(text)
@@ -475,14 +487,16 @@ async def color_of_the_days(update: Update, context: ContextTypes.DEFAULT_TYPE) 
     chat_job_name = user_bot_id + "#REP"
     photo_name = user_bot_id + "#DAILY" + "_photo.png"
 
-    (valid_geo_name, geo_name), (valid_interval, interval) = bdbu.parse_Geolocation_Interval(context=context, parse_args=True)
-    logger.info("color_of_the_days -> geo_name=%s moment=%s", geo_name, interval)
+    user_bot_id = get_user_bot_id(update, context)
+    (valid_geo_name, geo_name), (valid_span, span) = bdbu.parse_Geolocation_Interval(context=context, parse_args=True,
+                                                                                     user_bot_id=user_bot_id)
+    logger.info("color_of_the_days -> geo_name=%s moment=%s", geo_name, span)
 
     observer_obj = geo.Observer(geo_name=geo_name, unaware_datetime=datetime.today())
     text = ""
     text += str(observer_obj)
     # ++++++++++++++++++++++
-    mp.plot_color_of_the_days(observer=observer_obj, span=(5, 2), file_name=photo_name, job_name=chat_job_name)
+    mp.plot_color_of_the_days(observer=observer_obj, span=span, file_name=photo_name, job_name=chat_job_name)
 
     logger.info("color_of_the_days - %s", photo_name)
     await update.message.reply_photo(photo=open(photo_name, 'rb'))
@@ -505,7 +519,7 @@ async def restart_service(context: ContextTypes.DEFAULT_TYPE):
         pers_data = context.application.chat_data
         # pprint(pers_data)
         for itm in pers_data:
-            print('>>>>>>', itm)
+            print('>>>', itm)
             if not isinstance(itm, str):
                 # The variable is a string
                 print('>>>', itm, pers_data[itm]['context_user_data'])
