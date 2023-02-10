@@ -110,8 +110,8 @@ def main_sun_rise_sett(observer=None):
     result_dict["sun_rise"] = prev_rise
     result_dict["sun_sett"] = next_sett
 
-    day_rise = observer.dt_utc_to_aware_by_tz((result_dict["sun_rise"].datetime()))
-    day_sett = observer.dt_utc_to_aware_by_tz((result_dict["sun_sett"].datetime()))
+    day_rise = observer.dt_utc_to_aware((result_dict["sun_rise"].datetime()))
+    day_sett = observer.dt_utc_to_aware((result_dict["sun_sett"].datetime()))
     result_text += "\n" + day_rise.strftime(geo.dt_format) + " sun_rise"
     result_text += "\n" + day_sett.strftime(geo.dt_format) + " sun_sett"
 

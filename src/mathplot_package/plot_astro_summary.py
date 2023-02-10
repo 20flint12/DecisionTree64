@@ -185,15 +185,17 @@ def plot_color_of_the_days(observer=None, span=(3., 3.), file_name="plot_astro_s
                                                         _between_low=str(begin_utc),  # "2021-01-21 14:41:49"
                                                         _between_high=str(end_utc)
                                                         )
-    # pprint(list_of_items)
+    pprint(list_of_items)
 
     weather_dict = b3w.main_query_filter(list_of_items, geo_name=observer.get_geo_name, attr="weather", field="P")
     weather_len = len(weather_dict)
 
-    # min_P = min(data_dict.values()['P'])
-    min_P_T = min((int(d['P']), int(d['T'])) for d in weather_dict.values())
-    print('len=', weather_len, min_P_T)
-
+    if weather_dict:
+        # min_P = min(data_dict.values()['P'])
+        min_P_T = min((int(d['P']), int(d['T'])) for d in weather_dict.values())
+        print('len=', weather_len, min_P_T)
+    else:
+        min_P_T = (0, 0)
 
     # Create avg empty array of weather data
     weather_P = np.full(DATES_SIZE, min_P_T[0])
@@ -204,12 +206,11 @@ def plot_color_of_the_days(observer=None, span=(3., 3.), file_name="plot_astro_s
         dt_utc_cur = datetime.strptime(item, geo.dt_format_rev)
 
         # ToDo Convert to unaware_date
-        # ...
-        dt_aware_cur = observer.dt_utc_to_aware_by_tz(dt_utc_cur)
-        print(dt_utc_cur, dt_aware_cur)
+        dt_unaware_cur = observer.dt_utc_to_unaware(dt_utc_cur)
+        # print(dt_utc_cur, dt_unaware_cur)
 
         # Find and replace origin element
-        desired_date = mdates.date2num(dt_aware_cur)
+        desired_date = mdates.date2num(dt_unaware_cur)
         idx = min(range(len(labels_unaware)), key=lambda i: abs(labels_unaware[i] - desired_date))
 
         value_P = weather_dict[item]['P']
@@ -417,16 +418,16 @@ def _plot_annotations_of_sun_days(observer=None, span=(3., 3.), axe=None, ratio_
         zenit_sun_utc = ephem.Date((sun_dict['sun_sett'] + sun_dict['sun_rise']) / 2)
 
         # Convert to unaware
-        cur_aware = observer.dt_utc_to_aware_by_tz(in_utc=zenit_sun_utc.datetime())
-        cur_unaware = observer.dt_aware_to_unaware(in_aware=cur_aware)
-        # print("@@@", zenit_sun_utc, " --- ", cur_aware, " --- ", cur_unaware)
+        cur_unaware = observer.dt_utc_to_unaware(in_utc=zenit_sun_utc.datetime())
+        # print("@@@", zenit_sun_utc, " --- ", cur_unaware)
 
         if begin_unaware + timedelta(days=ratio_v_h[0] * ANN_DAYS_OFFSET) < cur_unaware < \
                 end_unaware - timedelta(days=ratio_v_h[0] * ANN_DAYS_OFFSET):
 
             annot_text = format_datetime(cur_unaware, "d MMM EEE", locale='uk_UA')
             # annot_text = str(cur_unaware.strftime(geo.dt_format_plot))
-            coords = (-0.6 * ratio_v_h[1], mdates.date2num(cur_unaware))
+            # coords = (-0.6 * ratio_v_h[1], mdates.date2num(cur_unaware))
+            coords = (-0.6 * ratio_v_h[1], cur_unaware)
 
             axe.annotate(annot_text,
                          xy=coords,
@@ -498,15 +499,24 @@ def _plot_annotations_of_moon_phases(observer=None, span=(3., 3.), axe=None, rat
             cur_unaware = cur_unaware + timedelta(days=29.53/2)     # next calculation
 
         observer.unaware_update_utc(cur_unaware)
-        moonph_dict, moon_text = md.main_moon_phase(observer=observer)
-        lbl_moon_phmiddle = ephem.Date((moonph_dict['prev_utc'] + moonph_dict['next_utc']) / 2)
-        cur_unaware = lbl_moon_phmiddle.datetime()
+        moon_phase_dict, moon_text = md.main_moon_phase(observer=observer)
+        middle_moon_phase = ephem.Date((moon_phase_dict['prev_utc'] + moon_phase_dict['next_utc']) / 2)
 
-        # if cur_unaware > begin_unaware + timedelta(days=0.5) or \
-        #         cur_unaware < end_unaware - timedelta(days=0.5):
-        if True:
-            annot_text = str(moonph_dict["prev"]).replace(" ", "\n")
-            coords = (-0.0 * ratio_v_h[1], ephem.Date(moonph_dict['prev_utc']).datetime())
+        # Convert middle_moon_phase to unaware (to next step in unaware!)
+        cur_unaware = observer.dt_utc_to_unaware(in_utc=middle_moon_phase.datetime())
+
+        # Convert 'prev_utc' to unaware
+        prev_unaware = observer.dt_utc_to_unaware(in_utc=ephem.Date(moon_phase_dict['prev_utc']).datetime())
+
+        # Convert 'next_utc' to unaware
+        next_unaware = observer.dt_utc_to_unaware(in_utc=ephem.Date(moon_phase_dict['next_utc']).datetime())
+
+        # if True:
+        if begin_unaware + timedelta(days=ratio_v_h[0] * ANN_PHAS_OFFSET) < prev_unaware:
+
+            annot_text = str(moon_phase_dict["prev"]).replace(" ", "\n")
+
+            coords = (-0.0 * ratio_v_h[1], prev_unaware)
             # print(annot_text, coords)
             axe.annotate(annot_text,
                          xy=coords,
@@ -514,8 +524,13 @@ def _plot_annotations_of_moon_phases(observer=None, span=(3., 3.), axe=None, rat
                          horizontalalignment='center',
                          verticalalignment='center',
                          )
-            annot_text = str(moonph_dict["next"]).replace(" ", "\n")
-            coords = (-0.0 * ratio_v_h[1], ephem.Date(moonph_dict['next_utc']).datetime())
+
+        # if True:
+        if next_unaware < end_unaware - timedelta(days=ratio_v_h[0] * ANN_PHAS_OFFSET):
+
+            annot_text = str(moon_phase_dict["next"]).replace(" ", "\n")
+
+            coords = (-0.0 * ratio_v_h[1], next_unaware)
             # print(annot_text, coords)
             axe.annotate(annot_text,
                          xy=coords,
@@ -527,11 +542,11 @@ def _plot_annotations_of_moon_phases(observer=None, span=(3., 3.), axe=None, rat
 
 def _plot_annotations_of_moon_elements(annotation_elem_dict=None, axe=None, ratio_v_h=(1., 1.)):
 
-    for i in annotation_elem_dict:
-        # print(i, annotation_elem_dict[i])
+    for elem_item in annotation_elem_dict:
+        # print(elem_item, annotation_elem_dict[elem_item])
 
-        annot_text = str(i).replace(" ", "\n")
-        coords = (-0.0 * ratio_v_h[1], annotation_elem_dict[i])
+        annot_text = str(elem_item).replace(" ", "\n")
+        coords = (-0.0 * ratio_v_h[1], annotation_elem_dict[elem_item])
 
         axe.annotate(annot_text,
                      xy=coords,
@@ -543,11 +558,11 @@ def _plot_annotations_of_moon_elements(annotation_elem_dict=None, axe=None, rati
 
 def _plot_annotations_of_zodiacs(annotation_moon_dict=None, annotation_sun_dict=None, axe=None, ratio_v_h=(1, 1)):
 
-    for i in annotation_moon_dict:
-        # print(i, annotation_moon_dict[i])
+    for zodiac_item in annotation_moon_dict:
+        # print(zodiac_item, annotation_moon_dict[zodiac_item])
 
-        annot_text = str(i)
-        coords = (-0.5 * ratio_v_h[1], annotation_moon_dict[i])
+        annot_text = str(zodiac_item)
+        coords = (-0.5 * ratio_v_h[1], annotation_moon_dict[zodiac_item])
 
         axe.annotate(annot_text,
                      xy=coords,
@@ -556,11 +571,11 @@ def _plot_annotations_of_zodiacs(annotation_moon_dict=None, annotation_sun_dict=
                      verticalalignment='center'
                      )
 
-    for i in annotation_sun_dict:
-        # print(i, annotation_sun_dict[i])
+    for zodiac_item in annotation_sun_dict:
+        # print(zodiac_item, annotation_sun_dict[zodiac_item])
 
-        annot_text = str(i)
-        coords = (0.5 * ratio_v_h[1], annotation_sun_dict[i])
+        annot_text = str(zodiac_item)
+        coords = (0.5 * ratio_v_h[1], annotation_sun_dict[zodiac_item])
 
         axe.annotate(annot_text,
                      xy=coords,
@@ -579,26 +594,26 @@ if __name__ == '__main__':
     geo_name = 'London'
     # geo_name = 'Kharkiv'
 
-    # in_unaware_datetime = datetime.strptime("1976-07-25 02:37:21", geo.dt_format_rev)  # "%Y-%m-%d %H:%M:%S"
+    # in_unaware_datetime = datetime.strptime("1976-07-28 02:37:21", geo.dt_format_rev)  # "%Y-%m-%d %H:%M:%S"
     in_unaware_datetime = datetime.utcnow()
     observer_obj = geo.Observer(geo_name=geo_name, input_unaware_datetime=in_unaware_datetime)
     text = ""
     text += str(observer_obj)
     # print(text)
     # #######################################################################################
-    plot_color_of_the_days(observer=observer_obj, span=(3, 1), file_name="plot_astro_summary.png", job_name="442763659#REP")
+    plot_color_of_the_days(observer=observer_obj, span=(5, 2), file_name="plot_astro_summary.png", job_name="442763659#REP")
 
-    # observer_obj.unaware_update_utc(in_unaware_datetime)
-    observer_obj = geo.Observer(geo_name="Mragowo", input_unaware_datetime=in_unaware_datetime)
-    plot_color_of_the_days(observer=observer_obj, span=(3, 1), file_name="plot_astro_summary.png", job_name="442763659#REP")
-
-    # observer_obj.unaware_update_utc(in_unaware_datetime)
-    observer_obj = geo.Observer(geo_name="Kremenchuk", input_unaware_datetime=in_unaware_datetime)
-    plot_color_of_the_days(observer=observer_obj, span=(3, 1), file_name="plot_astro_summary.png", job_name="442763659#REP")
+    # # observer_obj.unaware_update_utc(in_unaware_datetime)
+    # observer_obj = geo.Observer(geo_name="Mragowo", input_unaware_datetime=in_unaware_datetime)
+    # plot_color_of_the_days(observer=observer_obj, span=(3, 1), file_name="plot_astro_summary.png", job_name="442763659#REP")
+    #
+    # # observer_obj.unaware_update_utc(in_unaware_datetime)
+    # observer_obj = geo.Observer(geo_name="Kremenchuk", input_unaware_datetime=in_unaware_datetime)
+    # plot_color_of_the_days(observer=observer_obj, span=(3, 1), file_name="plot_astro_summary.png", job_name="442763659#REP")
 
     # observer_obj.unaware_update_utc(in_unaware_datetime)
     observer_obj = geo.Observer(geo_name="Astana", input_unaware_datetime=in_unaware_datetime)
-    plot_color_of_the_days(observer=observer_obj, span=(3, 1), file_name="plot_astro_summary.png", job_name="442763659#REP")
+    plot_color_of_the_days(observer=observer_obj, span=(5, 2), file_name="plot_astro_summary.png", job_name="442763659#REP")
 
     # observer_obj.unaware_update_utc(in_unaware_datetime)
     # plot_color_of_the_days(observer=observer_obj, span=(3, 1), file_name="plot_astro_summary.png", job_name="442763659#REP")

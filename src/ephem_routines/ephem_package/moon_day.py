@@ -204,8 +204,8 @@ def main_moon_phase(observer=None):
     result_dict = get_moon_phase_moment(observer=observer)
 
     # calc_date_utc = observer.dt_utc_to_aware_by_tz((result_dict["calc_date_utc"].datetime()))
-    prev_utc = observer.dt_utc_to_aware_by_tz((result_dict["prev_utc"].datetime()))
-    next_utc = observer.dt_utc_to_aware_by_tz((result_dict["next_utc"].datetime()))
+    prev_utc = observer.dt_utc_to_aware((result_dict["prev_utc"].datetime()))
+    next_utc = observer.dt_utc_to_aware((result_dict["next_utc"].datetime()))
     result_text += "\n" + prev_utc.strftime(geo.dt_format) + " " + result_dict["prev"]
     # result_text += "\n" + calc_date_utc.strftime(geo.dt_format) + " calc_date_utc"
     result_text += "\n" + next_utc.strftime(geo.dt_format) + " " + result_dict["next"]
@@ -290,8 +290,8 @@ def main_moon_day(observer=None):
 
     result_text[1] += "<" * 76 + "\n"
 
-    moon_rise = observer.dt_utc_to_aware_by_tz((result_dict["moon_rise"].datetime()))
-    moon_sett = observer.dt_utc_to_aware_by_tz((result_dict["moon_sett"].datetime()))
+    moon_rise = observer.dt_utc_to_aware((result_dict["moon_rise"].datetime()))
+    moon_sett = observer.dt_utc_to_aware((result_dict["moon_sett"].datetime()))
 
     result_text[2] += "\n"
     result_text[2] += "\nMoon day: " + str(result_dict["moon_day"])

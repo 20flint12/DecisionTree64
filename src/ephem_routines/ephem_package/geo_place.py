@@ -180,14 +180,20 @@ class Observer:
         self._unaware = self._init_unaware
         return self._unaware
 
-    def utc_to_aware_by_tz(self):               # restore internal aware from UTC
+    def utc_to_aware_by_tz(self) -> None:       # restore internal aware from UTC
         self._aware = self._utc.replace(tzinfo=pytz.utc).astimezone(self.timezone)
         # print("self.aware_datetime=", self.aware_datetime)
 
-    def dt_utc_to_aware_by_tz(self, in_utc):    # restore external aware from UTC
-        out_aware = in_utc.replace(tzinfo=pytz.utc).astimezone(self.timezone)
-        # print("self.aware_datetime=", self.aware_datetime)
-        return out_aware
+    def dt_utc_to_aware(self, in_utc=None) -> datetime:
+        if in_utc is not None:
+            out_aware = in_utc.replace(tzinfo=pytz.utc).astimezone(self.timezone)
+            return out_aware
+
+    def dt_utc_to_unaware(self, in_utc=None) -> datetime:
+        if in_utc is not None:
+            out_aware = in_utc.replace(tzinfo=pytz.utc).astimezone(self.timezone)
+            out_unaware = out_aware.astimezone(self.timezone).replace(tzinfo=None)
+            return out_unaware
 
     def dt_unaware_to_utc(self, in_unaware=None) -> datetime:
         if in_unaware is not None:
