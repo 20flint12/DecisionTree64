@@ -25,28 +25,27 @@ from babel.dates import format_datetime
 
 
 ANN_DAYS_OFFSET = 0.02     # actually for font high
-ANN_ELEM_OFFSET = 0.04     # actually for multiline high
-ANN_PHAS_OFFSET = 0.04     # actually for multiline high
+ANN_ELEM_OFFSET = 0.03     # actually for multiline high
+ANN_PHAS_OFFSET = 0.03     # actually for multiline high
+ANN_ZODC_OFFSET = 0.02     # actually for multiline high
 
 
-def plot_color_of_the_days(observer=None, span=(3., 3.), file_name="plot_astro_summary.png", job_name=''):
-    # print("unaware date2num=", mdates.date2num(observer.get_unaware))
+def plot_color_of_the_days(observer=None, file_name="plot_astro_summary.png", job_name=''):
 
-    begin_unaware = observer.get_unaware - timedelta(days=span[0])
-    end_unaware = observer.get_unaware + timedelta(days=span[1])
+    begin_unaware, end_unaware = observer.get_span_unaware
+    span = observer.get_span
+
     DATES_SIZE = 1000
     print(begin_unaware, " - ", end_unaware, "len=", DATES_SIZE)
 
     unaware_dates = np.linspace(begin_unaware.timestamp(), end_unaware.timestamp(), DATES_SIZE)
 
     moon_element = []
-    moon_lunat = []
+    moon_lunation = []
     sun_lon = []
     sun_lat = []
     moon_lon = []
     moon_lat = []
-    # sun_dist = []
-    # moon_dist = []
     sun_angle = []
     moon_angle = []
     labels_unaware = []
@@ -54,7 +53,7 @@ def plot_color_of_the_days(observer=None, span=(3., 3.), file_name="plot_astro_s
     blocked_m_long = False
     blocked_s_long = False
     annot_moon_zod = {}
-    annot_moon_elem = {}
+    annot_elements = {}
     annot_sun_zod = {}
     last_sun_str = ""
 
@@ -74,7 +73,7 @@ def plot_color_of_the_days(observer=None, span=(3., 3.), file_name="plot_astro_s
 
 
         lunation = md.get_lunation(observer=observer)
-        moon_lunat.append(lunation)
+        moon_lunation.append(lunation)
 
 
 
@@ -97,7 +96,7 @@ def plot_color_of_the_days(observer=None, span=(3., 3.), file_name="plot_astro_s
                 elem = zd.elements_full_ukr[int(m_long / 30) % 4]
                 # print(ecl_dict["moon_lon"], zd.format_zodiacal_longitude((ecl_dict["moon_lon"])), sign)
                 annot_moon_zod[sign] = mdates.date2num(observer.get_unaware)
-                annot_moon_elem[elem] = mdates.date2num(observer.get_unaware)
+                annot_elements[elem] = mdates.date2num(observer.get_unaware)
         else:
             if (m_long % 30) == 16:
                 blocked_m_long = False
@@ -171,16 +170,16 @@ def plot_color_of_the_days(observer=None, span=(3., 3.), file_name="plot_astro_s
 
 
 
-    # vertical_full_span = labels_unaware[-1] - labels_unaware[0]
-    vertical_full_span = span[0] + span[1]
+
+    vertical_full_span = span[0] + span[1]          # = labels_unaware[-1] - labels_unaware[0]
     points_per_hour = int(DATES_SIZE / (span[0] + span[1]) / 24) + 1
 
     print("DATES_SIZE=", DATES_SIZE, "days=", span[0] + span[1], "points_per_hour=", points_per_hour)
 
 
     # ///////////////////////  WEATHER  /////////////////////////////////////
-    begin_utc = observer.dt_unaware_to_utc(begin_unaware)
-    end_utc = observer.dt_unaware_to_utc(end_unaware)
+    begin_utc, end_utc = observer.get_span_utc
+
     list_of_items = b3w.recordWeather_table.table_query(_pk=job_name,
                                                         _between_low=str(begin_utc),  # "2021-01-21 14:41:49"
                                                         _between_high=str(end_utc)
@@ -269,7 +268,7 @@ def plot_color_of_the_days(observer=None, span=(3., 3.), file_name="plot_astro_s
 
     horizont_full_span = vertical_full_span / axe1.bbox.height * axe1.bbox.width
 
-    _plot_annotations_of_moon_elements(annotation_elem_dict=annot_moon_elem, axe=axe1,
+    _plot_annotations_of_moon_elements(annotation_elem_dict=annot_elements, axe=axe1, observer=observer,
                                        ratio_v_h=(vertical_full_span, horizont_full_span))
 
     CYCLING_OVERLAP = 120 * (2 / 4) / 2 * pz.OVERLAP_COEF
@@ -285,7 +284,7 @@ def plot_color_of_the_days(observer=None, span=(3., 3.), file_name="plot_astro_s
 
     # //////////////////////  LUNATION  /////////////////////////////////////
 
-    moon_lun = np.array(moon_lunat)
+    moon_lun = np.array(moon_lunation)
     # moon_lun = np.array(moon_element)
     # moon_lun = np.linspace(10, 200, 1000)
     # sun_zod = np.array(sun_lon)
@@ -295,7 +294,7 @@ def plot_color_of_the_days(observer=None, span=(3., 3.), file_name="plot_astro_s
     Z[:, 0] = moon_lun
 
     horizont_full_span = vertical_full_span / axe2.bbox.height * axe2.bbox.width
-    _plot_annotations_of_moon_phases(observer=observer, span=span, axe=axe2,
+    _plot_annotations_of_moon_phases(observer=observer, axe=axe2,
                                      ratio_v_h=(vertical_full_span/2, horizont_full_span/2))
     CYCLING_OVERLAP = 0.239
     img2 = axe2.imshow(Z,
@@ -328,9 +327,9 @@ def plot_color_of_the_days(observer=None, span=(3., 3.), file_name="plot_astro_s
 
     horizont_full_span = vertical_full_span / axe3.bbox.height * axe3.bbox.width
 
-    _plot_annotations_of_sun_days(observer=observer, span=span, axe=axe3,
+    _plot_annotations_of_sun_days(observer=observer, axe=axe3,
                                   ratio_v_h=(vertical_full_span/2, horizont_full_span/2))
-    _plot_annotations_of_moon_days(observer=observer, span=span, axe=axe3,
+    _plot_annotations_of_moon_days(observer=observer, axe=axe3,
                                    ratio_v_h=(vertical_full_span/2, horizont_full_span/2))
 
     img3 = axe3.imshow(Z,
@@ -358,10 +357,9 @@ def plot_color_of_the_days(observer=None, span=(3., 3.), file_name="plot_astro_s
 
     horizont_full_span = vertical_full_span / axe4.bbox.height * axe4.bbox.width
 
-    _plot_annotations_of_zodiacs(annotation_moon_dict=annot_moon_zod,
-                                 annotation_sun_dict=annot_sun_zod,
-                                 axe=axe4,
-                                 ratio_v_h=(vertical_full_span/2, horizont_full_span/2))
+    _plot_annotations_of_zodiacs(annotation_moon_dict=annot_moon_zod, annotation_sun_dict=annot_sun_zod,
+                                 observer=observer,
+                                 axe=axe4, ratio_v_h=(vertical_full_span/2, horizont_full_span/2))
 
     CYCLING_OVERLAP = 360 * (2 / 12) / 2 * pz.OVERLAP_COEF
     img4 = axe4.imshow(Z,
@@ -382,7 +380,7 @@ def plot_color_of_the_days(observer=None, span=(3., 3.), file_name="plot_astro_s
                     fontsize=9
                     )
 
-    axe5.set_xlabel("" + format_datetime(observer.restore_unaware(), "d MMMM YYYY р., EEE ", locale='uk_UA'),
+    axe5.set_xlabel("" + format_datetime(observer.restore_unaware(), "d MMMM YYYY р., EEEE ", locale='uk_UA'),
                     labelpad=6,
                     loc='right',
                     fontsize=9
@@ -398,11 +396,10 @@ def plot_color_of_the_days(observer=None, span=(3., 3.), file_name="plot_astro_s
     plt.show()
 
 
-def _plot_annotations_of_sun_days(observer=None, span=(3., 3.), axe=None, ratio_v_h=(1., 1.)):
+def _plot_annotations_of_sun_days(observer=None, axe=None, ratio_v_h=(1., 1.)):
 
     observer.restore_unaware()
-    begin_unaware = observer.get_unaware - timedelta(days=span[0])
-    end_unaware = observer.get_unaware + timedelta(days=span[1])
+    begin_unaware, end_unaware = observer.get_span_unaware
     cur_unaware = begin_unaware
 
     while end_unaware > cur_unaware:
@@ -436,11 +433,10 @@ def _plot_annotations_of_sun_days(observer=None, span=(3., 3.), axe=None, ratio_
                          )
 
 
-def _plot_annotations_of_moon_days(observer=None, span=(3., 3.), axe=None, ratio_v_h=(1., 1.)):
+def _plot_annotations_of_moon_days(observer=None, axe=None, ratio_v_h=(1., 1.)):
 
     observer.restore_unaware()
-    begin_unaware = observer.get_unaware - timedelta(days=span[0])
-    end_unaware = observer.get_unaware + timedelta(days=span[1])
+    begin_unaware, end_unaware = observer.get_span_unaware
     cur_unaware = begin_unaware
 
     while end_unaware > cur_unaware:
@@ -477,11 +473,10 @@ def _plot_annotations_of_moon_days(observer=None, span=(3., 3.), axe=None, ratio
                          )
 
 
-def _plot_annotations_of_moon_phases(observer=None, span=(3., 3.), axe=None, ratio_v_h=(1., 1.)):
+def _plot_annotations_of_moon_phases(observer=None, axe=None, ratio_v_h=(1., 1.)):
 
     observer.restore_unaware()
-    begin_unaware = observer.get_unaware - timedelta(days=span[0])
-    end_unaware = observer.get_unaware + timedelta(days=span[1])
+    begin_unaware, end_unaware = observer.get_span_unaware
     cur_unaware = begin_unaware
 
     while end_unaware > cur_unaware:
@@ -532,49 +527,69 @@ def _plot_annotations_of_moon_phases(observer=None, span=(3., 3.), axe=None, rat
                          )
 
 
-def _plot_annotations_of_moon_elements(annotation_elem_dict=None, axe=None, ratio_v_h=(1., 1.)):
+def _plot_annotations_of_moon_elements(annotation_elem_dict=None, observer=None, axe=None, ratio_v_h=(1., 1.)):
+
+    begin_unaware, end_unaware = observer.get_span_unaware
 
     for elem_item in annotation_elem_dict:
-        # print(elem_item, annotation_elem_dict[elem_item])
 
-        annot_text = str(elem_item).replace(" ", "\n")
-        coords = (-0.0 * ratio_v_h[1], annotation_elem_dict[elem_item])
+        cur_unaware_dt = mdates.num2date(annotation_elem_dict[elem_item]).replace(tzinfo=None)    # observer.get_unaware
+        # print(begin_unaware, ' --- ', cur_unaware_dt, ' --- ', end_unaware, cur_unaware_dt.tzinfo)
 
-        axe.annotate(annot_text,
-                     xy=coords,
-                     fontsize=9,
-                     horizontalalignment='center',
-                     verticalalignment='center'
-                     )
+        if begin_unaware + timedelta(days=ratio_v_h[0] * ANN_ELEM_OFFSET) < cur_unaware_dt < \
+                end_unaware - timedelta(days=ratio_v_h[0] * ANN_ELEM_OFFSET):
+
+            annot_text = str(elem_item).replace(" ", "\n")
+            coords = (-0.0 * ratio_v_h[1], annotation_elem_dict[elem_item])
+
+            axe.annotate(annot_text,
+                         xy=coords,
+                         fontsize=9,
+                         horizontalalignment='center',
+                         verticalalignment='center'
+                         )
 
 
-def _plot_annotations_of_zodiacs(annotation_moon_dict=None, annotation_sun_dict=None, axe=None, ratio_v_h=(1, 1)):
+def _plot_annotations_of_zodiacs(annotation_moon_dict=None, annotation_sun_dict=None,
+                                 observer=None, axe=None, ratio_v_h=(1, 1)):
+
+    begin_unaware, end_unaware = observer.get_span_unaware
 
     for zodiac_item in annotation_moon_dict:
         # print(zodiac_item, annotation_moon_dict[zodiac_item])
 
-        annot_text = str(zodiac_item)
-        coords = (-0.5 * ratio_v_h[1], annotation_moon_dict[zodiac_item])
+        cur_unaware_dt = mdates.num2date(annotation_moon_dict[zodiac_item]).replace(tzinfo=None)    # observer.get_unaware
 
-        axe.annotate(annot_text,
-                     xy=coords,
-                     fontsize=9,
-                     horizontalalignment='center',
-                     verticalalignment='center'
-                     )
+        if begin_unaware + timedelta(days=ratio_v_h[0] * ANN_ZODC_OFFSET) < cur_unaware_dt < \
+                end_unaware - timedelta(days=ratio_v_h[0] * ANN_ZODC_OFFSET):
+
+            annot_text = str(zodiac_item)
+            coords = (-0.5 * ratio_v_h[1], annotation_moon_dict[zodiac_item])
+
+            axe.annotate(annot_text,
+                         xy=coords,
+                         fontsize=9,
+                         horizontalalignment='center',
+                         verticalalignment='center'
+                         )
 
     for zodiac_item in annotation_sun_dict:
         # print(zodiac_item, annotation_sun_dict[zodiac_item])
 
-        annot_text = str(zodiac_item)
-        coords = (0.5 * ratio_v_h[1], annotation_sun_dict[zodiac_item])
+        cur_unaware_dt = mdates.num2date(annotation_sun_dict[zodiac_item]).replace(tzinfo=None)    # observer.get_unaware
 
-        axe.annotate(annot_text,
-                     xy=coords,
-                     fontsize=9,
-                     horizontalalignment='center',
-                     verticalalignment='center'
-                     )
+        if begin_unaware + timedelta(days=ratio_v_h[0] * ANN_ZODC_OFFSET) < cur_unaware_dt < \
+                end_unaware - timedelta(days=ratio_v_h[0] * ANN_ZODC_OFFSET):
+
+            annot_text = str(zodiac_item)
+            coords = (0.5 * ratio_v_h[1], annotation_sun_dict[zodiac_item])
+
+            axe.annotate(annot_text,
+                         xy=coords,
+                         fontsize=9,
+                         horizontalalignment='center',
+                         verticalalignment='center'
+                         )
 
 
 if __name__ == '__main__':
@@ -588,27 +603,27 @@ if __name__ == '__main__':
 
     in_unaware_datetime = datetime.strptime("1976-07-28 02:37:21", geo.dt_format_rev)  # "%Y-%m-%d %H:%M:%S"
     # in_unaware_datetime = datetime.utcnow()
-    observer_obj = geo.Observer(geo_name=geo_name, input_unaware_datetime=in_unaware_datetime)
+    observer_obj = geo.Observer(geo_name=geo_name, input_unaware_datetime=in_unaware_datetime, span=(5., 2.))
     text = ""
     text += str(observer_obj)
     # print(text)
     # #######################################################################################
-    plot_color_of_the_days(observer=observer_obj, span=(5, 2), file_name="plot_astro_summary.png", job_name="442763659#REP")
+    plot_color_of_the_days(observer=observer_obj, file_name="plot_astro_summary.png", job_name="442763659#REP")
 
-    # # observer_obj.unaware_update_utc(in_unaware_datetime)
-    # observer_obj = geo.Observer(geo_name="Mragowo", input_unaware_datetime=in_unaware_datetime)
-    # plot_color_of_the_days(observer=observer_obj, span=(3, 1), file_name="plot_astro_summary.png", job_name="442763659#REP")
-    #
-    # # observer_obj.unaware_update_utc(in_unaware_datetime)
-    # observer_obj = geo.Observer(geo_name="Kremenchuk", input_unaware_datetime=in_unaware_datetime)
-    # plot_color_of_the_days(observer=observer_obj, span=(3, 1), file_name="plot_astro_summary.png", job_name="442763659#REP")
+    # observer_obj.unaware_update_utc(in_unaware_datetime)
+    observer_obj = geo.Observer(geo_name="Mragowo", input_unaware_datetime=in_unaware_datetime, span=(6., 1.))
+    plot_color_of_the_days(observer=observer_obj, file_name="plot_astro_summary.png", job_name="442763659#REP")
+
+    # observer_obj.unaware_update_utc(in_unaware_datetime)
+    observer_obj = geo.Observer(geo_name="Kremenchuk", input_unaware_datetime=in_unaware_datetime, span=(7., 0.))
+    plot_color_of_the_days(observer=observer_obj, file_name="plot_astro_summary.png", job_name="442763659#REP")
 
     # observer_obj.unaware_update_utc(in_unaware_datetime)
     # observer_obj = geo.Observer(geo_name="Astana", input_unaware_datetime=in_unaware_datetime)
-    # plot_color_of_the_days(observer=observer_obj, span=(5, 2), file_name="plot_astro_summary.png", job_name="442763659#REP")
+    # plot_color_of_the_days(observer=observer_obj, file_name="plot_astro_summary.png", job_name="442763659#REP")
 
     # observer_obj.unaware_update_utc(in_unaware_datetime)
-    # plot_color_of_the_days(observer=observer_obj, span=(3, 1), file_name="plot_astro_summary.png", job_name="442763659#REP")
+    # plot_color_of_the_days(observer=observer_obj, file_name="plot_astro_summary.png", job_name="442763659#REP")
     #
     # observer_obj.unaware_update_utc(in_unaware_datetime)
-    # plot_color_of_the_days(observer=observer_obj, span=(3, 1), file_name="plot_astro_summary.png", job_name="442763659#REP")
+    # plot_color_of_the_days(observer=observer_obj, file_name="plot_astro_summary.png", job_name="442763659#REP")

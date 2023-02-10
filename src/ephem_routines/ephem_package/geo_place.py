@@ -2,7 +2,7 @@
 # http://stackoverflow.com/questions/4563272/how-to-convert-a-python-utc-datetime-to-a-local-datetime-using-only-python-stand
 
 
-from datetime import datetime
+from datetime import datetime, timedelta
 import pytz
 import ephem
 
@@ -41,12 +41,22 @@ class Observer:
     _set_noon = False
     _init_unaware = datetime.strptime("1974-01-13 02:37:21", dt_format_rev)  # dt_format_rev = "%Y-%m-%d %H:%M:%S"
 
+    _span = (1., 1.)
+    _begin_unaware = datetime.strptime("2000-01-01 00:00:01", dt_format_rev)
+    _end_unaware = datetime.strptime("2000-01-01 00:00:01", dt_format_rev)
+    _begin_aware = datetime.strptime("2000-01-01 00:00:01", dt_format_rev)
+    _end_aware = datetime.strptime("2000-01-01 00:00:01", dt_format_rev)
+    _begin_utc = datetime.strptime("2000-01-01 00:00:01", dt_format_rev)
+    _end_utc = datetime.strptime("2000-01-01 00:00:01", dt_format_rev)
+
     def __init__(self,
                  latitude=1, longitude=2,
                  geo_name="Kharkiv",
                  input_unaware_datetime=None,   # datetime.strptime("1976-01-13 02:37:21", dt_format_rev),
                  input_utc_datetime=None,
+                 span=(2., 2.),
                  ):
+
         self._latitude = latitude
         self._longitude = longitude
         self._geo_name = geo_name
@@ -54,9 +64,9 @@ class Observer:
         self.get_coords_by_name()
         self.get_tz_by_coord()
 
-        # **********************************
         self.timezone = pytz.timezone(self.timezone_name)
 
+        # ********************************************************
         if input_utc_datetime is None:
             self._unaware = input_unaware_datetime
             self._init_unaware = self._unaware
@@ -75,6 +85,15 @@ class Observer:
             self._aware = self._utc.replace(tzinfo=pytz.utc).astimezone(self.timezone)
             self._unaware = self._aware.astimezone(self.timezone).replace(tzinfo=None)
             self._init_unaware = self._unaware
+
+        # ********************************************************
+        self._span = span
+        self._begin_unaware = self._unaware - timedelta(days=self._span[0])
+        self._end_unaware = self._unaware + timedelta(days=self._span[1])
+        self._begin_aware = self._aware - timedelta(days=self._span[0])
+        self._end_aware = self._aware + timedelta(days=self._span[1])
+        self._begin_utc = self._utc - timedelta(days=self._span[0])
+        self._end_utc = self._utc + timedelta(days=self._span[1])
 
     def __str__(self):
         str_obj = ""
@@ -174,6 +193,22 @@ class Observer:
     @property
     def get_unaware(self):                      # currently set unaware of observer
         return self._unaware
+
+    @property
+    def get_span(self):
+        return self._span
+
+    @property
+    def get_span_unaware(self):
+        return self._begin_unaware, self._end_unaware
+
+    @property
+    def get_span_aware(self):
+        return self._begin_aware, self._end_aware
+
+    @property
+    def get_span_utc(self):
+        return self._begin_utc, self._end_utc
 
     # @property
     def restore_unaware(self):                      # restore unaware of observer
