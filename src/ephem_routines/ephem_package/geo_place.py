@@ -185,19 +185,22 @@ class Observer:
         # print("self.aware_datetime=", self.aware_datetime)
 
     def dt_utc_to_aware_by_tz(self, in_utc):    # restore external aware from UTC
-        # cur_timezone = pytz.timezone(self.timezone_name)
         out_aware = in_utc.replace(tzinfo=pytz.utc).astimezone(self.timezone)
         # print("self.aware_datetime=", self.aware_datetime)
         return out_aware
 
-    def dt_unaware_to_utc(self, in_unaware=None) -> _utc:
+    def dt_unaware_to_utc(self, in_unaware=None) -> datetime:
         if in_unaware is not None:
             loc_aware = self.timezone.localize(in_unaware)
             out_utc = loc_aware.astimezone(pytz.timezone('UTC'))
             return out_utc
 
-    def unaware_update_utc(self, in_unaware=None) -> _utc:
-        # self.timezone = pytz.timezone(self.timezone_name)
+    def dt_aware_to_unaware(self, in_aware=None) -> datetime:
+        if in_aware is not None:
+            out_unaware = in_aware.astimezone(self.timezone).replace(tzinfo=None)
+            return out_unaware
+
+    def unaware_update_utc(self, in_unaware=None) -> None:
         if in_unaware is not None:
             self._unaware = in_unaware
         self._aware = self.timezone.localize(self._unaware)
@@ -205,12 +208,9 @@ class Observer:
         self._place.date = ephem.Date(self._utc)  # !!!!!!!!!!!!!!!!!!!!!!
         self._set_noon = False
 
-    def unaware_update_utc12(self, in_unaware=None) -> _utc12:
-        # self.timezone = pytz.timezone(self.timezone_name)
-        # print("in_unaware=", in_unaware)
+    def unaware_update_utc12(self, in_unaware=None) -> None:
         if in_unaware is not None:
             self._unaware = in_unaware
-        # print("in_unaware=", in_unaware)
         self._unaware12 = datetime(self._unaware.year, self._unaware.month, self._unaware.day, 12, 0, 0)
         self._aware12 = self.timezone.localize(self._unaware12)
         self._utc12 = self._aware12.astimezone(pytz.timezone('UTC'))
