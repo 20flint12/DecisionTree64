@@ -217,6 +217,10 @@ class Observer:
     # @property
     def restore_unaware(self):                      # restore unaware of observer
         self._unaware = self._init_unaware
+        self._aware = self.timezone.localize(self._unaware)
+        self._utc = self._aware.astimezone(pytz.timezone('UTC'))
+        self._place.date = ephem.Date(self._utc)  # !!!!!!!!!!!!!!!!!!!!!!
+        self._set_noon = False
         return self._unaware
 
     def utc_to_aware_by_tz(self) -> None:       # restore internal aware from UTC
