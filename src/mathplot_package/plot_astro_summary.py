@@ -21,6 +21,7 @@ import src.mathplot_package._plot_recordWeather as pe
 import src.boto3_package.mainDB_weather as b3w
 
 
+import babel.dates as bd
 from babel.dates import format_datetime
 
 
@@ -380,7 +381,11 @@ def plot_color_of_the_days(observer=None, file_name="plot_astro_summary.png", jo
                     fontsize=9
                     )
 
-    axe5.set_xlabel("" + format_datetime(observer.restore_unaware(), "d MMMM YYYY р., EEEE ", locale='uk_UA'),
+    # axe5.set_xlabel("" + format_datetime(observer.restore_unaware(), "d MMMM YYYY р., EEEE, HH:mm:ss zzz", locale='uk_UA'),
+    observer.restore_unaware()
+    text = "" + format_datetime(observer.get_aware, "d MMMM YYYY р., EEEE, HH:mm, ", locale='uk_UA')
+    text += bd.get_timezone_gmt(observer.get_aware, locale='en') + " "
+    axe5.set_xlabel(text,
                     labelpad=6,
                     loc='right',
                     fontsize=9

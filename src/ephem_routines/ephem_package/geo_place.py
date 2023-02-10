@@ -191,8 +191,12 @@ class Observer:
         return self._place.date
 
     @property
-    def get_unaware(self):                      # currently set unaware of observer
+    def get_unaware(self):
         return self._unaware
+
+    @property
+    def get_aware(self):
+        return self._aware
 
     @property
     def get_span(self):
