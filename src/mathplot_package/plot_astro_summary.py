@@ -185,7 +185,7 @@ def plot_color_of_the_days(observer=None, file_name="plot_astro_summary.png", jo
                                                         _between_low=str(begin_utc),  # "2021-01-21 14:41:49"
                                                         _between_high=str(end_utc)
                                                         )
-    pprint(list_of_items)
+    # pprint(list_of_items)
 
     weather_dict = b3w.main_query_filter(list_of_items, geo_name=observer.get_geo_name, attr="weather", field="P")
     weather_len = len(weather_dict)
@@ -444,7 +444,9 @@ def _plot_annotations_of_moon_days(observer=None, axe=None, ratio_v_h=(1., 1.)):
     begin_unaware, end_unaware = observer.get_span_unaware
     cur_unaware = begin_unaware
 
-    while end_unaware > cur_unaware:
+    counter = 0
+    while (end_unaware > cur_unaware) or (counter < 30):
+        counter += 1
         if cur_unaware == begin_unaware:                            # init pass
             pass                                                    # init calculation
         else:
@@ -460,9 +462,9 @@ def _plot_annotations_of_moon_days(observer=None, axe=None, ratio_v_h=(1., 1.)):
 
         # Check for infinite loop !!!
         if zenit_moon_unaware < cur_unaware:
-            print("*plot_annotations_of_moon_days  cur_unaware=", moon_dict['moon_day'], cur_unaware, "moon_noon_unaware=", zenit_moon_unaware)
+            print(moon_dict['moon_day'], "*plot_annotations_of_moon_days  cur_unaware=", cur_unaware, "moon_noon_unaware=", zenit_moon_unaware)
         else:
-            print("_plot_annotations_of_moon_days  cur_unaware=", moon_dict['moon_day'], cur_unaware, "moon_noon_unaware=", zenit_moon_unaware)
+            print(moon_dict['moon_day'], "_plot_annotations_of_moon_days  cur_unaware=", cur_unaware, "moon_noon_unaware=", zenit_moon_unaware)
 
         if begin_unaware + timedelta(days=ratio_v_h[0] * ANN_DAYS_OFFSET) < cur_unaware < \
                 end_unaware - timedelta(days=ratio_v_h[0] * ANN_DAYS_OFFSET):
@@ -606,8 +608,8 @@ if __name__ == '__main__':
     geo_name = 'London'
     # geo_name = 'Kharkiv'
 
-    in_unaware_datetime = datetime.strptime("1976-07-28 02:37:21", geo.dt_format_rev)  # "%Y-%m-%d %H:%M:%S"
-    # in_unaware_datetime = datetime.utcnow()
+    # in_unaware_datetime = datetime.strptime("1976-07-28 02:37:21", geo.dt_format_rev)  # "%Y-%m-%d %H:%M:%S"
+    in_unaware_datetime = datetime.utcnow()
     observer_obj = geo.Observer(geo_name=geo_name, input_unaware_datetime=in_unaware_datetime, span=(5., 2.))
     text = ""
     text += str(observer_obj)
@@ -620,12 +622,12 @@ if __name__ == '__main__':
     plot_color_of_the_days(observer=observer_obj, file_name="plot_astro_summary.png", job_name="442763659#REP")
 
     # observer_obj.unaware_update_utc(in_unaware_datetime)
-    observer_obj = geo.Observer(geo_name="Kremenchuk", input_unaware_datetime=in_unaware_datetime, span=(7., 0.))
+    observer_obj = geo.Observer(geo_name="Kremenchuk", input_unaware_datetime=in_unaware_datetime, span=(7., -5.))
     plot_color_of_the_days(observer=observer_obj, file_name="plot_astro_summary.png", job_name="442763659#REP")
 
     # observer_obj.unaware_update_utc(in_unaware_datetime)
-    # observer_obj = geo.Observer(geo_name="Astana", input_unaware_datetime=in_unaware_datetime)
-    # plot_color_of_the_days(observer=observer_obj, file_name="plot_astro_summary.png", job_name="442763659#REP")
+    observer_obj = geo.Observer(geo_name="Astana", input_unaware_datetime=in_unaware_datetime, span=(7, 3))
+    plot_color_of_the_days(observer=observer_obj, file_name="plot_astro_summary.png", job_name="442763659#REP")
 
     # observer_obj.unaware_update_utc(in_unaware_datetime)
     # plot_color_of_the_days(observer=observer_obj, file_name="plot_astro_summary.png", job_name="442763659#REP")
