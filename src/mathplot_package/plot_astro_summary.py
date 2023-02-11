@@ -443,9 +443,11 @@ def _plot_annotations_of_moon_days(observer=None, axe=None, ratio_v_h=(1., 1.)):
     observer.restore_unaware()
     begin_unaware, end_unaware = observer.get_span_unaware
     cur_unaware = begin_unaware
+    print("******************", begin_unaware, " - ", end_unaware)
 
     counter = 0
-    while (end_unaware > cur_unaware) or (counter < 30):
+    while not((end_unaware < cur_unaware) or (counter > 25)):
+        # print('|||', counter, (end_unaware < cur_unaware), " or ", (counter > 5))
         counter += 1
         if cur_unaware == begin_unaware:                            # init pass
             pass                                                    # init calculation
@@ -455,7 +457,7 @@ def _plot_annotations_of_moon_days(observer=None, axe=None, ratio_v_h=(1., 1.)):
         observer.unaware_update_utc(cur_unaware)
         moon_dict, moon_text = md.main_moon_day(observer=observer)  # modified observer
         zenit_moon = ephem.Date((moon_dict['moon_sett'] + moon_dict['moon_rise']) / 2)
-        zenit_moon_unaware = observer.dt_utc_to_unaware(in_utc=zenit_moon.datetime())
+        zenit_moon_unaware = observer.dt_utc_to_unaware(in_utc=zenit_moon.datetime())       # only monitoring!!!
 
         # Convert to unaware
         cur_unaware = observer.dt_utc_to_unaware(in_utc=zenit_moon.datetime())
@@ -615,19 +617,19 @@ if __name__ == '__main__':
     text += str(observer_obj)
     # print(text)
     # #######################################################################################
+    # plot_color_of_the_days(observer=observer_obj, file_name="plot_astro_summary.png", job_name="442763659#REP")
+
+    # observer_obj.unaware_update_utc(in_unaware_datetime)
+    # observer_obj = geo.Observer(geo_name="Mragowo", input_unaware_datetime=in_unaware_datetime, span=(6., 1.))
+    # plot_color_of_the_days(observer=observer_obj, file_name="plot_astro_summary.png", job_name="442763659#REP")
+
+    # observer_obj.unaware_update_utc(in_unaware_datetime)
+    observer_obj = geo.Observer(geo_name="Kremenchuk", input_unaware_datetime=in_unaware_datetime, span=(7., 2.))
     plot_color_of_the_days(observer=observer_obj, file_name="plot_astro_summary.png", job_name="442763659#REP")
 
     # observer_obj.unaware_update_utc(in_unaware_datetime)
-    observer_obj = geo.Observer(geo_name="Mragowo", input_unaware_datetime=in_unaware_datetime, span=(6., 1.))
-    plot_color_of_the_days(observer=observer_obj, file_name="plot_astro_summary.png", job_name="442763659#REP")
-
-    # observer_obj.unaware_update_utc(in_unaware_datetime)
-    observer_obj = geo.Observer(geo_name="Kremenchuk", input_unaware_datetime=in_unaware_datetime, span=(7., -5.))
-    plot_color_of_the_days(observer=observer_obj, file_name="plot_astro_summary.png", job_name="442763659#REP")
-
-    # observer_obj.unaware_update_utc(in_unaware_datetime)
-    observer_obj = geo.Observer(geo_name="Astana", input_unaware_datetime=in_unaware_datetime, span=(7, 3))
-    plot_color_of_the_days(observer=observer_obj, file_name="plot_astro_summary.png", job_name="442763659#REP")
+    # observer_obj = geo.Observer(geo_name="Astana", input_unaware_datetime=in_unaware_datetime, span=(7, 3))
+    # plot_color_of_the_days(observer=observer_obj, file_name="plot_astro_summary.png", job_name="442763659#REP")
 
     # observer_obj.unaware_update_utc(in_unaware_datetime)
     # plot_color_of_the_days(observer=observer_obj, file_name="plot_astro_summary.png", job_name="442763659#REP")
