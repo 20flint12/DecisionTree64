@@ -1,7 +1,6 @@
 #Three lines to make our compiler able to draw:
 import sys
 import matplotlib
-# matplotlib.use('Agg')
 
 import pandas
 from sklearn import tree
@@ -30,6 +29,3 @@ plt.show()
 # plt.savefig(sys.stdout.buffer)
 # sys.stdout.flush()
 
-#NOTE:
-#You will see that the Decision Tree gives you different results if you run it enough times, even if you feed it with the same data.
-#That is because the Decision Tree does not give us a 100% certain answer. It is based on the probability of an outcome, and the answer will vary.

@@ -1,19 +1,21 @@
 
-import matplotlib.pyplot as plt
+import numpy as np
+from sklearn.linear_model import LinearRegression
 
-# create a figure and axes
-fig, ax = plt.subplots()
+# Generate some sample data
+x = np.array([[1], [2], [3], [4], [5]])
+y = np.array([2, 4, 6, 8, 10])
 
-# create a line
-x = [1, 2, 3, 4, 5]
-y = [1, 2, 3, 2, 1]
-line, = ax.plot(x, y)
+# Create a linear regression model
+reg = LinearRegression().fit(x, y)
 
-print(line, line.get_ydata()[3])
-# add an annotation with a multi-line text
-ax.annotate("Line 1\nLine 2\nLine 3\nytu",
-            xy=(3, 2.76),
-            # xytext=(3, 1.76),
-            )
+# Use the model to make predictions
+future_x = np.array([[6], [7], [8], [10]])
+future_y = reg.predict(future_x)
 
-plt.show()
+print(f"Prediction for x = 6: {future_y[0]}")
+print(f"Prediction for x = 7: {future_y[1]}")
+print(f"Prediction for x = 8: {future_y[2]}")
+print(f"Prediction for x = 8: {future_y[3]}")
+
+print(future_x, future_y)
