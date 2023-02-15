@@ -32,6 +32,7 @@ win-20flint12-London.rdp
 /.idea/DecisionTree64.iml
 /.idea/encodings.xml
 /.idea/misc.xml
+/.idea/other.xml
 /src/mathplot_package/plot_astro_summary.png
 /src/PTB/603862009_photo.png
 /src/PTB/5983009083_photo.png
@@ -41,3 +42,4 @@ win-20flint12-London.rdp
 /src/PTB/5354533983#1042106378#DAILY_photo.png
 /src/PTB/5983009083#1042106378#DAILY_photo.png
 /credentials.json
+/src/mathplot_package/btc_data.csv
