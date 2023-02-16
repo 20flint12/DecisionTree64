@@ -194,7 +194,7 @@ def plot_binance(file_name="photo_name"):
     text += "\n" + str(round(rate_diff, 1))
     text += "\n" + str(round(rates[-1], 2))
     send_image = False
-    if abs(rate_diff) > 50:
+    if abs(rate_diff) > 150:
         send_image = True
 
 
