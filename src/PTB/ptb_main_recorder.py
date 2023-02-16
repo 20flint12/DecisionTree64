@@ -11,7 +11,7 @@ from pprint import pprint
 
 import src.ephem_routines.ephem_package.geo_place as geo
 import src.boto3_package.mainDB_weather as mr
-import src.mathplot_package.plot_DB_attr as mp
+import src.scikit_mathplot.for_testing_binance_plot as smb
 
 import socket
 hostname = socket.gethostname()     # DELL-DEV
@@ -84,8 +84,10 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 async def echo(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Echo the user message."""
     user = update.effective_user
-    logger.info("echo from %s: %s", user.first_name, update.message.text)
-    await update.message.reply_text(update.message.text)
+
+    text = f"{user.id} <{user.first_name} {user.last_name}> echo: {update.message.text}"
+    logger.info(text)
+    await update.message.reply_text(text)
 
 
 async def alarm(context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -137,12 +139,18 @@ async def unset_once_timer(update: Update, context: ContextTypes.DEFAULT_TYPE) -
 async def callback_repeating(context: ContextTypes.DEFAULT_TYPE):
     job = context.job
     text = job.name + ' @ ' + str(job.next_t)[:19] + "\n" + str(context.job_queue.jobs())[25:]
+    photo_name = str(job.chat_id) + "_photo.png"  # 442763659_photo.jpg
     # logger.info(text)
     # init_id, out_str = mr.main_put_record(_chat_job=job.name)
 
-    init_id, out_str = mr.main_put_record(observer=observer_obj, job_name=job.name)
+    # init_id, out_str = mr.main_put_record(observer=observer_obj, job_name=job.name)
+    out_str = "\nbinance info"
+    to_send_image, out_str = smb.plot_binance(file_name=photo_name)
     text += out_str
     await context.bot.send_message(chat_id=job.chat_id, text=text)
+
+    if to_send_image:
+        await context.bot.send_photo(chat_id=job.chat_id, photo=open(photo_name, 'rb'))
 
 
 async def set_repeat_timer(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -244,12 +252,12 @@ async def reply_photo(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
     photo_name = str(chat_id) + "_photo.png"    # 442763659_photo.jpg
     # print(job_name)
 
-    list_of_items, text = mr.main_query_range(job_name, "2022-12-11 21:11:17", "2023-12-13 07:00:17")
+    # list_of_items, text = mr.main_query_range(job_name, "2022-12-11 21:11:17", "2023-12-13 07:00:17")
     # pprint(list_of_items)
-    data_list = mr.main_query_filter(list_of_items, attr="weather", field="P")
+    # data_list = mr.main_query_filter(list_of_items, attr="weather", field="P")
     # print(data_list)
 
-    mp.plot_list(data_list, file_name=photo_name)
+    smb.plot_binance(file_name=photo_name)
 
     text = "reply_photo"
     logger.info("%s", text)

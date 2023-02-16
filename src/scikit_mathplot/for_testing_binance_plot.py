@@ -2,15 +2,18 @@
 
 import json
 import os
+from datetime import datetime
 
 import numpy as np
 from binance.client import Client
+
 import matplotlib.pyplot as plt
-from sklearn import linear_model
-from scipy.signal import argrelextrema
-from matplotlib.animation import FuncAnimation
+# import matplotlib.animation as animation
+# from matplotlib.animation import FuncAnimation
 import matplotlib.dates as mdates
-from datetime import datetime
+
+from sklearn import linear_model
+# from scipy.signal import argrelextrema
 
 
 def get_credentials():
@@ -37,12 +40,14 @@ def get_credentials():
 
 def get_klines(symbol="BTCUSDT", kline_interval=Client.KLINE_INTERVAL_15MINUTE, interval="1 day ago UTC"):
 
+    text = ""
     api_key, api_secret = get_credentials()
     client = Client(api_key, api_secret)
     print(client)
 
     ticker = client.get_symbol_ticker(symbol=symbol)
-    print(f"The current rate of {symbol} is {ticker['price']}")
+    price = round(float(ticker['price']), 2)
+    text += f"The current rate of {symbol} is {price}"
 
     klines = client.get_historical_klines(symbol, kline_interval, interval)   # "1 day ago UTC" 24 hour ago UTC
 
@@ -59,9 +64,10 @@ def get_klines(symbol="BTCUSDT", kline_interval=Client.KLINE_INTERVAL_15MINUTE, 
     # times = np.array([kline[0] for kline in klines]).reshape(-1, 1)
     times = np.array([date for date in dates]).reshape(-1, 1)
     rates = np.array([float(kline[4]) for kline in klines])
-    print(times.shape, rates.shape)
+    # print(times.shape, rates.shape)
+    text += "\nshapes=" + str(times.shape) + " / " + str(rates.shape)
 
-    return times, rates
+    return times, rates, text
 
 
 def predict_future(times=None, rates=None, from_time=0, to_time=0, time_delta=1, track=2):
@@ -75,145 +81,141 @@ def predict_future(times=None, rates=None, from_time=0, to_time=0, time_delta=1,
     return future_times, future_rates
 
 
-# symbol = "BTCUSDT"
-# interval = "1 day ago UTC"
-# kline_interval = Client.KLINE_INTERVAL_1HOUR
-kline_interval = Client.KLINE_INTERVAL_15MINUTE
-# kline_interval = Client.KLINE_INTERVAL_1MINUTE
-# interval = "24 hour ago UTC"
-interval = "4 hour ago UTC"
-times, rates = get_klines(symbol="BTCUSDT", kline_interval=kline_interval, interval=interval)
-time_delta = times[1] - times[0]
-print("time_delta=", time_delta)
+def plot_binance(file_name="photo_name"):
+    text = ""
 
+    # symbol = "BTCUSDT"
+    # interval = "1 day ago UTC"
+    # kline_interval = Client.KLINE_INTERVAL_1HOUR
+    kline_interval = Client.KLINE_INTERVAL_15MINUTE
+    # kline_interval = Client.KLINE_INTERVAL_1MINUTE
+    # interval = "24 hour ago UTC"
+    interval = "4 hour ago UTC"
+    times, rates, text_out = get_klines(symbol="BTCUSDT", kline_interval=kline_interval, interval=interval)
+    time_delta = times[1] - times[0]
+    print("time_delta=", time_delta)
+    text += "\n" + text_out
 
-# ===========================================================
-fig, ax1 = plt.subplots()
+    # ===========================================================
+    fig, ax1 = plt.subplots()
 
-line1, = ax1.plot(times, rates, 'b-')
-# ax1.tick_params('x', colors='b')
-# locator = mdates.AutoDateLocator(minticks=3, maxticks=7)
-# formatter = mdates.ConciseDateFormatter(locator)
-# ax1.xaxis.set_major_locator(locator)
-# ax1.xaxis.set_major_formatter(formatter)
+    line1, = ax1.plot(times, rates, 'b-')
+    # ax1.tick_params('x', colors='b')
+    # locator = mdates.AutoDateLocator(minticks=3, maxticks=7)
+    # formatter = mdates.ConciseDateFormatter(locator)
+    # ax1.xaxis.set_major_locator(locator)
+    # ax1.xaxis.set_major_formatter(formatter)
 
-ax1.xaxis_date()
-ax1.autoscale_view()
-# ax1.xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m-%d %H:%M:%S'))
-ax1.xaxis.set_major_formatter(mdates.DateFormatter('%H:%M'))
-ax1.xaxis.set_major_locator(mdates.AutoDateLocator())
-# ax1.xticks(rotation=45)
-# ax1.grid(axis='x')
-
-
-
-
-ax2 = ax1.twiny()
-ax2.grid(axis='x')
-
-# xdata = []
-# ydata = []
-# # for line in [line1, line2, line3, line4]:
-# for line in [line1, line2, ]:
-#     if line is not None:
-#         xdata.append(line.get_xdata())
-#         ydata.append(line.get_ydata())
-# xdata = np.concatenate(xdata)
-# ydata = np.concatenate(ydata)
-# # print(len(xdata), xdata)
+    ax1.xaxis_date()
+    ax1.autoscale_view()
+    # ax1.xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m-%d %H:%M:%S'))
+    ax1.xaxis.set_major_formatter(mdates.DateFormatter('%H:%M'))
+    ax1.xaxis.set_major_locator(mdates.AutoDateLocator(minticks=3, maxticks=10))
+    # ax1.xticks(rotation=45)
+    # ax1.grid(axis='x')
 
 
 
-counter = np.linspace(0, len(times)-1, len(times))
-ax2.plot(counter, rates, 'r.')
+    ax2 = ax1.twiny()
+    ax2.grid(axis='x')
 
-# counter = np.linspace(0, len(xdata), len(xdata))
-# counter = np.linspace(len(xdata)-1, 0, len(xdata))
-# ax2.plot(counter, ydata, 'r.')
+    # xdata = []
+    # ydata = []
+    # # for line in [line1, line2, line3, line4]:
+    # for line in [line1, line2, ]:
+    #     if line is not None:
+    #         xdata.append(line.get_xdata())
+    #         ydata.append(line.get_ydata())
+    # xdata = np.concatenate(xdata)
+    # ydata = np.concatenate(ydata)
+    # # print(len(xdata), xdata)
+    # counter = np.linspace(0, len(xdata), len(xdata))
+    # counter = np.linspace(len(xdata)-1, 0, len(xdata))
+    # ax2.plot(counter, ydata, 'r.')
 
-ax2.tick_params('x', colors='r')
+
+
+    counter = np.linspace(0, len(times)-1, len(times))
+    # counter = np.linspace(len(times)-1, -1, len(times))
+    ax2.plot(counter, rates, 'r.')
+    # ax2.invert_xaxis()
+
+    ax2.tick_params('x', colors='r')
 
 
 
-line2 = None
-line22 = None
-points = 3
-track = 2
-# for index in range(0, len(rates)-points, 1):
-for index in range(len(rates)-points, 0, -1):
+    line2 = None
+    line22 = None
+    points = 4
+    track = 2
+    # for index in range(0, len(rates)-points, 1):
+    for index in range(len(rates)-points, 0, -1):
 
+        future_times, future_rates = predict_future(times=times, rates=rates,
+                                                    from_time=index, to_time=index + points,
+                                                    time_delta=time_delta, track=track)
+
+        future_rates_track = future_rates[(index + track) % track]
+        rate_diff = abs(rates[index] - future_rates_track)
+        # print(index, rates[index], future_rates_track, rate_diff)
+        if rate_diff > 50:
+            print(rate_diff > 100, index, rate_diff)
+            # index += int(points / 2)
+
+            line2, = ax1.plot(future_times, future_rates, color='y', linestyle='-')    # 'color': 'g', 'linestyle': '--'
+
+            future_counter = np.linspace(index, index + track-1, track)
+            line22, = ax2.plot(future_counter + points - 1, future_rates, color='g', linestyle='--')
+
+            # line3, = ax1.scatter(times[index], rates[index], color='red', s=30)
+            ax1.scatter(times[index + points - 1], rates[index + points - 1], color='red', s=30)
+
+
+    line4 = None
+    line42 = None
+    points = len(rates) - 12
+    index = len(rates) - points
+    track = 5
     future_times, future_rates = predict_future(times=times, rates=rates,
                                                 from_time=index, to_time=index + points,
                                                 time_delta=time_delta, track=track)
+    line4, = ax1.plot(future_times, future_rates, label="Prediction1", color='b', linestyle='-')
 
-    future_rates_track = future_rates[(index + track) % track]
-    rate_diff = abs(rates[index] - future_rates_track)
-    # print(index, rates[index], future_rates_long, rate_diff)
-    if rate_diff > 50:
-        print(rate_diff > 100, index, rate_diff)
-        # index += int(points / 2)
-
-        line2, = ax1.plot(future_times, future_rates)
-
-        future_counter = np.linspace(index, index + track-1, track)
-        line22, = ax2.plot(future_counter + points - 1, future_rates)
-
-        # line3, = ax1.scatter(times[index], rates[index], color='red', s=30)
-        ax1.scatter(times[index + points - 1], rates[index + points - 1], color='red', s=30)
-
-
-line4 = None
-line42 = None
-points = len(rates) - 12
-index = len(rates) - points
-track = 5
-future_times, future_rates = predict_future(times=times, rates=rates,
-                                            from_time=index, to_time=index + points,
-                                            time_delta=time_delta, track=track)
-line4, = ax1.plot(future_times, future_rates, label="Prediction1")
-
-
-# np.linspace(0, len(times)-1, len(times))
-future_counter = np.linspace(index, index + track-1, track)
-line42, = ax2.plot(future_counter + points - 1, future_rates)
+    # np.linspace(0, len(times)-1, len(times))
+    future_counter = np.linspace(index, index + track-1, track)
+    line42, = ax2.plot(future_counter + points - 1, future_rates, color='r', linestyle='--')
 
 
 
+    # print(index, future_times, future_rates)
+    future_rates_track = future_rates[track-1]
+    rate_diff = abs(future_rates[0] - future_rates_track)
+    print(index, future_times, future_rates, rate_diff)
+    text += "\n" + str(round(rate_diff, 1))
+    text += "\n" + str(round(rates[-1], 2))
+    send_image = False
+    if rate_diff > 150:
+        send_image = False
 
 
+        # ***********************************************************************
+        res_savefig = plt.savefig(file_name)
+        print("res_savefig=", res_savefig)
+
+        # plt.xlabel("Time")
+        # plt.ylabel("Rate (USDT)")
+        # plt.title(f"Rate of {symbol}")
+        # plt.legend()
+
+        plt.show()
+
+    return send_image, text
 
 
+if __name__ == "__main__":
+    """
+    Plot image
+    """
 
-
-# plt.xlabel("Time")
-# plt.ylabel("Rate (USDT)")
-# plt.title(f"Rate of {symbol}")
-
-
-# plt.legend()
-plt.show()
-
-
-
-
-
-
-# res = client.get_exchange_info()
-# # print(client.response.headers)
-# print(client.get_all_orders(symbol='BNBBTC', requests_params={'timeout': 5}))
-
-
-# for r in res:
-#     # {'close': '29316.38000000',
-#     #  'closeTime': 1654926299999,
-#     #  'high': '29343.35000000',
-#     #  'low': '29300.82000000',
-#     #  'numTrades': 5585,
-#     #  'open': '29330.69000000',
-#     #  'openTime': 1654925400000,
-#     #  'quoteVolume': '5139150.08936450',
-#     #  'volume': '175.24264000'},
-#     # print(r)
-#
-#     print(r["close"], r["volume"], r["quoteVolume"])
+    plot_binance(file_name="photo_name")
 
