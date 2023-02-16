@@ -189,13 +189,13 @@ def plot_binance(file_name="photo_name"):
 
     # print(index, future_times, future_rates)
     future_rates_track = future_rates[track-1]
-    rate_diff = abs(future_rates[0] - future_rates_track)
+    rate_diff = (future_rates[0] - future_rates_track)
     print(index, future_times, future_rates, rate_diff)
     text += "\n" + str(round(rate_diff, 1))
     text += "\n" + str(round(rates[-1], 2))
     send_image = False
-    if rate_diff > 150:
-        send_image = False
+    if abs(rate_diff) > 50:
+        send_image = True
 
 
         # ***********************************************************************
