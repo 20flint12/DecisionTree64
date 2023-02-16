@@ -54,7 +54,7 @@ def get_klines(symbol="BTCUSDT", kline_interval=Client.KLINE_INTERVAL_15MINUTE, 
 
     # Convert the dates to datetime objects
     # dates = [datetime.strptime(str(kline[0]/1000), '%Y%m%d').date() for kline in klines]
-    print(klines, "\n", timestamps, "\n", dates)
+    # print(klines, "\n", timestamps, "\n", dates)
 
     # times = np.array([kline[0] for kline in klines]).reshape(-1, 1)
     times = np.array([date for date in dates]).reshape(-1, 1)
@@ -64,12 +64,12 @@ def get_klines(symbol="BTCUSDT", kline_interval=Client.KLINE_INTERVAL_15MINUTE, 
     return times, rates
 
 
-def predict_future(times=None, rates=None, from_time=0, to_time=0, time_delta=1, long_mark=2):
+def predict_future(times=None, rates=None, from_time=0, to_time=0, time_delta=1, track=2):
 
     regression = linear_model.LinearRegression()
     regression.fit(times[from_time:to_time, :], rates[from_time:to_time])
     # future_times = np.array([times[-1][0] + (itm * 3600 * 1000) for itm in range(long_mark)]).reshape(-1, 1)
-    future_times = np.array([times[to_time-1][0] + (itm * time_delta) for itm in range(long_mark)]).reshape(-1, 1)
+    future_times = np.array([times[to_time-1][0] + (itm * time_delta) for itm in range(track)]).reshape(-1, 1)
     future_rates = regression.predict(future_times)
 
     return future_times, future_rates
@@ -81,7 +81,7 @@ def predict_future(times=None, rates=None, from_time=0, to_time=0, time_delta=1,
 kline_interval = Client.KLINE_INTERVAL_15MINUTE
 # kline_interval = Client.KLINE_INTERVAL_1MINUTE
 # interval = "24 hour ago UTC"
-interval = "12 hour ago UTC"
+interval = "4 hour ago UTC"
 times, rates = get_klines(symbol="BTCUSDT", kline_interval=kline_interval, interval=interval)
 time_delta = times[1] - times[0]
 print("time_delta=", time_delta)
@@ -90,7 +90,7 @@ print("time_delta=", time_delta)
 # ===========================================================
 fig, ax1 = plt.subplots()
 
-ax1.plot(times, rates, 'b-')
+line1, = ax1.plot(times, rates, 'b-')
 # ax1.tick_params('x', colors='b')
 # locator = mdates.AutoDateLocator(minticks=3, maxticks=7)
 # formatter = mdates.ConciseDateFormatter(locator)
@@ -105,44 +105,82 @@ ax1.xaxis.set_major_locator(mdates.AutoDateLocator())
 # ax1.xticks(rotation=45)
 # ax1.grid(axis='x')
 
+
+
+
 ax2 = ax1.twiny()
 ax2.grid(axis='x')
 
-counter = np.linspace(0, len(rates)-1, len(rates))
+# xdata = []
+# ydata = []
+# # for line in [line1, line2, line3, line4]:
+# for line in [line1, line2, ]:
+#     if line is not None:
+#         xdata.append(line.get_xdata())
+#         ydata.append(line.get_ydata())
+# xdata = np.concatenate(xdata)
+# ydata = np.concatenate(ydata)
+# # print(len(xdata), xdata)
+
+
+
+counter = np.linspace(0, len(times)-1, len(times))
 ax2.plot(counter, rates, 'r.')
+
+# counter = np.linspace(0, len(xdata), len(xdata))
+# counter = np.linspace(len(xdata)-1, 0, len(xdata))
+# ax2.plot(counter, ydata, 'r.')
+
 ax2.tick_params('x', colors='r')
 
 
-points = 4
-for index in range(0, len(rates)-points, 1):
 
-    # Select max future_rates
+line2 = None
+line22 = None
+points = 3
+track = 2
+# for index in range(0, len(rates)-points, 1):
+for index in range(len(rates)-points, 0, -1):
+
     future_times, future_rates = predict_future(times=times, rates=rates,
                                                 from_time=index, to_time=index + points,
-                                                time_delta=time_delta, long_mark=points)
+                                                time_delta=time_delta, track=track)
 
-    future_rates_long = future_rates[(index + points) % points]
-    rate_diff = abs(rates[index] - future_rates_long)
+    future_rates_track = future_rates[(index + track) % track]
+    rate_diff = abs(rates[index] - future_rates_track)
     # print(index, rates[index], future_rates_long, rate_diff)
-    if rate_diff > 200:
-        print(True)
-        # index += 1
-        ax1.plot(future_times, future_rates, label="Prediction1")
+    if rate_diff > 50:
+        print(rate_diff > 100, index, rate_diff)
+        # index += int(points / 2)
 
-        # ax2.scatter(times[index], rates[index], color='red', s=30)
+        line2, = ax1.plot(future_times, future_rates)
 
+        future_counter = np.linspace(index, index + track-1, track)
+        line22, = ax2.plot(future_counter + points - 1, future_rates)
 
-
-
-
-# future_times2, future_rates2 = predict_future(times=times, rates=rates, init_time=-10, long_mark=3)
-# future_times3, future_rates3 = predict_future(times=times, rates=rates, init_time=-5, long_mark=2)
+        # line3, = ax1.scatter(times[index], rates[index], color='red', s=30)
+        ax1.scatter(times[index + points - 1], rates[index + points - 1], color='red', s=30)
 
 
-# plt.plot(times[:-1], np.diff(rates), label="Historical Data")
-# plt.plot(times[:], rates, label="Historical Data")
-# plt.plot(future_times2, future_rates2, label="Prediction2")
-# plt.plot(future_times3, future_rates3, label="Prediction3")
+line4 = None
+line42 = None
+points = len(rates) - 12
+index = len(rates) - points
+track = 5
+future_times, future_rates = predict_future(times=times, rates=rates,
+                                            from_time=index, to_time=index + points,
+                                            time_delta=time_delta, track=track)
+line4, = ax1.plot(future_times, future_rates, label="Prediction1")
+
+
+# np.linspace(0, len(times)-1, len(times))
+future_counter = np.linspace(index, index + track-1, track)
+line42, = ax2.plot(future_counter + points - 1, future_rates)
+
+
+
+
+
 
 
 
