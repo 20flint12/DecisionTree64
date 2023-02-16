@@ -175,7 +175,7 @@ def plot_binance(file_name="photo_name"):
     line42 = None
     points = len(rates) - 12
     index = len(rates) - points
-    track = 5
+    track = 3
     future_times, future_rates = predict_future(times=times, rates=rates,
                                                 from_time=index, to_time=index + points,
                                                 time_delta=time_delta, track=track)
