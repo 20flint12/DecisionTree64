@@ -85,7 +85,7 @@ def plot_binance(file_name="photo_name", force_plot=False):
     text = ""
 
     # ===========================================================
-    fig, (ax1, ax2, ax3) = plt.subplots(3, 1, figsize=(8, 16))
+    fig, (ax1, ax2, ax3) = plt.subplots(3, 1, figsize=(7, 14))
     fig.subplots_adjust(top=0.975, bottom=.025, left=0.08, right=0.97, hspace=0.08)
 
     symbol = "BTCUSDT"
@@ -199,7 +199,7 @@ def plot_binance(file_name="photo_name", force_plot=False):
 
     line4 = None
     line42 = None
-    points = 10
+    points = 5
     index = len(rates) - points
     track = 5
     future_times, future_rates = predict_future(times=times, rates=rates,
