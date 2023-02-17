@@ -59,11 +59,11 @@ def get_klines(symbol="BTCUSDT", kline_interval=Client.KLINE_INTERVAL_15MINUTE, 
 
     # Convert the dates to datetime objects
     # dates = [datetime.strptime(str(kline[0]/1000), '%Y%m%d').date() for kline in klines]
-    # print(klines, "\n", timestamps, "\n", dates)
+    # print(klines, "\n", dates)
 
     # times = np.array([kline[0] for kline in klines]).reshape(-1, 1)
     times = np.array([date for date in dates]).reshape(-1, 1)
-    rates = np.array([float(kline[4]) for kline in klines])
+    rates = np.array([(float(kline[1])+float(kline[2])+float(kline[3])+float(kline[4]))/4. for kline in klines])
     # print(times.shape, rates.shape)
     text += "\nshapes=" + str(times.shape) + " / " + str(rates.shape)
 
@@ -84,20 +84,46 @@ def predict_future(times=None, rates=None, from_time=0, to_time=0, time_delta=1,
 def plot_binance(file_name="photo_name"):
     text = ""
 
-    # symbol = "BTCUSDT"
-    # interval = "1 day ago UTC"
-    # kline_interval = Client.KLINE_INTERVAL_1HOUR
-    kline_interval = Client.KLINE_INTERVAL_15MINUTE
-    # kline_interval = Client.KLINE_INTERVAL_1MINUTE
-    # interval = "24 hour ago UTC"
-    interval = "4 hour ago UTC"
-    times, rates, text_out = get_klines(symbol="BTCUSDT", kline_interval=kline_interval, interval=interval)
+    # ===========================================================
+    fig, (ax1, ax2, ax3) = plt.subplots(3, 1, figsize=(8, 12))
+    fig.subplots_adjust(top=0.975, bottom=.025, left=0.08, right=0.97, hspace=0.08)
+
+    symbol = "BTCUSDT"
+
+    kline_interval = Client.KLINE_INTERVAL_1MINUTE
+    interval = "1 hour ago UTC"
+    times, rates, text_out = get_klines(symbol=symbol, kline_interval=kline_interval, interval=interval)
     time_delta = times[1] - times[0]
     print("time_delta=", time_delta)
     text += "\n" + text_out
 
+
+    # ++++++++++++++++++++++++++++++++++++++++++++++
+    kline_interval = Client.KLINE_INTERVAL_1MINUTE
+    interval = "5 hour ago UTC"
+    times2, rates2, text_out2 = get_klines(symbol=symbol, kline_interval=kline_interval, interval=interval)
+
+    ax2.grid(axis='y')
+    ax2.xaxis.set_major_formatter(mdates.DateFormatter('%H:%M'))
+    ax2.xaxis.set_major_locator(mdates.AutoDateLocator(minticks=3, maxticks=10))
+
+    ax2.plot(times2, rates2, color='y', linestyle='-')  # 'color': 'g', 'linestyle': '--'
+
+
+    # ++++++++++++++++++++++++++++++++++++++++++++++
+    kline_interval = Client.KLINE_INTERVAL_5MINUTE
+    interval = "24 hour ago UTC"
+    times3, rates3, text_out3 = get_klines(symbol=symbol, kline_interval=kline_interval, interval=interval)
+
+    ax3.grid(axis='y')
+    ax3.xaxis.set_major_formatter(mdates.DateFormatter('%H:%M'))
+    ax3.xaxis.set_major_locator(mdates.AutoDateLocator(minticks=3, maxticks=10))
+
+    ax3.plot(times3, rates3, color='r', linestyle='-')  # 'color': 'g', 'linestyle': '--'
+
+
+
     # ===========================================================
-    fig, ax1 = plt.subplots()
 
     line1, = ax1.plot(times, rates, 'b-')
     # ax1.tick_params('x', colors='b')
@@ -116,8 +142,8 @@ def plot_binance(file_name="photo_name"):
 
 
 
-    ax2 = ax1.twiny()
-    ax2.grid(axis='x')
+    ax12 = ax1.twiny()
+    ax12.grid(axis='x')
 
     # xdata = []
     # ydata = []
@@ -131,16 +157,16 @@ def plot_binance(file_name="photo_name"):
     # # print(len(xdata), xdata)
     # counter = np.linspace(0, len(xdata), len(xdata))
     # counter = np.linspace(len(xdata)-1, 0, len(xdata))
-    # ax2.plot(counter, ydata, 'r.')
+    # ax12.plot(counter, ydata, 'r.')
 
 
 
     counter = np.linspace(0, len(times)-1, len(times))
     # counter = np.linspace(len(times)-1, -1, len(times))
-    ax2.plot(counter, rates, 'r.')
-    # ax2.invert_xaxis()
+    ax12.plot(counter, rates, 'r.')
+    # ax12.invert_xaxis()
 
-    ax2.tick_params('x', colors='r')
+    ax12.tick_params('x', colors='r')
 
 
 
@@ -165,7 +191,7 @@ def plot_binance(file_name="photo_name"):
             line2, = ax1.plot(future_times, future_rates, color='y', linestyle='-')    # 'color': 'g', 'linestyle': '--'
 
             future_counter = np.linspace(index, index + track-1, track)
-            line22, = ax2.plot(future_counter + points - 1, future_rates, color='g', linestyle='--')
+            line22, = ax12.plot(future_counter + points - 1, future_rates, color='g', linestyle='--')
 
             # line3, = ax1.scatter(times[index], rates[index], color='red', s=30)
             ax1.scatter(times[index + points - 1], rates[index + points - 1], color='red', s=30)
@@ -183,7 +209,7 @@ def plot_binance(file_name="photo_name"):
 
     # np.linspace(0, len(times)-1, len(times))
     future_counter = np.linspace(index, index + track-1, track)
-    line42, = ax2.plot(future_counter + points - 1, future_rates, color='r', linestyle='--')
+    line42, = ax12.plot(future_counter + points - 1, future_rates, color='r', linestyle='--')
 
 
 
@@ -194,7 +220,7 @@ def plot_binance(file_name="photo_name"):
     text += "\n" + str(round(rate_diff, 1))
     text += "\n" + str(round(rates[-1], 2))
     send_image = False
-    if abs(rate_diff) > 250:
+    if abs(rate_diff) > 250 or True:
         send_image = True
 
 
