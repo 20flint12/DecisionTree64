@@ -257,7 +257,7 @@ async def reply_photo(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
     # data_list = mr.main_query_filter(list_of_items, attr="weather", field="P")
     # print(data_list)
 
-    smb.plot_binance(file_name=photo_name)
+    smb.plot_binance(file_name=photo_name, force_plot=True)
 
     text = "reply_photo"
     logger.info("%s", text)

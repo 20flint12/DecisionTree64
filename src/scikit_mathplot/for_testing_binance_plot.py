@@ -81,11 +81,11 @@ def predict_future(times=None, rates=None, from_time=0, to_time=0, time_delta=1,
     return future_times, future_rates
 
 
-def plot_binance(file_name="photo_name"):
+def plot_binance(file_name="photo_name", force_plot=False):
     text = ""
 
     # ===========================================================
-    fig, (ax1, ax2, ax3) = plt.subplots(3, 1, figsize=(8, 12))
+    fig, (ax1, ax2, ax3) = plt.subplots(3, 1, figsize=(8, 16))
     fig.subplots_adjust(top=0.975, bottom=.025, left=0.08, right=0.97, hspace=0.08)
 
     symbol = "BTCUSDT"
@@ -199,9 +199,9 @@ def plot_binance(file_name="photo_name"):
 
     line4 = None
     line42 = None
-    points = len(rates) - 12
+    points = 12
     index = len(rates) - points
-    track = 3
+    track = 5
     future_times, future_rates = predict_future(times=times, rates=rates,
                                                 from_time=index, to_time=index + points,
                                                 time_delta=time_delta, track=track)
@@ -215,12 +215,12 @@ def plot_binance(file_name="photo_name"):
 
     # print(index, future_times, future_rates)
     future_rates_track = future_rates[track-1]
-    rate_diff = (future_rates[0] - future_rates_track)
+    rate_diff = (future_rates_track - future_rates[0])
     print(index, future_times, future_rates, rate_diff)
     text += "\n" + str(round(rate_diff, 1))
     text += "\n" + str(round(rates[-1], 2))
     send_image = False
-    if abs(rate_diff) > 250 or True:
+    if abs(rate_diff) > 120 or force_plot:
         send_image = True
 
 
@@ -243,5 +243,5 @@ if __name__ == "__main__":
     Plot image
     """
 
-    plot_binance(file_name="photo_name")
+    plot_binance(file_name="photo_name", force_plot=True)
 
