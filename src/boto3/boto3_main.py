@@ -23,7 +23,8 @@ class MyDb(object):
         self.db = boto3.resource('dynamodb')
         self.table = self.db.Table(table_name)
 
-        self.client = boto3.client('dynamodb')
+        self.client = boto3.client('dynamodb',
+                                   )
 
     @property
     def get(self):

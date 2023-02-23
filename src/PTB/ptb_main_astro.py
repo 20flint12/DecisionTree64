@@ -347,8 +347,8 @@ async def callback_timer_DAILY(context: ContextTypes.DEFAULT_TYPE) -> None:
     job = context.job
     # bot_id = context.bot.id
     # user_bot_id = str(job.chat_id) + "#" + str(bot_id)
-    user_bot_id = context.chat_data[bdbu.botUsers_table.partition_key]    # undef when wrong context!
-    user_name = context.chat_data[bdbu.botUsers_table.sort_key]
+    user_bot_id = context.chat_data[bdbu.botUsers_table.get_partition_key]    # undef when wrong context!
+    user_name = context.chat_data[bdbu.botUsers_table.get_sort_key]
 
     chat_job_name = user_bot_id + "#REP"
     photo_name = user_bot_id + "#DAILY" + "_photo.png"
@@ -406,8 +406,8 @@ async def setup_timer_DAILY(update: Update, context: ContextTypes.DEFAULT_TYPE) 
     # user_bot_id = str(chat_id) + "#" + str(bot.id)
     # user_bot_id = user_db_data[bdbu.botUsers_table.partition_key]  # string
     # user_name = context.chat_data['sk_user_bot_name']
-    user_bot_id = context.chat_data[bdbu.botUsers_table.partition_key]
-    user_name = context.chat_data[bdbu.botUsers_table.sort_key]
+    user_bot_id = context.chat_data[bdbu.botUsers_table.get_partition_key]
+    user_name = context.chat_data[bdbu.botUsers_table.get_sort_key]
 
     job_name = user_bot_id + "#DAILY"
 
@@ -483,7 +483,7 @@ async def color_of_the_days(update: Update, context: ContextTypes.DEFAULT_TYPE) 
     chat_id = update.message.chat_id
 
     # chat_job_name = str(chat_id) + "#DAILY"           # 442763659#REP
-    user_bot_id = context.chat_data[bdbu.botUsers_table.partition_key]
+    user_bot_id = context.chat_data[bdbu.botUsers_table.get_partition_key]
     chat_job_name = user_bot_id + "#REP"
     photo_name = user_bot_id + "#DAILY" + "_photo.png"
 
@@ -534,8 +534,8 @@ async def restart_service(context: ContextTypes.DEFAULT_TYPE):
                 user_counter += 1
                 # print(user_db_data)
 
-                user_bot_id = user_db_data[bdbu.botUsers_table.partition_key]      # string
-                user_name = user_db_data[bdbu.botUsers_table.sort_key]
+                user_bot_id = user_db_data[bdbu.botUsers_table.get_partition_key]      # string
+                user_name = user_db_data[bdbu.botUsers_table.get_sort_key]
                 chat_id = user_bot_id.split("#")[0]
 
                 # Get "context_user_data" from DB of set defaults

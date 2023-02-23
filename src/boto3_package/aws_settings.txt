@@ -1,0 +1,38 @@
+arn:aws:iam::344744224076:policy/flint_DynamoDB
+
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": [
+        "dynamodb:CreateTable",
+        "dynamodb:GetItem",
+        "dynamodb:BatchGetItem",
+        "dynamodb:Query",
+        "dynamodb:Scan",
+        "dynamodb:PutItem",
+        "dynamodb:UpdateItem",
+        "dynamodb:DeleteItem",
+        "dynamodb:ListTables",
+        "dynamodb:DescribeTable",
+        "dynamodb:BatchWriteItem",
+        "dynamodb:DeleteTable",
+        "dynamodb:UpdateTable"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "AllowDescribeScalingActivities",
+      "Effect": "Allow",
+      "Action": "application-autoscaling:DescribeScalingActivities",
+      "Resource": "*"
+    },
+    {
+      "Sid": "AllowDeregisterScalableTarget",
+      "Effect": "Allow",
+      "Action": "application-autoscaling:DeregisterScalableTarget",
+      "Resource": "*"
+    }
+  ]
+}

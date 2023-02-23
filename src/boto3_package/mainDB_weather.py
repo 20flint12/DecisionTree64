@@ -8,6 +8,8 @@ import json
 import src.ephem_routines.ephem_package.geo_place as geo
 import src.weather_package.main_openweathermap as wt
 import src.mathplot_package._plot_recordWeather as pw
+import src.boto3_package.dynamodb_assumed_role_test as drs
+
 
 
 try:
@@ -43,14 +45,35 @@ class dynamoDB_table(object):
         self._partition_key = self._df.columns[0]
         self._sort_key = self._df.columns[1]
 
-        self.db = boto3.resource('dynamodb', region_name='eu-west-1')
+        aws_credentials = drs.get_credentials("AWS", "flint2")
+
+        # self.db = boto3.resource('dynamodb', region_name='eu-west-1')
+        session = boto3.Session(
+            aws_access_key_id=aws_credentials["access_key_id"],
+            aws_secret_access_key=aws_credentials["secret_access_key"]
+        )
+        self.db = session.resource('dynamodb',
+                                   region_name=aws_credentials["region_name"],
+                                   )
+
         self.table = self.db.Table(self._table_name)
-        self.client = boto3.client('dynamodb')
+
+        # self.client = boto3.client('dynamodb')
+        self.client = boto3.client('dynamodb',
+                                   region_name=aws_credentials["region_name"],
+                                   aws_access_key_id=aws_credentials["access_key_id"],
+                                   aws_secret_access_key=aws_credentials["secret_access_key"]
+                                   )
 
     @property
-    def sort_key(self):
+    def get_sort_key(self):
 
         return self._sort_key
+
+    @property
+    def get_table_name(self):
+
+        return self._table_name
 
     # @property
     def get(self, pk=1, sr=1):
@@ -122,8 +145,8 @@ class dynamoDB_table(object):
                 {'AttributeName': self._sort_key, 'AttributeType': 'S'}
             ],
             'ProvisionedThroughput': {
-                'ReadCapacityUnits': 10,
-                'WriteCapacityUnits': 10
+                'ReadCapacityUnits': 5,
+                'WriteCapacityUnits': 5
             }
         }
         self.table = self.db.create_table(**params)
@@ -187,7 +210,7 @@ def main_create_populate_record_weather():
         text += "\n" + str(responce)
     else:
         text += "\n--- " + str(responce)
-        text += "\n*** Create table '" + recordWeather_table._table_name + "' ..."
+        text += "\n*** Create table '" + recordWeather_table.get_table_name + "' ..."
         table = recordWeather_table.create_table()
         text += "\n*** Table created successfully!"
         text += "\n--- " + str(table)
@@ -244,7 +267,7 @@ def main_query_filter(lists_of_items, geo_name="", attr="weather", field=None):
 
     for item in lists_of_items:
 
-        sort_key_val = item[recordWeather_table.sort_key]
+        sort_key_val = item[recordWeather_table.get_sort_key]
 
         location_dict = json.loads(item['location'])
         attr_dict = json.loads(item[attr])
@@ -274,41 +297,41 @@ def main_query_filter(lists_of_items, geo_name="", attr="weather", field=None):
 
 if __name__ == '__main__':
 
-    # text = main_create_populate_record_weather()
-    # print(text)
+    text = main_create_populate_record_weather()
+    print(text)
 
 
-    # geo_name = 'Mragowo'
-    # geo_name = 'ASTANA'
-    geo_name = 'Kremenchuk'
-    local_unaware_datetime = datetime.datetime.now()
-    observer_obj = geo.Observer(geo_name=geo_name, input_unaware_datetime=local_unaware_datetime)
-    text = ""
-    text += str(observer_obj)
-    # ###########################################################################
-
-    # data_dict, text = main_put_record(observer=observer_obj, _chat_job="12345678#REP1")
-    # print(data_dict)
-    # print(text)
+    # # geo_name = 'Mragowo'
+    # # geo_name = 'ASTANA'
+    # geo_name = 'Kremenchuk'
+    # local_unaware_datetime = datetime.datetime.now()
+    # observer_obj = geo.Observer(geo_name=geo_name, input_unaware_datetime=local_unaware_datetime)
+    # text = ""
+    # text += str(observer_obj)
+    # # ###########################################################################
     #
-    # data_dict, text = main_put_record(observer=observer_obj, _chat_job="12345678#REP1")
-    # print(data_dict)
-    # print(text)
+    # # data_dict, text = main_put_record(observer=observer_obj, _chat_job="12345678#REP1")
+    # # print(data_dict)
+    # # print(text)
+    # #
+    # # data_dict, text = main_put_record(observer=observer_obj, _chat_job="12345678#REP1")
+    # # print(data_dict)
+    # # print(text)
+    # #
+    # # data_dict, text = main_put_record(observer=observer_obj, _chat_job="12345678#REP1")
+    # # print(data_dict)
+    # # print(text)
     #
-    # data_dict, text = main_put_record(observer=observer_obj, _chat_job="12345678#REP1")
-    # print(data_dict)
-    # print(text)
-
-
-
-    list_of_items = recordWeather_table.table_query(_pk="5354533983#345369460#REP",
-                                                    _between_low="2021-01-21 14:41:49",
-                                                    _between_high="2024-01-21 12:37:00")
-
-    # pprint(list_of_items)
-    # print(text)
-    data_dict = main_query_filter(list_of_items, geo_name=geo_name, attr="weather", field=["P", "T"])
-    print(geo_name)
-    pprint(data_dict)
-
-    # pw.plot_weather(data_dict=data_dict, file_name="user_photo2.jpg")
+    #
+    #
+    # list_of_items = recordWeather_table.table_query(_pk="5354533983#345369460#REP",
+    #                                                 _between_low="2021-01-21 14:41:49",
+    #                                                 _between_high="2024-01-21 12:37:00")
+    #
+    # # pprint(list_of_items)
+    # # print(text)
+    # data_dict = main_query_filter(list_of_items, geo_name=geo_name, attr="weather", field=["P", "T"])
+    # print(geo_name)
+    # pprint(data_dict)
+    #
+    # # pw.plot_weather(data_dict=data_dict, file_name="user_photo2.jpg")

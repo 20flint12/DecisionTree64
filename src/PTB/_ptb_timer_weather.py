@@ -57,8 +57,8 @@ def remove_job_if_exists(job_name: str, context: ContextTypes.DEFAULT_TYPE) -> b
 async def callback_timer_REP(context: ContextTypes.DEFAULT_TYPE):
     job = context.job
 
-    user_bot_id = context.chat_data[bdbu.botUsers_table.partition_key]
-    user_name = context.chat_data[bdbu.botUsers_table.sort_key]
+    user_bot_id = context.chat_data[bdbu.botUsers_table.get_partition_key]
+    user_name = context.chat_data[bdbu.botUsers_table.get_sort_key]
 
     text = job.name + ' @ ' + str(job.next_t)[:19] + "\n" + str(context.job_queue.jobs())[25:]
     # logger.info(text)

@@ -68,17 +68,17 @@ class dynamoDB_table(object):
         self.client = boto3.client('dynamodb')
 
     @property
-    def partition_key(self):
+    def get_partition_key(self):
 
         return self._partition_key
 
     @property
-    def sort_key(self):
+    def get_sort_key(self):
 
         return self._sort_key
 
     @property
-    def table_name(self):
+    def get_table_name(self):
 
         return self._table_name
 
@@ -163,8 +163,8 @@ class dynamoDB_table(object):
                 {'AttributeName': self._sort_key, 'AttributeType': 'S'}
             ],
             'ProvisionedThroughput': {
-                'ReadCapacityUnits': 10,
-                'WriteCapacityUnits': 10
+                'ReadCapacityUnits': 5,
+                'WriteCapacityUnits': 5
             }
         }
         self.table = self.db.create_table(**params)
@@ -245,7 +245,7 @@ def main_create_populate_bot_users():
         text += "\n" + str(response)
     else:
         text += "\n--- " + str(response)
-        text += "\n*** Create table '" + botUsers_table.table_name + "' ..."
+        text += "\n*** Create table '" + botUsers_table.get_table_name + "' ..."
         table = botUsers_table.create_table()
         text += "\n*** Table created successfully!"
         text += "\n--- " + str(table)
@@ -341,8 +341,8 @@ def parse_Geolocation_Interval(context=None, parse_args=False, user_bot_id=""):
 
 def parse_Reminder(context=None, observer=None):
 
-    user_bot_id = context.chat_data[botUsers_table.partition_key]
-    user_name = context.chat_data[botUsers_table.sort_key]
+    user_bot_id = context.chat_data[botUsers_table.get_partition_key]
+    user_name = context.chat_data[botUsers_table.get_sort_key]
 
     context.chat_data["context_user_data"].setdefault(opc.key_Reminder, "0000")
 
@@ -400,8 +400,8 @@ def _test_update_user_record(context_user_data=None, user_db_data=None, ):
     '''
 
     user_data_dict = {
-        f'{botUsers_table.partition_key}': "4774374724#122233333",
-        f'{botUsers_table.sort_key}': "Serhii Surmylo @ Biblyka_bot",
+        f'{botUsers_table.get_partition_key}': "4774374724#122233333",
+        f'{botUsers_table.get_sort_key}': "Serhii Surmylo @ Biblyka_bot",
     }
 
     upd_user_db_data = {}
@@ -473,8 +473,8 @@ def update_user_record_db(update=None, context=None, user_db_data=None):      # 
     user_bot_name = bot_name + " & " + user_name
 
     user_data_dict = {
-        f'{botUsers_table.partition_key}': user_bot_id,
-        f'{botUsers_table.sort_key}': user_bot_name,
+        f'{botUsers_table.get_partition_key}': user_bot_id,
+        f'{botUsers_table.get_sort_key}': user_bot_name,
     }
 
     upd_user_db_data = {}
@@ -538,8 +538,8 @@ def update_user_context_db(pk_sk_id=None, user_db_data=None):      # !!! user_db
 
 
     user_data_dict = {
-        f'{botUsers_table.partition_key}': pk_sk_id['pk'],
-        f'{botUsers_table.sort_key}': pk_sk_id['sk'],
+        f'{botUsers_table.get_partition_key}': pk_sk_id['pk'],
+        f'{botUsers_table.get_sort_key}': pk_sk_id['sk'],
     }
 
 

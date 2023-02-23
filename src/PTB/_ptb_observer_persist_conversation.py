@@ -99,8 +99,8 @@ async def received_information(update: Update, context: ContextTypes.DEFAULT_TYP
     # chat_id = update.effective_message.chat_id
     # bot = context.bot
     # user_bot_id = str(chat_id) + "#" + str(bot.id)
-    user_bot_id = context.chat_data[bdbu.botUsers_table.partition_key]
-    user_name = context.chat_data[bdbu.botUsers_table.sort_key]
+    user_bot_id = context.chat_data[bdbu.botUsers_table.get_partition_key]
+    user_name = context.chat_data[bdbu.botUsers_table.get_sort_key]
 
     text = update.message.text
 
@@ -192,8 +192,8 @@ async def repair_user_db_data(update: Update, context: ContextTypes.DEFAULT_TYPE
     # user = update.effective_user
     # bot = context.bot
     # user_bot_id = str(user.id) + "#" + str(bot.id)
-    user_bot_id = context.chat_data[bdbu.botUsers_table.partition_key]
-    user_name = context.chat_data[bdbu.botUsers_table.sort_key]
+    user_bot_id = context.chat_data[bdbu.botUsers_table.get_partition_key]
+    user_name = context.chat_data[bdbu.botUsers_table.get_sort_key]
 
     user_db_data, text = bdbu.update_user_context_db(pk_sk_id={'pk': user_bot_id, 'sk': user_name},
                                                      user_db_data=context.chat_data)
