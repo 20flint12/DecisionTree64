@@ -8,6 +8,7 @@ from pprint import pprint
 import src.ephem_routines.ephem_package.geo_place as geo
 import src.PTB._ptb_observer_persist_conversation as opc
 import src.boto3_package.mainDB_weather as mr
+import src.boto3_package.mainDB_spaceweather as msw
 import src.boto3_package.botDB_users as bdbu
 
 
@@ -75,6 +76,11 @@ async def callback_timer_REP(context: ContextTypes.DEFAULT_TYPE):
     data_dict, out_text = mr.main_put_record(observer=observer_obj, job_name=job.name)
     text += "\n" + str(data_dict)
     text += out_text
+
+    data_dict, out_text = msw.main_put_record(observer=observer_obj, job_name=job.name)
+    text += "\n" + str(data_dict)
+    text += out_text
+
 
     context.chat_data["payment"]["term"] += 1       # to check temporary
     print("***", context.chat_data["payment"])
