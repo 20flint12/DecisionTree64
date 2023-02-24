@@ -5,9 +5,10 @@ from pprint import pprint
 import os
 import json
 
+import src.boto3_package.mainDB_weather as mdbw
 import src.ephem_routines.ephem_package.geo_place as geo
 import src.weather_package.main_spaceweather_swpc as swt
-import src.mathplot_package._plot_recordWeather as pw
+import src.mathplot_package._plot_spaceWeather as psw
 import src.boto3_package.dynamodb_assumed_role_test as drs
 
 
@@ -21,182 +22,6 @@ try:
     print("All Modules Loaded ...... ")
 except Exception as e:
     print("Error {}".format(e))
-
-
-class dynamoDB_table(object):
-
-    _table_name = "table_name"
-    _partition_key = 'part_key'
-    _sort_key = 'sort_key'
-
-    _df = None
-
-    def __init__(self, path_file_csv=''):
-
-        self._df = pd.read_csv(path_file_csv)
-
-        file_name_ext = os.path.basename(path_file_csv)
-        # print(file_name_ext)
-        file_name, file_ext = os.path.splitext(file_name_ext)
-        # print(file_name)
-        # print(file_ext)
-
-        self._table_name = file_name
-        self._partition_key = self._df.columns[0]
-        self._sort_key = self._df.columns[1]
-
-        aws_credentials = drs.get_credentials("AWS", "flint2")
-
-        # self.db = boto3.resource('dynamodb', region_name='eu-west-1')
-        session = boto3.Session(
-            aws_access_key_id=aws_credentials["access_key_id"],
-            aws_secret_access_key=aws_credentials["secret_access_key"]
-        )
-        self.db = session.resource('dynamodb',
-                                   region_name=aws_credentials["region_name"],
-                                   )
-
-        self.table = self.db.Table(self._table_name)
-
-        # self.client = boto3.client('dynamodb')
-        self.client = boto3.client('dynamodb',
-                                   region_name=aws_credentials["region_name"],
-                                   aws_access_key_id=aws_credentials["access_key_id"],
-                                   aws_secret_access_key=aws_credentials["secret_access_key"]
-                                   )
-
-    @property
-    def get_sort_key(self):
-
-        return self._sort_key
-
-    @property
-    def get_table_name(self):
-
-        return self._table_name
-
-    # @property
-    def get(self, pk=1, sr=1):
-        response = self.table.get_item(
-            Key={
-                self._partition_key: pk,
-                self._sort_key: sr
-            }
-        )
-        return response
-
-    def put(self, job_name='', data_dict=None):     # at a current time
-
-        from decimal import Decimal
-        import json
-
-        utc_str = datetime.datetime.utcnow().strftime(geo.dt_format_rev)
-
-        # Partition and Sorting keys
-        rec_items_dict = {
-                self._partition_key: job_name,
-                self._sort_key: utc_str
-        }
-
-        # print("data_dict=", data_dict)
-        ddb_data = json.loads(json.dumps(data_dict), parse_float=Decimal)  # get rid of float
-        rec_items_dict.update(ddb_data)  # !!!
-
-        # print(self._partition_key, self._sort_key, rec_items_dict)
-        response = self.table.put_item(Item=rec_items_dict)
-
-        return response
-
-    def delete(self, partition_key=''):
-        self.table.delete_item(
-            Key={
-                self._partition_key: partition_key
-            }
-        )
-
-    def describe_table(self):
-
-        from botocore.exceptions import ClientError
-
-        # Assumes client is already initialized as DynamoDB client
-        try:
-            response = self.client.describe_table(TableName=self._table_name)
-
-            return True, response
-
-        except ClientError as err:
-            # This will not result in a failed assertion
-            assert err.response['Error']['Code'] == 'ResourceNotFoundException'
-
-            return False, err.response['Error']['Code']
-
-    def create_table(self):
-        """
-        Creates a DynamoDB table.
-        """
-        params = {
-            'TableName': self._table_name,
-            'KeySchema': [
-                {'AttributeName': self._partition_key, 'KeyType': 'HASH'},
-                {'AttributeName': self._sort_key, 'KeyType': 'RANGE'}
-            ],
-            'AttributeDefinitions': [
-                {'AttributeName': self._partition_key, 'AttributeType': 'S'},
-                {'AttributeName': self._sort_key, 'AttributeType': 'S'}
-            ],
-            'ProvisionedThroughput': {
-                'ReadCapacityUnits': 5,
-                'WriteCapacityUnits': 5
-            }
-        }
-        self.table = self.db.create_table(**params)
-        self.table.wait_until_exists()
-
-        return self.table
-
-    def get_table_size(self):
-        pass
-        # init_id = int(table_dict["Table"]["ItemCount"])
-        # init_id = int(table_dict["Table"]["TableSizeBytes"] / 2)
-
-    def table_query(self, _pk="", _between_low="", _between_high=""):
-
-        from boto3.dynamodb.conditions import Key, Attr
-
-        # response = self.table.query(
-        #     KeyConditionExpression=Key(self._partition_key).eq(_pk) & Key(self._sort_key).between(_between_low, _between_high)
-        # )
-
-        fe = Attr(self._sort_key).between(_between_low, _between_high)
-        response = self.table.scan(
-            FilterExpression=fe
-        )
-
-        items = response['Items']
-        return items
-
-    def populate_from_csv(self):
-        text = ""
-
-        for i in range(0, len(self._df)):
-            weather_dict = self._df.loc[i].to_dict()
-            # print(weather_dict)
-
-            resp = self.put(job_name="chat_job_id", data_dict=weather_dict)
-            # print(".")
-            text += str(resp) + "\n"
-
-        return text
-
-
-file_name = "record_spaceweather.csv"
-script_dir = os.path.dirname(os.path.abspath(__file__))
-file_path = os.path.join(script_dir, file_name)
-
-spaceWeather_table = dynamoDB_table(path_file_csv=file_path)
-
-print(os.path.basename(__file__), ">>>", file_path)
-print(os.path.basename(__file__), ">>>", spaceWeather_table)
 
 
 def main_create_populate_record_weather():
@@ -248,9 +73,9 @@ def main_put_record(observer=None, job_name="12345678#REP1"):
     return data_dict, text
 
 
-def main_query_filter(lists_of_items, geo_name="", attr="weather", field=None):
+def main_query_filter(list_of_dicts, geo_name="", attr="spaceweather", field=None):
     '''
-    :param lists_of_items:
+    :param list_of_dicts:
     :param geo_name:
     :param attr:
     :param field:
@@ -265,14 +90,13 @@ def main_query_filter(lists_of_items, geo_name="", attr="weather", field=None):
 
     # print(">", geo_name)
 
-    for item in lists_of_items:
+    for item in list_of_dicts:
 
         sort_key_val = item[spaceWeather_table.get_sort_key]
 
         location_dict = json.loads(item['location'])
         attr_dict = json.loads(item[attr])
 
-        # city = location_dict['geo'].decode("utf-8")
         city = location_dict['geo']
 
         # # ToDo do not use invalid dict!
@@ -295,6 +119,16 @@ def main_query_filter(lists_of_items, geo_name="", attr="weather", field=None):
     return value_dict
 
 
+file_name = "record_spaceweather.csv"
+script_dir = os.path.dirname(os.path.abspath(__file__))
+file_path = os.path.join(script_dir, file_name)
+
+spaceWeather_table = mdbw.dynamoDB_table(path_file_csv=file_path)
+
+print(os.path.basename(__file__), ">>>", file_path)
+print(os.path.basename(__file__), ">>>", spaceWeather_table)
+
+
 if __name__ == '__main__':
 
     # text = main_create_populate_record_weather()
@@ -310,28 +144,28 @@ if __name__ == '__main__':
     text += str(observer_obj)
     # ###########################################################################
 
-    data_dict, text = main_put_record(observer=observer_obj, job_name="12345678#REP1")
-    print(data_dict)
-    print(text)
+    # data_dict, text = main_put_record(observer=observer_obj, job_name="12345678#TEST")
+    # print(data_dict)
+    # print(text)
 
-    # # data_dict, text = main_put_record(observer=observer_obj, job_name="12345678#REP1")
-    # # print(data_dict)
-    # # print(text)
-    # #
-    # # data_dict, text = main_put_record(observer=observer_obj, job_name="12345678#REP1")
-    # # print(data_dict)
-    # # print(text)
+    # data_dict, text = main_put_record(observer=observer_obj, job_name="12345678#REP1")
+    # print(data_dict)
+    # print(text)
     #
-    #
-    #
-    # list_of_items = recordWeather_table.table_query(_pk="5354533983#345369460#REP",
-    #                                                 _between_low="2021-01-21 14:41:49",
-    #                                                 _between_high="2024-01-21 12:37:00")
-    #
-    # # pprint(list_of_items)
-    # # print(text)
-    # data_dict = main_query_filter(list_of_items, geo_name=geo_name, attr="weather", field=["P", "T"])
-    # print(geo_name)
-    # pprint(data_dict)
-    #
-    # # pw.plot_weather(data_dict=data_dict, file_name="user_photo2.jpg")
+    # data_dict, text = main_put_record(observer=observer_obj, job_name="12345678#REP1")
+    # print(data_dict)
+    # print(text)
+
+
+
+    list_of_items = spaceWeather_table.table_query(_pk="5354533983#345369460#REP",
+                                                    _between_low="2021-01-21 14:41:49",
+                                                    _between_high="2024-01-21 12:37:00")
+
+    # pprint(list_of_items)
+    # print(text)
+    data_dict = main_query_filter(list_of_items, geo_name=geo_name, attr="spaceweather", field=["P", "T"])
+    print(geo_name)
+    pprint(data_dict)
+
+    psw.plot_spaceWeather(data_dict=data_dict, file_name="image_spaceWeather.jpg")

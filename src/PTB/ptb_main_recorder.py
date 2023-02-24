@@ -11,6 +11,7 @@ from pprint import pprint
 
 import src.ephem_routines.ephem_package.geo_place as geo
 import src.boto3_package.mainDB_weather as mr
+import src.boto3_package.mainDB_spaceweather as msw
 import src.scikit_mathplot.for_testing_binance_plot as smb
 
 import socket
@@ -143,14 +144,18 @@ async def callback_repeating(context: ContextTypes.DEFAULT_TYPE):
     # logger.info(text)
     # init_id, out_str = mr.main_put_record(_chat_job=job.name)
 
-    # init_id, out_str = mr.main_put_record(observer=observer_obj, job_name=job.name)
-    out_str = "\nbinance info"
-    to_send_image, out_str = smb.plot_binance(file_name=photo_name)
-    text += out_str
-    await context.bot.send_message(chat_id=job.chat_id, text=text)
+    # # init_id, out_str = mr.main_put_record(observer=observer_obj, job_name=job.name)
+    # out_str = "\nbinance info"
+    # to_send_image, out_str = smb.plot_binance(file_name=photo_name)
+    # text += out_str
+    # if to_send_image:
+    #     await context.bot.send_photo(chat_id=job.chat_id, photo=open(photo_name, 'rb'))
 
-    if to_send_image:
-        await context.bot.send_photo(chat_id=job.chat_id, photo=open(photo_name, 'rb'))
+    data_dict, out_text = msw.main_put_record(observer=observer_obj, job_name=job.name)
+    text += "\n" + str(data_dict)
+    text += out_text
+
+    await context.bot.send_message(chat_id=job.chat_id, text=text)
 
 
 async def set_repeat_timer(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:

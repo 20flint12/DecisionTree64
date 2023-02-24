@@ -77,9 +77,9 @@ async def callback_timer_REP(context: ContextTypes.DEFAULT_TYPE):
     text += "\n" + str(data_dict)
     text += out_text
 
-    data_dict, out_text = msw.main_put_record(observer=observer_obj, job_name=job.name)
-    text += "\n" + str(data_dict)
-    text += out_text
+    # data_dict, out_text = msw.main_put_record(observer=observer_obj, job_name=job.name)
+    # text += "\n" + str(data_dict)
+    # text += out_text
 
 
     context.chat_data["payment"]["term"] += 1       # to check temporary

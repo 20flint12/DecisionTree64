@@ -39,7 +39,9 @@ def plot_color_of_the_days(observer=None, file_name="plot_astro_summary.png", jo
     DATES_SIZE = 1000
     print(begin_unaware, " - ", end_unaware, "len=", DATES_SIZE)
 
-    unaware_dates = np.linspace(begin_unaware.timestamp(), end_unaware.timestamp(), DATES_SIZE)
+    unaware_timestamp = np.linspace(begin_unaware.timestamp(), end_unaware.timestamp(), DATES_SIZE)
+
+    unaware_labels = []
 
     moon_element = []
     moon_lunation = []
@@ -49,7 +51,6 @@ def plot_color_of_the_days(observer=None, file_name="plot_astro_summary.png", jo
     moon_lat = []
     sun_angle = []
     moon_angle = []
-    labels_unaware = []
 
     blocked_m_long = False
     blocked_s_long = False
@@ -58,15 +59,15 @@ def plot_color_of_the_days(observer=None, file_name="plot_astro_summary.png", jo
     annot_sun_zod = {}
     last_sun_str = ""
 
-    for cur_unaware_dt in unaware_dates:
+    for cur_unaware_dt in unaware_timestamp:
 
         observer.unaware_update_utc((datetime.fromtimestamp(cur_unaware_dt)))
-        labels_unaware.append(mdates.date2num(observer.get_unaware))
+        unaware_labels.append(mdates.date2num(observer.get_unaware))
         # print(cur_unaware_dt, " | ", observer.get_unaware, " / ", observer.get_utc)
 
 
-        # if unaware_dates.index(cur_unaware_dt) == 0:
-        # if np.where(unaware_dates == cur_unaware_dt)[0] == 0:
+        # if unaware_timestamp.index(cur_unaware_dt) == 0:
+        # if np.where(unaware_timestamp == cur_unaware_dt)[0] == 0:
         #     print(zd.format_zodiacal_longitude())
         # else:
         #     print(zd.format_zodiacal_longitude())
@@ -172,7 +173,7 @@ def plot_color_of_the_days(observer=None, file_name="plot_astro_summary.png", jo
 
 
 
-    vertical_full_span = span[0] + span[1]          # = labels_unaware[-1] - labels_unaware[0]
+    vertical_full_span = span[0] + span[1]          # = unaware_labels[-1] - unaware_labels[0]
     points_per_hour = int(DATES_SIZE / (span[0] + span[1]) / 24) + 1
 
     print("DATES_SIZE=", DATES_SIZE, "days=", span[0] + span[1], "points_per_hour=", points_per_hour)
@@ -190,6 +191,7 @@ def plot_color_of_the_days(observer=None, file_name="plot_astro_summary.png", jo
     weather_dict = b3w.main_query_filter(list_of_items, geo_name=observer.get_geo_name, attr="weather", field="P")
     weather_len = len(weather_dict)
 
+    # Find min for fill empty array (maybe needed average value)
     if weather_dict:
         # min_P = min(data_dict.values()['P'])
         min_P_T = min((int(d['P']), int(d['T'])) for d in weather_dict.values())
@@ -211,7 +213,7 @@ def plot_color_of_the_days(observer=None, file_name="plot_astro_summary.png", jo
 
         # Find and replace origin element
         desired_date = mdates.date2num(dt_unaware_cur)
-        idx = min(range(len(labels_unaware)), key=lambda i: abs(labels_unaware[i] - desired_date))
+        idx = min(range(len(unaware_labels)), key=lambda i: abs(unaware_labels[i] - desired_date))
 
         value_P = weather_dict[item]['P']
         value_T = weather_dict[item]['T']
@@ -236,7 +238,7 @@ def plot_color_of_the_days(observer=None, file_name="plot_astro_summary.png", jo
                        # aspect='auto',
                        cmap='summer',
                        origin='upper',
-                       extent=[-horizont_full_span/2, horizont_full_span/2, labels_unaware[-1], labels_unaware[0]],
+                       extent=[-horizont_full_span/2, horizont_full_span/2, unaware_labels[-1], unaware_labels[0]],
                        vmax=Z.max(), vmin=Z.min()
                        )
     print("img0=", img0)
@@ -253,7 +255,7 @@ def plot_color_of_the_days(observer=None, file_name="plot_astro_summary.png", jo
                        # aspect='auto',
                        cmap='winter',
                        origin='upper',
-                       extent=[-horizont_full_span/2, horizont_full_span/2, labels_unaware[-1], labels_unaware[0]],
+                       extent=[-horizont_full_span/2, horizont_full_span/2, unaware_labels[-1], unaware_labels[0]],
                        vmax=Z.max(), vmin=Z.min()
                        )
     print("img5=", img5)
@@ -277,7 +279,7 @@ def plot_color_of_the_days(observer=None, file_name="plot_astro_summary.png", jo
                        interpolation='nearest',
                        cmap=pz.elements_cmap,
                        origin='upper',
-                       extent=[-horizont_full_span/2, horizont_full_span/2, labels_unaware[-1], labels_unaware[0]],
+                       extent=[-horizont_full_span/2, horizont_full_span/2, unaware_labels[-1], unaware_labels[0]],
                        vmin=0 - CYCLING_OVERLAP, vmax=120 + CYCLING_OVERLAP,
                        )
     print("img1=", img1)
@@ -302,7 +304,7 @@ def plot_color_of_the_days(observer=None, file_name="plot_astro_summary.png", jo
                        interpolation='nearest',
                        cmap=pl.lunation_cmap,
                        origin='upper',
-                       extent=[-horizont_full_span/2, horizont_full_span/2, labels_unaware[-1], labels_unaware[0]],
+                       extent=[-horizont_full_span/2, horizont_full_span/2, unaware_labels[-1], unaware_labels[0]],
                        vmin=0-CYCLING_OVERLAP, vmax=1+CYCLING_OVERLAP,
                        )
     print("img2=", img2)
@@ -337,7 +339,7 @@ def plot_color_of_the_days(observer=None, file_name="plot_astro_summary.png", jo
                        interpolation='nearest',  # 'nearest', 'bilinear', 'bicubic'
                        cmap="twilight_shifted",
                        origin='upper',
-                       extent=[-horizont_full_span/2, horizont_full_span/2, labels_unaware[-1], labels_unaware[0]],
+                       extent=[-horizont_full_span/2, horizont_full_span/2, unaware_labels[-1], unaware_labels[0]],
                        vmin=Z.min(), vmax=Z.max()
                        )
     print("img3=", img3)
@@ -367,7 +369,7 @@ def plot_color_of_the_days(observer=None, file_name="plot_astro_summary.png", jo
                        interpolation='nearest',  # 'nearest', 'bilinear', 'bicubic'
                        cmap=pz.zodiac_cmap,
                        origin='upper',
-                       extent=[-horizont_full_span/2, horizont_full_span/2, labels_unaware[-1], labels_unaware[0]],
+                       extent=[-horizont_full_span/2, horizont_full_span/2, unaware_labels[-1], unaware_labels[0]],
                        vmin=0 - CYCLING_OVERLAP, vmax=360 + CYCLING_OVERLAP,
                        )
     print("img4=", img4)
