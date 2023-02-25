@@ -52,7 +52,7 @@ class Observer:
     def __init__(self,
                  latitude=1, longitude=2,
                  geo_name="Kharkiv",
-                 input_unaware_datetime=None,   # datetime.strptime("1976-01-13 02:37:21", dt_format_rev),
+                 in_unaware_datetime=None,  # datetime.strptime("1976-01-13 02:37:21", dt_format_rev),
                  input_utc_datetime=None,
                  span=(2., 2.),
                  ):
@@ -68,7 +68,7 @@ class Observer:
 
         # ********************************************************
         if input_utc_datetime is None:
-            self._unaware = input_unaware_datetime
+            self._unaware = in_unaware_datetime
             self._init_unaware = self._unaware
 
             self._aware = self.timezone.localize(self._unaware)
@@ -76,7 +76,7 @@ class Observer:
             self._place.date = ephem.Date(self._utc)  # !!!!!!!!!!!!!!!!!!!!!!
             self._set_noon = False
 
-        if input_unaware_datetime is None:
+        if in_unaware_datetime is None:
             self._utc = input_utc_datetime
             self._place.date = ephem.Date(self._utc)  # !!!!!!!!!!!!!!!!!!!!!!
             self._set_noon = False
@@ -365,7 +365,7 @@ class Observer:
 def main_observer(geo_name="Boston", unaware_datetime=datetime.today()):
 
     result_text = ["", "", ""]
-    result_observer = Observer(geo_name=geo_name, input_unaware_datetime=unaware_datetime)
+    result_observer = Observer(geo_name=geo_name, in_unaware_datetime=unaware_datetime)
 
     # result_text[0] += "\n" + geo_name
     # result_text[0] += " [{:7.3f},".format(result_observer.location.latitude) + \

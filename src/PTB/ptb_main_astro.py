@@ -416,7 +416,7 @@ async def setup_timer_DAILY(update: Update, context: ContextTypes.DEFAULT_TYPE) 
                                                                                      user_bot_id=user_bot_id)
     logger.info("weather for geo_name %s at %s", geo_name, span)
 
-    observer_obj = geo.Observer(geo_name=geo_name, input_unaware_datetime=datetime.today())
+    observer_obj = geo.Observer(geo_name=geo_name, in_unaware_datetime=datetime.today())
     text = ""
     text += str(observer_obj)
     # ++++++++++++++++++++++

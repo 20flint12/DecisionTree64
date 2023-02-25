@@ -151,7 +151,7 @@ if __name__ == '__main__':
     # local_unaware_datetime = datetime.today()
     local_unaware_datetime = datetime.now()
 
-    observer_obj = geo.Observer(geo_name=geo_name, input_unaware_datetime=local_unaware_datetime)
+    observer_obj = geo.Observer(geo_name=geo_name, in_unaware_datetime=local_unaware_datetime)
     text = ""
     text += str(observer_obj)
     # ###########################################################################
