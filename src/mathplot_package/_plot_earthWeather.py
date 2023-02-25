@@ -21,15 +21,20 @@ colors = [
 weather_cmap = LinearSegmentedColormap.from_list('elements_cmap', colors, N=960)
 
 
-def prepare_data_4_plot(unaware_array=None, observer=None, data_dict=None):
+def prepare_data_4_plot(unaware_array=None, observer=None, data_dict=None, sett=None):
 
-    KEEP_POINTS = 8
+    span = observer.get_span
+
+    DATES_SIZE = sett[0]
+    # KEEP_POINTS = 8
+    KEEP_POINTS = int(DATES_SIZE / (span[0] + span[1]) / 24) + 1
+    print("DATES_SIZE=", DATES_SIZE, "days=", span[0] + span[1], "KEEP_POINTS=", KEEP_POINTS)
 
     # Find min for fill empty array (maybe needed average value)
-    if spaceweather_dict:
+    if data_dict:
         # min_P = min(data_dict.values()['P'])
-        min_PT = min((int(d['P']), int(d['T'])) for d in spaceweather_dict.values())
-        print('len=', spaceweather_len, min_PT)
+        min_PT = min((int(d['P']), int(d['T'])) for d in data_dict.values())
+        print('min_PT=', min_PT)
     else:
         min_PT = (0, 0)
 
@@ -38,7 +43,7 @@ def prepare_data_4_plot(unaware_array=None, observer=None, data_dict=None):
     weather_T = np.full(DATES_SIZE, min_PT[1])
 
     # Fill np.array
-    for item in spaceweather_dict:
+    for item in data_dict:
         dt_utc_cur = datetime.strptime(item, geo.dt_format_rev)
 
         # ToDo Convert to unaware_date
@@ -49,8 +54,8 @@ def prepare_data_4_plot(unaware_array=None, observer=None, data_dict=None):
         desired_date = mdates.date2num(dt_unaware_cur)
         idx = min(range(len(unaware_array)), key=lambda i: abs(unaware_array[i] - desired_date))
 
-        value_P = spaceweather_dict[item]['P']
-        value_T = spaceweather_dict[item]['T']
+        value_P = data_dict[item]['P']
+        value_T = data_dict[item]['T']
         # print(idx, item, dt_utc_cur, desired_date, value_P)
 
         # Replace value_P
@@ -156,9 +161,8 @@ if __name__ == '__main__':
                                                        )
     # pprint(list_of_items)
 
-    spaceweather_dict = b3w.main_query_filter(list_of_items, geo_name=observer_obj.get_geo_name, attr="weather")
-    spaceweather_len = len(spaceweather_dict)
-    print("spaceweather_len=", spaceweather_len, "\n")
+    weather_dict = b3w.main_query_filter(list_of_items, geo_name=observer_obj.get_geo_name, attr="weather")
+    print("sweather_len=", len(weather_dict), "\n")
     # pprint(spaceweather_dict)
     # #######################################################################################
 
@@ -173,7 +177,8 @@ if __name__ == '__main__':
         unaware_array.append(mdates.date2num(observer_obj.get_unaware))
         # print(cur_unaware_dt, " | ", observer.get_unaware, " / ", observer.get_utc)
 
-    weather_P, weather_T = prepare_data_4_plot(unaware_array=unaware_array, observer=observer_obj, data_dict=spaceweather_dict)
+    weather_P, weather_T = prepare_data_4_plot(unaware_array=unaware_array, observer=observer_obj,
+                                               data_dict=weather_dict, sett=(DATES_SIZE,))
     # #######################################################################################
 
     # Plot spaceWeather data

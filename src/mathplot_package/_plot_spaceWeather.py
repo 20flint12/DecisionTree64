@@ -20,24 +20,29 @@ colors = [
 weather_cmap = LinearSegmentedColormap.from_list('elements_cmap', colors, N=960)
 
 
-def prepare_data_4_plot(unaware_array=None, observer=None, data_dict=None):
+def prepare_data_4_plot(unaware_array=None, observer=None, data_dict=None, sett=None):
 
-    KEEP_POINTS = 8     # for testing!
+    span = observer.get_span
+
+    DATES_SIZE = sett[0]
+    # KEEP_POINTS = 8     # for testing!
+    KEEP_POINTS = int(DATES_SIZE / (span[0] + span[1]) / 24) + 1    # sample every 1 hour!
+    print("DATES_SIZE=", DATES_SIZE, "days=", span[0] + span[1], "KEEP_POINTS=", KEEP_POINTS)
 
     # Find min for fill empty array (maybe needed average value)
-    if spaceweather_dict:
+    if data_dict:
         # min_P = min(data_dict.values()['P'])
-        min_KPs = min((int(d['estimated_kp']), int(d['estimated_kp'])) for d in spaceweather_dict.values())
-        print('len=', spaceweather_len, min_KPs)
+        min_KPs = min((int(d['estimated_kp']), int(d['estimated_kp'])) for d in data_dict.values())
+        print('min_KPs=', min_KPs)
     else:
         min_KPs = (0, 0)
 
     # Create avg empty array of weather data
-    weather_P = np.full(DATES_SIZE, min_KPs[0])
-    weather_T = np.full(DATES_SIZE, min_KPs[1])
+    space_KP = np.full(DATES_SIZE, min_KPs[0])
+    # weather_T = np.full(DATES_SIZE, min_KPs[1])
 
     # Fill np.array
-    for item in spaceweather_dict:
+    for item in data_dict:
         dt_utc_cur = datetime.strptime(item, geo.dt_format_rev)
 
         # ToDo Convert to unaware_date
@@ -48,16 +53,14 @@ def prepare_data_4_plot(unaware_array=None, observer=None, data_dict=None):
         desired_date = mdates.date2num(dt_unaware_cur)
         idx = min(range(len(unaware_array)), key=lambda i: abs(unaware_array[i] - desired_date))
 
-        estimated_kp = spaceweather_dict[item]['estimated_kp']
+        estimated_kp = data_dict[item]['estimated_kp']
         # print(idx, item, dt_utc_cur, desired_date, estimated_kp)
 
         # Replace value_P
-        # weather_P[idx] = value_P
-        weather_P[idx:idx + KEEP_POINTS] = estimated_kp  # and N elements more
+        space_KP[idx:idx + KEEP_POINTS] = estimated_kp  # and N elements more
         # weather_T[idx:idx+KEEP_POINTS] = value_T            # and N elements more
-        # weather_P[idx] = np.full(10, value_P)
 
-    return weather_P
+    return space_KP
 
 
 def plot_spaceWeather(xs=None, ys=None, file_name="user_photo2.jpg"):
@@ -154,8 +157,9 @@ if __name__ == '__main__':
         unaware_array.append(mdates.date2num(observer_obj.get_unaware))
         # print(cur_unaware_dt, " | ", observer.get_unaware, " / ", observer.get_utc)
 
-    weather_P = prepare_data_4_plot(unaware_array=unaware_array, observer=observer_obj, data_dict=spaceweather_dict)
+    space_KP = prepare_data_4_plot(unaware_array=unaware_array, observer=observer_obj,
+                                   data_dict=spaceweather_dict, sett=(DATES_SIZE,))
     # #######################################################################################
 
     # Plot spaceWeather data
-    plot_spaceWeather(xs=unaware_array, ys=weather_P, file_name="image_spaceWeather.jpg")
+    plot_spaceWeather(xs=unaware_array, ys=space_KP, file_name="image_spaceWeather.jpg")
