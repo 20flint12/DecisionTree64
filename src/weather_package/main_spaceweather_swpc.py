@@ -128,6 +128,7 @@ import src.ephem_routines.ephem_package.geo_place as geo
 def main_spaceweather_k_index(observer=None):
     result_text = ""
     result_dict = {}
+    result_list = []
 
     # Define API URL
     # url = 'https://services.swpc.noaa.gov/products/solar-wind/mag-1-day.json'
@@ -143,14 +144,31 @@ def main_spaceweather_k_index(observer=None):
     data = json.loads(response.content)
     # print(data)
 
-    i = 0
+    i = -1
+
     # Print space weather forecast
-    for forecast in data:
+    for k in range(len(data) - 1, -1, -1):
+        forecast = data[k]
+        res_str = ""
+
         i += 1
-        res_str = str(i) + ": \t" + str(forecast['time_tag']) + ': \t' + \
-                  str(forecast['kp_index']) + ': ' + str(forecast['estimated_kp']) + \
-                  ': \t' + str(forecast['kp'])
+        if not (i % 6):
+            res_str += "*"
+
+            # Get data
+            converted_dict = {forecast['time_tag']: forecast['estimated_kp']}
+
+            # res_list.append(forecast)
+            result_list.append(converted_dict)
+
+        res_str += str(i) + ": \t" + str(forecast['time_tag']) + ': \t' + str(forecast['kp_index']) + ': ' + \
+                   str(forecast['estimated_kp']) + ': \t' + str(forecast['kp'])
         # print(res_str)
+
+        if i >= 55:
+            break
+
+    # pprint(result_list)
 
     result_dict["time_tag"] = data[-1]["time_tag"]
     result_dict["estimated_kp"] = round(data[-1]["estimated_kp"], 1)
@@ -161,7 +179,7 @@ def main_spaceweather_k_index(observer=None):
     result_text += " estimated_kp=" + str(result_dict["estimated_kp"])
     result_text += " kp=" + str(result_dict["kp"])
 
-    return result_dict, result_text
+    return result_list, result_text
 
 
 def main_spaceweather_kp_7_day(observer=None):

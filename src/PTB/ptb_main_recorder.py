@@ -152,7 +152,7 @@ async def callback_repeating(context: ContextTypes.DEFAULT_TYPE):
     #     await context.bot.send_photo(chat_id=job.chat_id, photo=open(photo_name, 'rb'))
 
     data_dict, out_text = msw.main_put_record(observer=observer_obj, job_name=job.name)
-    text += "\n" + str(data_dict)
+    text += "\n" + str(data_dict)[:84]
     text += out_text
 
     await context.bot.send_message(chat_id=job.chat_id, text=text)

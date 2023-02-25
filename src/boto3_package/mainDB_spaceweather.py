@@ -62,8 +62,8 @@ def main_put_record(observer=None, job_name="12345678#REP1"):
     data_dict["location"] = json.dumps(observer_dict)
 
     # Weather data
-    wth_dict, str_head = swt.main_spaceweather_k_index(observer)
-    data_dict["spaceweather"] = json.dumps(wth_dict)
+    spaceweather_list, str_head = swt.main_spaceweather_k_index(observer)
+    data_dict["spaceweather"] = json.dumps(spaceweather_list)
 
     resp = spaceWeather_table.put(job_name=job_name, data_dict=data_dict)
 
@@ -138,9 +138,9 @@ if __name__ == '__main__':
     text += str(observer_obj)
     # ###########################################################################
 
-    # data_dict, text = main_put_record(observer=observer_obj, job_name="12345678#TEST")
-    # print(data_dict)
-    # print(text)
+    data_dict, text = main_put_record(observer=observer_obj, job_name="12345678#TEST")
+    pprint(data_dict)
+    print(text)
 
     # data_dict, text = main_put_record(observer=observer_obj, job_name="12345678#REP1")
     # print(data_dict)
@@ -152,14 +152,14 @@ if __name__ == '__main__':
 
 
 
-    list_of_items = spaceWeather_table.table_query(_pk="5354533983#345369460#REP",
-                                                    _between_low="2021-01-21 14:41:49",
-                                                    _between_high="2024-01-21 12:37:00")
-
-    # pprint(list_of_items)
-    # print(text)
-    data_dict = main_query_filter(list_of_items, geo_name=geo_name, attr="spaceweather", field=["P", "T"])
-    print(geo_name)
-    pprint(data_dict)
-
-    psw.plot_spaceWeather(data_dict=data_dict, file_name="image_spaceWeather.jpg")
+    # list_of_items = spaceWeather_table.table_query(_pk="5354533983#345369460#REP",
+    #                                                 _between_low="2021-01-21 14:41:49",
+    #                                                 _between_high="2024-01-21 12:37:00")
+    #
+    # # pprint(list_of_items)
+    # # print(text)
+    # data_dict = main_query_filter(list_of_items, geo_name=geo_name, attr="spaceweather", field=["P", "T"])
+    # print(geo_name)
+    # pprint(data_dict)
+    #
+    # psw.plot_spaceWeather(data_dict=data_dict, file_name="image_spaceWeather.jpg")
