@@ -7,7 +7,7 @@ import json
 
 import src.ephem_routines.ephem_package.geo_place as geo
 import src.weather_package.main_openweathermap as wt
-import src.mathplot_package._plot_recordWeather as pw
+import src.mathplot_package._plot_earthWeather as pw
 import src.boto3_package.dynamodb_assumed_role_test as drs
 
 
@@ -193,30 +193,30 @@ file_name = "record_weather.csv"
 script_dir = os.path.dirname(os.path.abspath(__file__))
 file_path = os.path.join(script_dir, file_name)
 
-recordWeather_table = dynamoDB_table(path_file_csv=file_path)
+earthWeather_table = dynamoDB_table(path_file_csv=file_path)
 
 print(os.path.basename(__file__), ">>>", file_path)
-print(os.path.basename(__file__), ">>>", recordWeather_table)
+print(os.path.basename(__file__), ">>>", earthWeather_table)
 
 
 def main_create_populate_record_weather():
 
     text = ""
 
-    result, responce = recordWeather_table.describe_table()
+    result, responce = earthWeather_table.describe_table()
 
     if result:
         text += "\n*** Table already exists!"
         text += "\n" + str(responce)
     else:
         text += "\n--- " + str(responce)
-        text += "\n*** Create table '" + recordWeather_table.get_table_name + "' ..."
-        table = recordWeather_table.create_table()
+        text += "\n*** Create table '" + earthWeather_table.get_table_name + "' ..."
+        table = earthWeather_table.create_table()
         text += "\n*** Table created successfully!"
         text += "\n--- " + str(table)
 
     text += "\n*** Populate table from csv"
-    text += "\n" + recordWeather_table.populate_from_csv()
+    text += "\n" + earthWeather_table.populate_from_csv()
 
     return text
 
@@ -240,7 +240,7 @@ def main_put_record(observer=None, job_name="12345678#REP1"):
     wth_dict, str_head = wt.main_weather_now(observer)
     data_dict["weather"] = json.dumps(wth_dict)
 
-    resp = recordWeather_table.put(job_name=job_name, data_dict=data_dict)
+    resp = earthWeather_table.put(job_name=job_name, data_dict=data_dict)
 
     text += "\n" + str(resp["ResponseMetadata"]["RequestId"])[:12] + "... "
     text += "" + str(resp["ResponseMetadata"]["HTTPStatusCode"]) + "/" + str(resp["ResponseMetadata"]["RetryAttempts"])
@@ -267,7 +267,7 @@ def main_query_filter(lists_of_items, geo_name="", attr="weather", field=None):
 
     for item in lists_of_items:
 
-        sort_key_val = item[recordWeather_table.get_sort_key]
+        sort_key_val = item[earthWeather_table.get_sort_key]
 
         location_dict = json.loads(item['location'])
         attr_dict = json.loads(item[attr])

@@ -74,18 +74,17 @@ def main_put_record(observer=None, job_name="12345678#REP1"):
 
 
 def main_query_filter(list_of_dicts, geo_name="", attr="spaceweather", field=None):
-    '''
+    """
     :param list_of_dicts:
     :param geo_name:
     :param attr:
     :param field:
     :return:
-    '''
+    """
 
-    if field is None:
-        field = ["P", "T"]
+    # if field is None:
+    #     field = ["P", "T"]
 
-    value_list = []
     value_dict = {}
 
     # print(">", geo_name)
@@ -107,14 +106,9 @@ def main_query_filter(list_of_dicts, geo_name="", attr="spaceweather", field=Non
         # # print(">", sort_key_val, city, item[attr], value)
 
         # Filter by city
-        if geo_name.upper() == city:
+        if geo_name.upper() == city or True:
 
             value_dict[sort_key_val] = attr_dict
-            # value_list.append(float(value))
-
-    # average = 0
-    # if len(value_list) > 0:
-    #     average = sum(value_list) / len(value_list)
 
     return value_dict
 
