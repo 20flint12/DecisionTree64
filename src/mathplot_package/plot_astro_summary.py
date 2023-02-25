@@ -188,7 +188,7 @@ def plot_color_of_the_days(observer=None, file_name="plot_astro_summary.png", jo
     # pprint(weather_dict)
     # #######################################################################################
 
-    weather_P, weather_T = pew.prepare_data_4_plot(unaware_array=unaware_array, observer=observer_obj,
+    weather_P, weather_T = pew.prepare_data_4_plot(unaware_array=unaware_array, observer=observer,
                                                    data_dict=weather_dict, sett=(DATES_SIZE,))
     # #######################################################################################
 
