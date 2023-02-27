@@ -147,12 +147,14 @@ def plot_color_of_the_days(observer=None, file_name="plot_astro_summary.png", jo
     axe2 = plt.subplot2grid((1, 20), (0, 4), colspan=2)
     axe2.set_title(f'Фази', fontsize=10)
 
-    # axe3 = plt.subplot2grid((1, 10), (0, 3), colspan=4)
-    # axe3.set_title(f'Сонце   ===   Місяць', loc='center', fontsize=10)
     axe30 = plt.subplot2grid((1, 20), (0, 6), colspan=3)
+    axe30.set_title(f'Сонце', loc='center', fontsize=10)
+
     axe31 = plt.subplot2grid((1, 20), (0, 9), colspan=2)
+    axe31.set_title(f'Геомагн', loc='center', fontsize=10)
+
     axe32 = plt.subplot2grid((1, 20), (0, 11), colspan=3)
-    axe31.set_title(f'Сонце   ===   Місяць', loc='center', fontsize=10)
+    axe32.set_title(f'Місяць', loc='center', fontsize=10)
 
     axe4 = plt.subplot2grid((1, 20), (0, 14), colspan=4)
     axe4.set_title(f'Зодіак', fontsize=10)
@@ -160,8 +162,6 @@ def plot_color_of_the_days(observer=None, file_name="plot_astro_summary.png", jo
     axe5 = plt.subplot2grid((1, 20), (0, 18), colspan=4)
     axe5.set_title(f'Темпер.', fontsize=10)
 
-
-    # axes = (axe0, axe1, axe2, axe3, axe4, axe5)
     axes = (axe0, axe1, axe2, axe30, axe31, axe32, axe4, axe5)
     for axe in axes:
         # print(str(axe), (axe.bbox.width, axe.bbox.height))
@@ -233,14 +233,14 @@ def plot_color_of_the_days(observer=None, file_name="plot_astro_summary.png", jo
                                                         )
     # pprint(list_of_items)
 
-    spaceweather_dict = b3sw.main_query_filter(list_of_items, geo_name=observer_obj.get_geo_name, attr="spaceweather")
+    spaceweather_dict = b3sw.main_query_filter(list_of_items, geo_name=observer.get_geo_name, attr="spaceweather")
     spaceweather_len = len(spaceweather_dict)
     print("spaceweather_len=", spaceweather_len, "\n")
     # pprint(spaceweather_dict)
     # #######################################################################################
 
     SAMPLES_PER_HOUR = 5
-    space_KP = psw.prepare_data_4_plot(unaware_array=unaware_array, observer=observer_obj,
+    space_KP = psw.prepare_data_4_plot(unaware_array=unaware_array, observer=observer,
                                        data_dict=spaceweather_dict, sett=(DATES_SIZE, SAMPLES_PER_HOUR))
     # #######################################################################################
 
