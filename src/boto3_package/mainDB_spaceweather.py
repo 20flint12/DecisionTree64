@@ -1,6 +1,7 @@
 
 import pandas as pd
 from datetime import datetime
+import time
 from pprint import pprint
 import os
 import json
@@ -16,8 +17,6 @@ import src.boto3_package.dynamodb_assumed_role_test as drs
 try:
     import os
     import sys
-    import datetime
-    import time
     import boto3
     print("All Modules Loaded ...... ")
 except Exception as e:
@@ -73,7 +72,7 @@ def main_put_record(observer=None, job_name="12345678#REP1"):
     return data_dict, text
 
 
-def main_query_filter(list_of_dicts, geo_name="", attr="spaceweather", field=None):
+def main_query_filter(list_of_dicts, geo_name="", attr="spaceweather"):
     """
     :param list_of_dicts:
     :param geo_name:
@@ -81,13 +80,7 @@ def main_query_filter(list_of_dicts, geo_name="", attr="spaceweather", field=Non
     :param field:
     :return:
     """
-
-    # if field is None:
-    #     field = ["P", "T"]
-
-    value_dict = {}
-
-    # print(">", geo_name)
+    result_dict = {}
 
     for item in list_of_dicts:
 
@@ -98,19 +91,20 @@ def main_query_filter(list_of_dicts, geo_name="", attr="spaceweather", field=Non
 
         city = location_dict['geo']
 
-        # # ToDo do not use invalid dict!
-        # if field in attr_dict:
-        #     value = attr_dict[field]
-        # else:
-        #     value = 0
-        # # print(">", sort_key_val, city, item[attr], value)
+        # ToDo do not use invalid dict!
+        for item_dict in attr_dict:
 
-        # Filter by city
-        if geo_name.upper() == city or True:
+            timemark = list(item_dict.keys())[0]    # 2023-02-26T07:42:00
+            value = item_dict[timemark]
 
-            value_dict[sort_key_val] = attr_dict
+            timemark2 = datetime.strptime(timemark, '%Y-%m-%dT%H:%M:%S').strftime('%Y-%m-%d %H:%M:%S')
+            result_dict[timemark2] = value
 
-    return value_dict
+            # print(item_dict, city, timemark, value, timemark2)
+
+    # pprint(result_dict)   # {'2023-02-25 17:08:00': 3.0, ...}
+
+    return result_dict
 
 
 file_name = "record_spaceweather.csv"
@@ -127,21 +121,21 @@ if __name__ == '__main__':
 
     # text = main_create_populate_record_weather()
     # print(text)
-
+    # #######################################################################################
 
     # geo_name = 'Mragowo'
-    # geo_name = 'ASTANA'
     geo_name = 'Kremenchuk'
-    local_unaware_datetime = datetime.datetime.now()
+    # geo_name = 'ASTANA'
+    local_unaware_datetime = datetime.now()
     observer_obj = geo.Observer(geo_name=geo_name, in_unaware_datetime=local_unaware_datetime)
     text = ""
     text += str(observer_obj)
-    # ###########################################################################
+    # #######################################################################################
 
-    data_dict, text = main_put_record(observer=observer_obj, job_name="12345678#TEST")
-    pprint(data_dict)
-    print(text)
-
+    # data_dict, text = main_put_record(observer=observer_obj, job_name="12345678#TEST")
+    # pprint(data_dict)
+    # print(text)
+    #
     # data_dict, text = main_put_record(observer=observer_obj, job_name="12345678#REP1")
     # print(data_dict)
     # print(text)
@@ -149,17 +143,23 @@ if __name__ == '__main__':
     # data_dict, text = main_put_record(observer=observer_obj, job_name="12345678#REP1")
     # print(data_dict)
     # print(text)
+    # #######################################################################################
 
-
-
+    #
     # list_of_items = spaceWeather_table.table_query(_pk="5354533983#345369460#REP",
     #                                                 _between_low="2021-01-21 14:41:49",
     #                                                 _between_high="2024-01-21 12:37:00")
+    begin_utc, end_utc = observer_obj.get_span_utc
+    list_of_items = spaceWeather_table.table_query(_pk="job_name",
+                                                   _between_low=str(begin_utc),
+                                                   _between_high=str(end_utc)
+                                                   )
+    # pprint(list_of_items)
+    # #######################################################################################
+
     #
-    # # pprint(list_of_items)
-    # # print(text)
-    # data_dict = main_query_filter(list_of_items, geo_name=geo_name, attr="spaceweather", field=["P", "T"])
-    # print(geo_name)
-    # pprint(data_dict)
-    #
-    # psw.plot_spaceWeather(data_dict=data_dict, file_name="image_spaceWeather.jpg")
+    spaceweather_dict = main_query_filter(list_of_items, geo_name=observer_obj.get_geo_name, attr="spaceweather")
+    spaceweather_len = len(spaceweather_dict)
+    print("\nspaceweather_len=", spaceweather_len)
+    pprint(spaceweather_dict)
+    # #######################################################################################

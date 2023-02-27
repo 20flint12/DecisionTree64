@@ -67,6 +67,9 @@ git fetch
 git switch develop
 git pull origin develop
 
+
+tmux list-sessions
+
 tmux new -s ptb_main_astro
 tmux a -t ptb_main_astro
 tmux new -s recorder

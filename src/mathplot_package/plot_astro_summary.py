@@ -18,7 +18,9 @@ import src.mathplot_package._plot_Sun_Moon as ps
 import src.mathplot_package._plot_Zodiac as pz
 import src.mathplot_package._plot_Lunation as pl
 import src.mathplot_package._plot_earthWeather as pew
+import src.mathplot_package._plot_spaceWeather as psw
 import src.boto3_package.mainDB_weather as b3w
+import src.boto3_package.mainDB_spaceweather as b3sw
 
 
 import babel.dates as bd
@@ -136,26 +138,31 @@ def plot_color_of_the_days(observer=None, file_name="plot_astro_summary.png", jo
     print(repr(fig), str(fig))
     fig.subplots_adjust(top=0.975, bottom=.025, left=0.0, right=1., wspace=0.00)
 
-    axe0 = plt.subplot2grid((1, 10), (0, 0), colspan=1)
+    axe0 = plt.subplot2grid((1, 20), (0, 0), colspan=2)
     axe0.set_title(f'Тиск', fontsize=10)
 
-    axe1 = plt.subplot2grid((1, 10), (0, 1), colspan=1)
+    axe1 = plt.subplot2grid((1, 20), (0, 2), colspan=2)
     axe1.set_title(f'Стихії', fontsize=10)
 
-    axe2 = plt.subplot2grid((1, 10), (0, 2), colspan=1)
+    axe2 = plt.subplot2grid((1, 20), (0, 4), colspan=2)
     axe2.set_title(f'Фази', fontsize=10)
 
-    axe3 = plt.subplot2grid((1, 10), (0, 3), colspan=4)
-    axe3.set_title(f'Сонце   ===   Місяць', loc='center', fontsize=10)
+    # axe3 = plt.subplot2grid((1, 10), (0, 3), colspan=4)
+    # axe3.set_title(f'Сонце   ===   Місяць', loc='center', fontsize=10)
+    axe30 = plt.subplot2grid((1, 20), (0, 6), colspan=3)
+    axe31 = plt.subplot2grid((1, 20), (0, 9), colspan=2)
+    axe32 = plt.subplot2grid((1, 20), (0, 11), colspan=3)
+    axe31.set_title(f'Сонце   ===   Місяць', loc='center', fontsize=10)
 
-    axe4 = plt.subplot2grid((1, 10), (0, 7), colspan=2)
+    axe4 = plt.subplot2grid((1, 20), (0, 14), colspan=4)
     axe4.set_title(f'Зодіак', fontsize=10)
 
-    axe5 = plt.subplot2grid((1, 10), (0, 9), colspan=1)
+    axe5 = plt.subplot2grid((1, 20), (0, 18), colspan=4)
     axe5.set_title(f'Темпер.', fontsize=10)
 
 
-    axes = (axe0, axe1, axe2, axe3, axe4, axe5)
+    # axes = (axe0, axe1, axe2, axe3, axe4, axe5)
+    axes = (axe0, axe1, axe2, axe30, axe31, axe32, axe4, axe5)
     for axe in axes:
         # print(str(axe), (axe.bbox.width, axe.bbox.height))
         axe.grid(axis='y', color='white', linestyle='-', linewidth=0.2)
@@ -195,7 +202,6 @@ def plot_color_of_the_days(observer=None, file_name="plot_astro_summary.png", jo
 
     Z = np.zeros(DATES_SIZE).reshape(DATES_SIZE, 1)
     Z[:, 0] = weather_P
-
     horizont_full_span = vertical_full_span / axe0.bbox.height * axe0.bbox.width
 
     img0 = axe0.imshow(Z,
@@ -206,11 +212,8 @@ def plot_color_of_the_days(observer=None, file_name="plot_astro_summary.png", jo
                        )
     print("img0=", img0)
 
-
-
     Z = np.zeros(DATES_SIZE).reshape(DATES_SIZE, 1)
     Z[:, 0] = weather_T
-
     horizont_full_span = vertical_full_span / axe5.bbox.height * axe5.bbox.width
 
     img5 = axe5.imshow(Z,
@@ -220,6 +223,46 @@ def plot_color_of_the_days(observer=None, file_name="plot_astro_summary.png", jo
                        vmax=Z.max(), vmin=Z.min()
                        )
     print("img5=", img5)
+
+
+
+    # /////////////////////  SPACEWEATHER  //////////////////////////////////
+    list_of_items = b3sw.spaceWeather_table.table_query(_pk="job_name",
+                                                        _between_low=str(begin_utc),  # "2021-01-21 14:41:49"
+                                                        _between_high=str(end_utc)
+                                                        )
+    # pprint(list_of_items)
+
+    spaceweather_dict = b3sw.main_query_filter(list_of_items, geo_name=observer_obj.get_geo_name, attr="spaceweather")
+    spaceweather_len = len(spaceweather_dict)
+    print("spaceweather_len=", spaceweather_len, "\n")
+    # pprint(spaceweather_dict)
+    # #######################################################################################
+
+    SAMPLES_PER_HOUR = 5
+    space_KP = psw.prepare_data_4_plot(unaware_array=unaware_array, observer=observer_obj,
+                                       data_dict=spaceweather_dict, sett=(DATES_SIZE, SAMPLES_PER_HOUR))
+    # #######################################################################################
+
+
+    Z = np.zeros(DATES_SIZE).reshape(DATES_SIZE, 1)
+    Z[:, 0] = space_KP
+
+    horizont_full_span = vertical_full_span / axe31.bbox.height * axe31.bbox.width
+
+    img31 = axe31.imshow(Z,
+                         interpolation='bicubic',
+                         cmap='turbo', origin='upper',
+                         extent=[-horizont_full_span/2, horizont_full_span/2, unaware_array[-1], unaware_array[0]],
+                         vmin=0, vmax=9
+                         )
+    print("img31=", img31)
+
+
+
+
+
+
 
 
 
@@ -248,9 +291,6 @@ def plot_color_of_the_days(observer=None, file_name="plot_astro_summary.png", jo
     # //////////////////////  LUNATION  /////////////////////////////////////
 
     moon_lun = np.array(moon_lunation)
-    # moon_lun = np.array(moon_element)
-    # moon_lun = np.linspace(10, 200, 1000)
-    # sun_zod = np.array(sun_lon)
 
     gcolumn = 1
     Z = np.zeros(DATES_SIZE * gcolumn).reshape(DATES_SIZE, gcolumn)
@@ -275,32 +315,48 @@ def plot_color_of_the_days(observer=None, file_name="plot_astro_summary.png", jo
     ycolors = ps.convert_colors(in_y_list=s_angle, thresh=0.3)
     s_angle = np.array(ycolors)
 
+    gcolumn = 1
+    Z = np.zeros(DATES_SIZE * gcolumn).reshape(DATES_SIZE, gcolumn)
+    Z[:, 0] = s_angle
+    # Z[:, 1] = s_angle
+    # Z[:, 2] = (s_angle + m_angle) / 2
+    # Z[:, 3] = m_angle
+    # Z[:, 4] = m_angle
+
+    horizont_full_span = vertical_full_span / axe30.bbox.height * axe30.bbox.width
+
+    _plot_annotations_of_sun_days(observer=observer, axe=axe30,
+                                  ratio_v_h=(vertical_full_span/2, horizont_full_span/2))
+
+    img30 = axe30.imshow(Z,
+                        interpolation='nearest',  # 'nearest', 'bilinear', 'bicubic'
+                        cmap="twilight_shifted", origin='upper',
+                        extent=[-horizont_full_span/2, horizont_full_span/2, unaware_array[-1], unaware_array[0]],
+                        vmin=Z.min(), vmax=Z.max()
+                        )
+    print("img30=", img30)
+
+
     m_angle = np.array(moon_angle)
     ycolors = ps.convert_colors(in_y_list=m_angle, thresh=0.3)
     m_angle = np.array(ycolors)
 
-    gcolumn = 5
+    gcolumn = 1
     Z = np.zeros(DATES_SIZE * gcolumn).reshape(DATES_SIZE, gcolumn)
-    Z[:, 0] = s_angle
-    Z[:, 1] = s_angle
-    Z[:, 2] = (s_angle + m_angle) / 2
-    Z[:, 3] = m_angle
-    Z[:, 4] = m_angle
+    Z[:, 0] = m_angle
 
-    horizont_full_span = vertical_full_span / axe3.bbox.height * axe3.bbox.width
+    horizont_full_span = vertical_full_span / axe32.bbox.height * axe32.bbox.width
 
-    _plot_annotations_of_sun_days(observer=observer, axe=axe3,
-                                  ratio_v_h=(vertical_full_span/2, horizont_full_span/2))
-    _plot_annotations_of_moon_days(observer=observer, axe=axe3,
+    _plot_annotations_of_moon_days(observer=observer, axe=axe32,
                                    ratio_v_h=(vertical_full_span/2, horizont_full_span/2))
+    img32 = axe32.imshow(Z,
+                        interpolation='nearest',  # 'nearest', 'bilinear', 'bicubic'
+                        cmap="twilight_shifted", origin='upper',
+                        extent=[-horizont_full_span/2, horizont_full_span/2, unaware_array[-1], unaware_array[0]],
+                        vmin=Z.min(), vmax=Z.max()
+                        )
+    print("img32=", img32)
 
-    img3 = axe3.imshow(Z,
-                       interpolation='nearest',  # 'nearest', 'bilinear', 'bicubic'
-                       cmap="twilight_shifted", origin='upper',
-                       extent=[-horizont_full_span/2, horizont_full_span/2, unaware_array[-1], unaware_array[0]],
-                       vmin=Z.min(), vmax=Z.max()
-                       )
-    print("img3=", img3)
 
 
     # ///////////////////////  ZODIAC  //////////////////////////////////////
@@ -387,7 +443,7 @@ def _plot_annotations_of_sun_days(observer=None, axe=None, ratio_v_h=(1., 1.)):
             annot_text = format_datetime(cur_unaware, "d MMM EEE", locale='uk_UA')
             # annot_text = str(cur_unaware.strftime(geo.dt_format_plot))
             # coords = (-0.6 * ratio_v_h[1], mdates.date2num(cur_unaware))
-            coords = (-0.6 * ratio_v_h[1], cur_unaware)
+            coords = (0.0 * ratio_v_h[1], cur_unaware)
 
             axe.annotate(annot_text,
                          xy=coords,
@@ -429,7 +485,7 @@ def _plot_annotations_of_moon_days(observer=None, axe=None, ratio_v_h=(1., 1.)):
                 end_unaware - timedelta(days=ratio_v_h[0] * ANN_DAYS_OFFSET):
 
             annot_text = str(moon_dict["moon_day"]) + " міс. д."
-            coords = (0.6 * ratio_v_h[1], mdates.date2num(zenit_moon_unaware))
+            coords = (0.0 * ratio_v_h[1], mdates.date2num(zenit_moon_unaware))
 
             axe.annotate(annot_text,
                          xy=coords,

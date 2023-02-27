@@ -162,8 +162,8 @@ if __name__ == '__main__':
     # pprint(list_of_items)
 
     weather_dict = b3w.main_query_filter(list_of_items, geo_name=observer_obj.get_geo_name, attr="weather")
-    print("sweather_len=", len(weather_dict), "\n")
-    # pprint(spaceweather_dict)
+    print("len_weather_dict=", len(weather_dict), "\n")
+    pprint(weather_dict)
     # #######################################################################################
 
     # Prepare spaceWeather data

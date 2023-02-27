@@ -25,20 +25,21 @@ def prepare_data_4_plot(unaware_array=None, observer=None, data_dict=None, sett=
     span = observer.get_span
 
     DATES_SIZE = sett[0]
-    # KEEP_POINTS = 8     # for testing!
-    KEEP_POINTS = int(DATES_SIZE / (span[0] + span[1]) / 24) + 1    # sample every 1 hour!
+    # ToDo apply time interval
+    SAMPLES_PER_HOUR = sett[1]  # sample every 1 hour!
+
+    KEEP_POINTS = int(DATES_SIZE / (span[0] + span[1]) / 24 / SAMPLES_PER_HOUR) + 1
     print("DATES_SIZE=", DATES_SIZE, "days=", span[0] + span[1], "KEEP_POINTS=", KEEP_POINTS)
 
     # Find min for fill empty array (maybe needed average value)
     if data_dict:
-        # min_P = min(data_dict.values()['P'])
-        min_KPs = min((int(d['estimated_kp']), int(d['estimated_kp'])) for d in data_dict.values())
-        print('min_KPs=', min_KPs)
+        min_KP = min(data_dict.values())
+        print('min_KP=', min_KP)
     else:
-        min_KPs = (0, 0)
+        min_KP = 0
 
     # Create avg empty array of weather data
-    space_KP = np.full(DATES_SIZE, min_KPs[0])
+    space_KP = np.full(DATES_SIZE, min_KP)
     # weather_T = np.full(DATES_SIZE, min_KPs[1])
 
     # Fill np.array
@@ -53,7 +54,7 @@ def prepare_data_4_plot(unaware_array=None, observer=None, data_dict=None, sett=
         desired_date = mdates.date2num(dt_unaware_cur)
         idx = min(range(len(unaware_array)), key=lambda i: abs(unaware_array[i] - desired_date))
 
-        estimated_kp = data_dict[item]['estimated_kp']
+        estimated_kp = data_dict[item]
         # print(idx, item, dt_utc_cur, desired_date, estimated_kp)
 
         # Replace value_P
@@ -63,7 +64,7 @@ def prepare_data_4_plot(unaware_array=None, observer=None, data_dict=None, sett=
     return space_KP
 
 
-def plot_spaceWeather(xs=None, ys=None, file_name="user_photo2.jpg"):
+def plot_spaceWeather(xs=None, ys=None, file_name="user_photo2.jpg", sett=None):
 
     # plt.style.use('_mpl-gallery-nogrid')
     fig, axes = plt.subplots(nrows=1, ncols=2, figsize=(4, 7))
@@ -75,7 +76,7 @@ def plot_spaceWeather(xs=None, ys=None, file_name="user_photo2.jpg"):
     ys = ys
     # ***********************************************************
 
-    axes[0].set_title(f'ypoints', fontsize=10)
+    axes[0].set_title(f"size={sett[0]} pph={sett[1]}", fontsize=10)
     axes[0].grid()
     axes[0].axis(ymin=xs[-1], ymax=xs[0])
 
@@ -107,11 +108,13 @@ def plot_spaceWeather(xs=None, ys=None, file_name="user_photo2.jpg"):
 
     axes[1].imshow(Z, interpolation='bicubic',  # 'nearest', 'bilinear', 'bicubic'
                    aspect='auto',
-                   cmap='summer',
+                   cmap='turbo',
                    origin='upper',
                    extent=[-horiz_full/2, horiz_full/2, vert_range, 0],
                    # extent=[-horiz_full/2, horiz_full/2, unaware_labels[-1], unaware_labels[0]],
-                   vmax=Z.max(), vmin=Z.min())
+                   # vmax=Z.max(), vmin=Z.min()
+                   vmax=9, vmin=0
+                   )
 
     plt.show()
 
@@ -150,6 +153,7 @@ if __name__ == '__main__':
     begin_unaware, end_unaware = observer_obj.get_span_unaware
 
     DATES_SIZE = 1000
+    SAMPLES_PER_HOUR = 5
     unaware_timestamp = np.linspace(begin_unaware.timestamp(), end_unaware.timestamp(), DATES_SIZE)
     unaware_array = []
     for cur_unaware_dt in unaware_timestamp:
@@ -158,8 +162,8 @@ if __name__ == '__main__':
         # print(cur_unaware_dt, " | ", observer.get_unaware, " / ", observer.get_utc)
 
     space_KP = prepare_data_4_plot(unaware_array=unaware_array, observer=observer_obj,
-                                   data_dict=spaceweather_dict, sett=(DATES_SIZE,))
+                                   data_dict=spaceweather_dict, sett=(DATES_SIZE, SAMPLES_PER_HOUR))
     # #######################################################################################
 
     # Plot spaceWeather data
-    plot_spaceWeather(xs=unaware_array, ys=space_KP, file_name="image_spaceWeather.jpg")
+    plot_spaceWeather(xs=unaware_array, ys=space_KP, file_name="spaceWeather.jpg", sett=(DATES_SIZE, SAMPLES_PER_HOUR))
