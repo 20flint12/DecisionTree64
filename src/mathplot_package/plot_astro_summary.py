@@ -591,6 +591,7 @@ def _plot_annotations_of_zodiacs(annotation_moon_dict=None, annotation_sun_dict=
             axe.annotate(annot_text,
                          xy=coords,
                          fontsize=9,
+                         rotation=45,
                          horizontalalignment='center',
                          verticalalignment='center'
                          )
