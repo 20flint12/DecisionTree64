@@ -92,7 +92,7 @@
 from binance.client import Client
 import pandas as pd
 
-from src.scikit_mathplot import for_testing_binance_plot as bcr
+from src.scikit_mathplot import main_binance_plot as bcr
 
 
 api_key, api_secret = bcr.get_credentials()

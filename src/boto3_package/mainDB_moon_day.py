@@ -1,4 +1,4 @@
-
+# -*- coding: utf-8 -*-
 # pip install awscli
 # pip install boto3
 
@@ -8,7 +8,6 @@ import pandas as pd
 import os
 
 try:
-    import os
     import sys
     import datetime
     import time

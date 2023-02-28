@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 
 import pandas as pd
 from datetime import datetime
@@ -15,7 +16,6 @@ import src.boto3_package.dynamodb_assumed_role_test as drs
 
 
 try:
-    import os
     import sys
     import boto3
     print("All Modules Loaded ...... ")

@@ -12,7 +12,7 @@ from pprint import pprint
 import src.ephem_routines.ephem_package.geo_place as geo
 import src.boto3_package.mainDB_weather as mr
 import src.boto3_package.mainDB_spaceweather as msw
-import src.scikit_mathplot.for_testing_binance_plot as smb
+import src.scikit_mathplot.main_binance_plot as smb
 
 import socket
 hostname = socket.gethostname()     # DELL-DEV

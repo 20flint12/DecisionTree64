@@ -3,7 +3,7 @@
 import json
 import os
 
-from src.scikit_mathplot import for_testing_binance_plot as dfdfd
+from src.scikit_mathplot import main_binance_plot as dfdfd
 import boto3
 
 
