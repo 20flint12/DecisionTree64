@@ -4,6 +4,8 @@ import numpy as np
 from sklearn import linear_model
 from datetime import datetime
 
+CRYPTO, VALUTA = range(2)
+
 
 class Trader:
     """
@@ -27,8 +29,8 @@ class Trader:
 
     _wallet = [0.0, 0.0]
 
-    _buy_rate = 0
-    _sell_rate = 0
+    _bought_rate = 0
+    _sold_rate = 0
 
     def __init__(self, currency="BTC", wallet=(0.0, 0.0)):
 
@@ -71,7 +73,7 @@ class Trader:
 
     @property
     def get_rates(self):
-        return self._buy_rate, self._sell_rate
+        return self._bought_rate, self._sold_rate
 
     def predict_future(self, history_trace=1, future_trace=2):
 
@@ -108,28 +110,36 @@ class Trader:
         return self._diff_0, self._diff_1, self._diff_last
 
     def top_up_wallet(self, crypto=0, valuta=0):
-        self._wallet[0] += crypto
-        self._wallet[1] += valuta
+        self._wallet[CRYPTO] += crypto
+        self._wallet[VALUTA] += valuta
 
         return self._wallet
 
     def buy_crypto(self):
-        self._buy_rate = self._rates[self.get_sample_count-1]
-        crypto = self._wallet[0]
-        valuta = self._wallet[1]
+        self._bought_rate = self._rates[self.get_sample_count - 1]
+        crypto = self._wallet[CRYPTO]
+        valuta = self._wallet[VALUTA]
 
-        res_valuta = crypto * self._buy_rate
-        self._wallet[0] = 0
+        res_valuta = crypto * self._bought_rate
+        self._wallet[CRYPTO] = 0
         self._wallet[1] += res_valuta
 
     def sell_crypto(self):
-        self._sell_rate = self._rates[self.get_sample_count - 1]
-        crypto = self._wallet[0]
-        valuta = self._wallet[1]
+        self._sold_rate = self._rates[self.get_sample_count - 1]
+        crypto = self._wallet[CRYPTO]
+        valuta = self._wallet[VALUTA]
 
-        res_crypto = valuta / self._sell_rate
-        self._wallet[1] = 0
-        self._wallet[0] += res_crypto
+        res_crypto = valuta / self._sold_rate
+        self._wallet[VALUTA] = 0
+        self._wallet[CRYPTO] += res_crypto
+
+    def block_sell(self):
+        block = False
+        curr_rate = self._rates[self.get_sample_count - 1]
+        if self._sold_rate <= (1.001*curr_rate):
+            block = True
+
+        return block
 
 
 if __name__ == '__main__':

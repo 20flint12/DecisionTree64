@@ -1,3 +1,6 @@
+# https://spaceweather.gfz-potsdam.de/products-data/forecasts/kp-index-forecast
+# https://www.swpc.noaa.gov/
+
 # import spacepy.pycdf as pycdf
 #
 # # Открываем файл данных солнечной активности

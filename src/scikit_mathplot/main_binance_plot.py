@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+# https://github.com/sammchardy/python-binance/issues
+
 import json
 import os
 from datetime import datetime
