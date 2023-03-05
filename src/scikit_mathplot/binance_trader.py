@@ -3,8 +3,11 @@
 import numpy as np
 from sklearn import linear_model
 from datetime import datetime
+import matplotlib.pyplot as plt
+
 
 CRYPTO, VALUTA = range(2)
+HISTORY, FUTURE = range(2)
 
 
 class Trader:
@@ -20,6 +23,7 @@ class Trader:
     _future_times = None
     _future_rates = None
 
+    _traces = [2, 2]
     _history_trace = 2
     _future_trace = 2
 
@@ -32,11 +36,19 @@ class Trader:
     _bought_rate = 0
     _sold_rate = 0
 
-    def __init__(self, currency="BTC", wallet=(0.0, 0.0)):
+    def __init__(self, fig=None, currency="BTC", wallet=(0.0, 0.0), traces=(2, 2)):
 
         # ********************************************************
         self._currency = currency
+
         self._wallet = list(wallet)
+        self._traces = list(traces)
+
+        self.fig = fig
+        self.fig.canvas.mpl_connect('key_press_event', self.on_key_press)
+
+        self.on = False
+        self.inst = True  # show instructions from the beginning
 
     def __str__(self):
         str_obj = ""
@@ -45,6 +57,7 @@ class Trader:
         str_obj += f' samples={self.get_sample_count}'
         str_obj += f' timedelta={self._time_delta}'
         str_obj += f' wallet={self._wallet}'
+        str_obj += f' traces={self._traces}'
 
         return str_obj
 
@@ -72,16 +85,20 @@ class Trader:
         return self._wallet
 
     @property
+    def get_traces(self):
+        return self._traces
+
+    @property
     def get_rates(self):
         return self._bought_rate, self._sold_rate
 
-    def predict_future(self, history_trace=1, future_trace=2):
+    def predict_future(self):
 
         if self._times is None:
             return 1, 1
 
-        self._history_trace = history_trace
-        self._future_trace = future_trace
+        self._history_trace = self._traces[HISTORY]
+        self._future_trace = self._traces[FUTURE]
 
         sample_from = self.get_sample_count - self._history_trace
         sample_to = self.get_sample_count
@@ -141,12 +158,61 @@ class Trader:
 
         return block
 
+    def _historical_inc(self):
+        if self._traces[HISTORY] < 20:
+            self._traces[HISTORY] += 1
+            print("HISTORICAL=", self._traces[HISTORY])
+
+    def _historical_dec(self):
+        if self._traces[HISTORY] > 2:
+            self._traces[HISTORY] -= 1
+            print("HISTORICAL=", self._traces[HISTORY])
+
+    def _future_inc(self):
+        if self._traces[FUTURE] < 20:
+            self._traces[FUTURE] += 1
+            print("FUTURE=", self._traces[FUTURE])
+
+    def _future_dec(self):
+        if self._traces[FUTURE] > 2:
+            self._traces[FUTURE] -= 1
+            print("FUTURE=", self._traces[FUTURE])
+
+    def on_key_press(self, event):
+
+        print(event.key, "::", end="")
+
+        if event.key == '1':
+            if self.on:
+                self._historical_inc()
+        if event.key == '2':
+            if self.on:
+                self._historical_dec()
+        if event.key == '3':
+            if self.on:
+                self._future_dec()
+        if event.key == '4':
+            if self.on:
+                self._future_inc()
+
+        if event.key == 'n':
+            # self.distract = not self.distract
+            pass
+
+        if event.key == 'g':
+            # self.on = not self.on
+            pass
+        if event.key == 't':
+            self.on = not self.on
+            print(self.on)
+
 
 if __name__ == '__main__':
 
-    currency = 'USDT'
+    fig = plt.figure(figsize=(10, 14))  # Figure(400x754)
 
-    trader_obj = Trader(currency=currency, )
+    currency = 'USDT'
+    trader_obj = Trader(fig=fig, currency=currency, wallet=(0.00123, 10.50), traces=(7, 10))
     text = ""
     text += str(trader_obj)
     print(text)

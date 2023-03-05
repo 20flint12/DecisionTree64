@@ -1,40 +1,74 @@
+# import numpy as np
+# import matplotlib.pyplot as plt
+# import matplotlib.animation as animation
+#
+# # Create some data
+# x = np.linspace(0, 2*np.pi, 100)
+# y = np.sin(x)
+#
+# # Create the figure and axis
+# fig, ax = plt.subplots()
+#
+# # Plot the initial data
+# line, = ax.plot(x, y)
+#
+# # Define the function to update the plot
+# def update(num):
+#     line.set_ydata(np.sin(num*x))
+#     return line,
+#
+# # Define the function to handle key presses
+# def on_key_press(event):
+#     if event.key == ' ':
+#         anim.event_source.stop()
+#         print("\n", anim.frame_seq,
+#               "\n", anim.new_frame_seq(),
+#               "\n", anim.save_count
+#               )
+#         # plt.close()
+#
+# # Create the animation
+# anim = animation.FuncAnimation(fig, update, frames=np.linspace(0, 2, 100), interval=50)
+#
+# # Connect the key press event to the figure
+# fig.canvas.mpl_connect('key_press_event', on_key_press)
+#
+# # Show the plot
+# plt.show()
+
+
+
+
 import matplotlib.pyplot as plt
-from matplotlib.animation import FuncAnimation
-from matplotlib.widgets import Button
-import numpy as np
+import matplotlib.animation as animation
 
-fig, ax = plt.subplots()
-line, = ax.plot([], [])
-
-t = np.linspace(0, 10, 100)
-x = np.sin(t)
-
+# Define the update function
 def update(frame):
-    line.set_data(t[:frame], x[:frame])
-    return line,
+    # Update the plot with new data
+    ...
 
-def on_forward(event):
-    current_frame = anim.frame_seq[-1]
-    if current_frame < anim.frame_seq[-2]:
-        anim.frame_seq = range(current_frame + 1, anim.frame_seq[-1] + 1)
+# Define the key press event function
+def on_key_press(event):
+    if event.key == 'left':
+        # Decrement the frame number by 1
+        anim.frame_seq = range(max(0, anim.frame_seq[0] - 1), anim.frame_seq[-1])
+    elif event.key == 'right':
+        # Increment the frame number by 1
+        anim.frame_seq = range(anim.frame_seq[0] + 1, min(len(anim.frames), anim.frame_seq[-1] + 1))
     else:
-        anim.event_source.stop()
+        return
+    # Redraw the plot with the new frame
+    anim.event_source.stop()
+    anim.event_source.start()
 
-def on_backward(event):
-    current_frame = anim.frame_seq[-1]
-    if current_frame > anim.frame_seq[0]:
-        anim.frame_seq = range(current_frame - 1, anim.frame_seq[0] - 1, -1)
-    else:
-        anim.event_source.stop()
+# Create the figure and axis
+fig, ax = plt.subplots()
 
-anim = FuncAnimation(fig, update, frames=len(t), blit=True, repeat=False)
+# Create the animation with 100 frames
+anim = animation.FuncAnimation(fig, update, frames=range(100), interval=100)
 
-# Create two buttons to step the animation forward and backward
-ax_forward = plt.axes([0.81, 0.02, 0.1, 0.05])
-ax_backward = plt.axes([0.7, 0.02, 0.1, 0.05])
-button_forward = Button(ax_forward, 'Forward')
-button_backward = Button(ax_backward, 'Backward')
-button_forward.on_clicked(on_forward)
-button_backward.on_clicked(on_backward)
+# Bind the key press event function to the figure
+fig.canvas.mpl_connect('key_press_event', on_key_press)
 
+# Start the animation
 plt.show()

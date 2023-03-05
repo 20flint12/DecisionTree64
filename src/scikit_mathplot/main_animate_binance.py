@@ -11,34 +11,57 @@ import matplotlib.dates as mdates
 from src.scikit_mathplot import main_binance_plot as mbp
 from src.scikit_mathplot import binance_trader as btd
 
+BY_STEP = False
+
 
 def on_press(event):
-    print('press', event.key)
+
+    global BY_STEP
+
+    print('press main...', event.key)
+
     if event.key == 'p':
         ani.event_source.stop()
-    if event.key == 'r':
+
+    elif event.key == 'r':
+        BY_STEP = False
         ani.event_source.start()
-    if event.key == 'l':
-        current_frame = ani.frame_seq[-1]
-        if current_frame < ani.frame_seq[-2]:
-            ani.frame_seq = range(current_frame + 1, ani.frame_seq[-1] + 1)
-        else:
-            ani.event_source.stop()
+
+    elif event.key == 'left':
+        ani.event_source.start()
+        fig.canvas.draw()
+
+    elif event.key == 'right':
+        ani.event_source.start()
+        BY_STEP = True
+
+    elif event.key == 'up':
+        trader_0.on = True
+        trader_1.on = False
+
+    elif event.key == 'down':
+        trader_0.on = False
+        trader_1.on = True
+
+    elif event.key == 'q':
+        plt.close()
 
 
-trader_0 = btd.Trader(currency="BTC", wallet=(0, 0))
-# trader_0.top_up_wallet(crypto=0.00123)
-trader_0.top_up_wallet(valuta=100)
-trader_1 = btd.Trader(currency="USDT", wallet=(0, 100))
-print("trader_0=", trader_0)
-print("trader_1=", trader_1)
+# Define the function to handle closing the figure window
+def on_close(event):
+    ani.event_source.stop()     # Stop the animation before closing the window
 
 
 # Set the figure size and title
 fig = plt.figure(figsize=(10, 14))  # Figure(400x754)
 
-fig.canvas.mpl_connect('key_press_event', on_press)
+trader_0 = btd.Trader(fig=fig, currency="BTC", wallet=(0, 0), traces=(5, 5))
+trader_0.top_up_wallet(valuta=50)
+trader_1 = btd.Trader(fig=fig, currency="USDT", wallet=(0, 100), traces=(20, 15))
+print("trader_0=", trader_0)
+print("trader_1=", trader_1)
 
+fig.canvas.mpl_connect('key_press_event', on_press)
 
 fig.subplots_adjust(top=0.95, bottom=.2, left=0.07, right=0.97, wspace=0.0, hspace=0.0)
 ax0 = plt.subplot2grid((20, 1), (0, 0), rowspan=1)
@@ -54,7 +77,7 @@ df = pd.read_csv('BTC_price_data_by_minute_last_5days.csv')
 df['time'] = pd.to_datetime(df['time'])
 
 len_df = len(df)
-SLICE_COUNT = 100
+SLICE_COUNT = 200
 
 begin_date = df.iloc[0]['time']
 end_date = df.iloc[-1]['time']
@@ -92,19 +115,15 @@ def update(frame, dataframe=None, samples=1):
     # print("trader_0=", trader_0)
     # print("trader_1=", trader_1)
 
-    history_trace_0 = 5
-    future_trace_0 = 5
-    future_times_0, future_rates_0 = trader_0.predict_future(history_trace=history_trace_0, future_trace=future_trace_0)
-    history_trace_1 = 20
-    future_trace_1 = 15
-    future_times_1, future_rates_1 = trader_1.predict_future(history_trace=history_trace_1, future_trace=future_trace_1)
+    future_times_0, future_rates_0 = trader_0.predict_future()
+    future_times_1, future_rates_1 = trader_1.predict_future()
     # print(future_times_0, future_rates_0)
     # #######################################################################################
 
     rate_diff = trader_0.get_diffs()[2]
     rate_thrs = 20
 
-    sell_condition = (rate_diff >= rate_thrs) and not trader_0.block_sell()
+    sell_condition = (rate_diff >= rate_thrs) and True  # not trader_0.block_sell()
     if sell_condition:
         # print("sell")
         trader_0.sell_crypto()
@@ -128,6 +147,7 @@ def update(frame, dataframe=None, samples=1):
         sell_rates.pop(0)
 
     #
+    traces_0_history = trader_0.get_traces[btd.HISTORY]
     wallet_0 = trader_0.get_wallet
     wallet_1 = trader_1.get_wallet
     annot_text0 += str(round(wallet_0[btd.CRYPTO], 5)) + " <> " + str(round(wallet_0[btd.VALUTA], 2))
@@ -136,15 +156,16 @@ def update(frame, dataframe=None, samples=1):
     annot_text0 += str(round(trader_0.get_rates[0], 2)) + " <> " + str(round(trader_0.get_rates[1], 2))
 
     annot_text1 = f"{frame}/{len_total}"
+    annot_text1 = f"{trader_0.get_traces}\n{trader_1.get_traces}"
 
     annot_text2 += str(round(trader_0.get_diffs()[0], 1)) + " :: "
     annot_text2 += str(round(trader_0.get_diffs()[1], 1)) + " :: " + str(round(trader_0.get_diffs()[2], 1))
-    annot_text2 += " | "
+    annot_text2 += "\n"
     annot_text2 += str(round(trader_1.get_diffs()[0], 1)) + " :: "
     annot_text2 += str(round(trader_1.get_diffs()[1], 1)) + " :: " + str(round(trader_1.get_diffs()[2], 1))
     # print(annot_text2)
 
-    print(annot_text1, end=" ")
+    # print(annot_text1, end=" ")
     print(annot_text0)
 
     # return
@@ -169,17 +190,20 @@ def update(frame, dataframe=None, samples=1):
     #
     ax1.clear()
     ax1.plot(times, rates, color='#23a881')
-    ax1.plot(future_times_0, future_rates_0)
-    ax1.plot(future_times_1, future_rates_1)
-    ax1.scatter(buy_times, buy_rates, color='blue', s=30)
-    ax1.scatter(sell_times, sell_rates, color='red', s=30)
-    ax1.scatter(times[samples-history_trace_0:samples], rates[samples-history_trace_0:samples], color='yellow', s=20)
+    ax1.plot(future_times_0, future_rates_0, color='#07103c')
+    ax1.plot(future_times_1, future_rates_1, color='#9d1d22')
+    ax1.scatter(buy_times, buy_rates, color='blue', s=15)
+    ax1.scatter(sell_times, sell_rates, color='red', s=15)
+    ax1.scatter(times[samples-traces_0_history:samples], rates[samples-traces_0_history:samples], color='#07103c', s=20)
 
     # Format the times-axis labels
     ax1.xaxis.set_major_locator(mdates.MinuteLocator(interval=5))
     ax1.xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m-%d %H:%M'))
     ax1.xaxis.set_major_locator(plt.MaxNLocator(15))
     plt.xticks(rotation=90)
+
+    if BY_STEP:
+        ani.event_source.stop()
 
 
 # Create a lambda function to pass named parameters to update function
