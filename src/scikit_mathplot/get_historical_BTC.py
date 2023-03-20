@@ -102,7 +102,8 @@ client = Client(api_key, api_secret)
 
 # Define the start and end dates for the data
 end_date = pd.Timestamp.now()
-start_date = end_date - pd.DateOffset(years=1)
+# start_date = end_date - pd.DateOffset(years=1)
+start_date = end_date - pd.DateOffset(days=10)
 
 # Convert the dates to Unix timestamp integers in milliseconds
 start_time = int(start_date.timestamp() * 1000)
@@ -120,6 +121,14 @@ df = pd.DataFrame(klines, columns=['time', 'open', 'high', 'low', 'close', 'volu
 # Convert the time column to a datetime object
 df['time'] = pd.to_datetime(df['time'], unit='ms')
 
+
+str_start_date = start_date.strftime("%d-%m-%Y-%H-%M-%S")
+str_end_date = end_date.strftime("%d-%m-%Y-%H-%M-%S")
+str_date_span = str_start_date + "_" + "10_days" + "_" + str_end_date
+file_name = f'BTC_by_minute_{str_date_span}.csv'
+print("file_name=", file_name)
+
 # Save the data to a CSV file
-df.to_csv('BTC_price_data_by_minute_last_1year.csv', index=False)
+# df.to_csv('BTC_price_data_by_minute_last_10year.csv', index=False)
+df.to_csv(file_name, index=False)
 

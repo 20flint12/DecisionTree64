@@ -55,9 +55,9 @@ def on_close(event):
 # Set the figure size and title
 fig = plt.figure(figsize=(10, 14))  # Figure(400x754)
 
-trader_0 = btd.Trader(fig=fig, currency="BTC", wallet=(0, 0), traces=(5, 5))
+trader_0 = btd.Trader(fig=fig, currency="BTC", wallet=(0, 0), traces=(5, 10))
 trader_0.top_up_wallet(valuta=50)
-trader_1 = btd.Trader(fig=fig, currency="USDT", wallet=(0, 100), traces=(20, 15))
+trader_1 = btd.Trader(fig=fig, currency="USDT", wallet=(0, 100), traces=(34, 20))
 print("trader_0=", trader_0)
 print("trader_1=", trader_1)
 
@@ -65,12 +65,14 @@ fig.canvas.mpl_connect('key_press_event', on_press)
 
 fig.subplots_adjust(top=0.95, bottom=.2, left=0.07, right=0.97, wspace=0.0, hspace=0.0)
 ax0 = plt.subplot2grid((20, 1), (0, 0), rowspan=1)
-ax1 = plt.subplot2grid((20, 1), (1, 0), rowspan=19)
+ax01 = plt.subplot2grid((20, 1), (1, 0), rowspan=5)
+ax1 = plt.subplot2grid((20, 1), (6, 0), rowspan=14)
 # #######################################################################################
 
 
 # Load the BTC price data from the CSV file
-df = pd.read_csv('BTC_price_data_by_minute_last_5days.csv')
+# df = pd.read_csv('BTC_price_data_by_minute_last_5days.csv')
+df = pd.read_csv('BTC_by_minute_09-03-2023-11-56-34_10_days_19-03-2023-11-56-34.csv')
 # print("df0=", df)
 
 # Convert the timestamp column to a datetime object
@@ -95,6 +97,16 @@ buy_times = []
 sell_rates = []
 sell_times = []
 
+diff_times = []
+diff_zero = []
+diff_first = []
+diff_last = []
+
+futures_times = []
+futures_zero = []
+futures_first = []
+futures_last = []
+
 
 # Define the update function for the animation
 def update(frame, dataframe=None, samples=1):
@@ -118,25 +130,47 @@ def update(frame, dataframe=None, samples=1):
     future_times_0, future_rates_0 = trader_0.predict_future()
     future_times_1, future_rates_1 = trader_1.predict_future()
     # print(future_times_0, future_rates_0)
-    # #######################################################################################
+    # ###################################################################################
 
-    rate_diff = trader_0.get_diffs()[2]
-    rate_thrs = 20
+    rate_diff_0 = trader_0.get_diffs()
+    rate_diff_1 = trader_1.get_diffs()
+    rate_future_0 = trader_0.get_futures()
+    rate_future_1 = trader_1.get_futures()
+    future_0_1_first = rate_future_1[btd.FIRST] - rate_future_0[btd.FIRST]
+    FUTURE_THRS = 20
 
-    sell_condition = (rate_diff >= rate_thrs) and True  # not trader_0.block_sell()
+    wallet_0 = trader_0.get_wallet
+    wallet_1 = trader_1.get_wallet
+
+    # sell_condition = (rate_diff_0[btd.FIRST] >= rate_thrs) and True  # not trader_0.block_sell()
+    sell_condition = (future_0_1_first >= FUTURE_THRS) and True  # not trader_0.block_sell()
     if sell_condition:
-        # print("sell")
-        trader_0.sell_crypto()
-        buy_times.append(times[-1])
-        buy_rates.append(rates[-1])
+        # print("sell red")
+        if wallet_0[btd.CRYPTO] > 0:
+            trader_0.sell_crypto()
+            buy_times.append(times[-1])
+            buy_rates.append(rates[-1])
 
-    buy_condition = (rate_diff <= -rate_thrs) and True
+    # buy_condition = (rate_diff_0[btd.FIRST] <= -rate_thrs) and True
+    buy_condition = (future_0_1_first <= -FUTURE_THRS) and True
     if buy_condition:
-        # print("buy")
-        trader_0.buy_crypto()
-        sell_times.append(times[-1])
-        sell_rates.append(rates[-1])
+        # print("buy blue")
+        if wallet_0[btd.VALUTA] > 0:
+            trader_0.buy_crypto()
+            sell_times.append(times[-1])
+            sell_rates.append(rates[-1])
 
+    diff_times.append(times[-1])
+    diff_zero.append(rate_diff_0[btd.ZERO])
+    diff_first.append(rate_diff_0[btd.FIRST])
+    diff_last.append(rate_diff_0[btd.LAST])
+
+    # futures_times.append(times[-1])
+    futures_zero.append(future_0_1_first)
+    futures_first.append(rate_future_0[btd.FIRST])
+    futures_last.append(rate_future_0[btd.LAST])
+
+    # ===================================================================================
     # Clear graph points
     if len(buy_times) > 0 and buy_times[0] < times[0]:
         buy_times.pop(0)
@@ -146,20 +180,37 @@ def update(frame, dataframe=None, samples=1):
         sell_times.pop(0)
         sell_rates.pop(0)
 
+    if len(diff_times) > 0 and diff_times[0] < times[0]:
+        diff_times.pop(0)
+        diff_zero.pop(0)
+        diff_first.pop(0)
+        diff_last.pop(0)
+
+        # futures_times.pop(0)
+        futures_zero.pop(0)
+        futures_first.pop(0)
+        futures_last.pop(0)
+
+    # print("3&&&&&=", len(diff_times))
     #
     traces_0_history = trader_0.get_traces[btd.HISTORY]
-    wallet_0 = trader_0.get_wallet
-    wallet_1 = trader_1.get_wallet
-    annot_text0 += str(round(wallet_0[btd.CRYPTO], 5)) + " <> " + str(round(wallet_0[btd.VALUTA], 2))
-    annot_text0 += " ||| "
-    # text0 += str(round(wallet_1[btd.CRYPTO], 5)) + " <> " + str(round(wallet_1[btd.VALUTA], 2))
-    annot_text0 += str(round(trader_0.get_rates[0], 2)) + " <> " + str(round(trader_0.get_rates[1], 2))
 
+    equival_0 = trader_0.equival_wallet()
+    eq_0_crypto = str(round(equival_0[btd.CRYPTO], 6)) if wallet_0[btd.VALUTA] > 0 else str(round(wallet_0[btd.CRYPTO], 6))
+    eq_0_valuta = str(round(equival_0[btd.VALUTA], 2)) if wallet_0[btd.CRYPTO] > 0 else str(round(wallet_0[btd.VALUTA], 2))
+    eq_0_split = " % > " if wallet_0[btd.CRYPTO] > 0 else " < % "
+
+    annot_text0 += eq_0_crypto + eq_0_split + eq_0_valuta
+    annot_text0 += "\n"
+    annot_text0 += str(round(trader_0.get_rates[btd.BOUGHT], 1)) + " <> " + str(round(trader_0.get_rates[btd.SOLD], 1))
+
+    selected0 = "*" if trader_0.on else ""
+    selected1 = "*" if trader_1.on else ""
     annot_text1 = f"{frame}/{len_total}"
-    annot_text1 = f"{trader_0.get_traces}\n{trader_1.get_traces}"
+    annot_text1 = f"{trader_0.get_traces}{selected0}\n{trader_1.get_traces}{selected1}"
 
-    annot_text2 += str(round(trader_0.get_diffs()[0], 1)) + " :: "
-    annot_text2 += str(round(trader_0.get_diffs()[1], 1)) + " :: " + str(round(trader_0.get_diffs()[2], 1))
+    annot_text2 += str(round(rate_diff_0[btd.ZERO], 1)) + " :: "
+    annot_text2 += str(round(rate_diff_0[btd.FIRST], 1)) + " :: " + str(round(rate_diff_0[btd.LAST], 1))
     annot_text2 += "\n"
     annot_text2 += str(round(trader_1.get_diffs()[0], 1)) + " :: "
     annot_text2 += str(round(trader_1.get_diffs()[1], 1)) + " :: " + str(round(trader_1.get_diffs()[2], 1))
@@ -171,6 +222,7 @@ def update(frame, dataframe=None, samples=1):
     # return
 
     #
+    ax01.clear()
     ax0.clear()
     ax0.axis('off')
     # ax0.set_xticks([])
@@ -189,12 +241,24 @@ def update(frame, dataframe=None, samples=1):
 
     #
     ax1.clear()
+    search_color = '#07103c'
+    search_color = '#ffa500'    # orange
     ax1.plot(times, rates, color='#23a881')
-    ax1.plot(future_times_0, future_rates_0, color='#07103c')
-    ax1.plot(future_times_1, future_rates_1, color='#9d1d22')
+    ax1.plot(future_times_0, future_rates_0, color=search_color, linewidth=3)
+    ax1.plot(future_times_1, future_rates_1, color='#9d1d22', linewidth=1)
     ax1.scatter(buy_times, buy_rates, color='blue', s=15)
     ax1.scatter(sell_times, sell_rates, color='red', s=15)
-    ax1.scatter(times[samples-traces_0_history:samples], rates[samples-traces_0_history:samples], color='#07103c', s=20)
+    ax1.scatter(times[samples-traces_0_history:samples], rates[samples-traces_0_history:samples], color=search_color, s=10)
+    xlim = ax1.get_xlim()
+    ax01.set_xlim(xlim)
+    # ax01.plot(diff_times, diff_zero, color='black')
+    # ax01.plot(diff_times, diff_first, color='green')
+    # ax01.plot(diff_times, diff_last, color='grey')
+
+    # ax01.scatter(diff_times, futures_zero, color='black', s=5)
+    ax01.plot(diff_times, futures_zero, color='black')
+    # ax01.plot(diff_times, futures_first, color='green')
+
 
     # Format the times-axis labels
     ax1.xaxis.set_major_locator(mdates.MinuteLocator(interval=5))
@@ -211,7 +275,7 @@ args = {'dataframe': df, 'samples': SLICE_COUNT}
 update_func = lambda frame: update(frame, **args)
 
 # Animate the plot
-ani = FuncAnimation(fig=fig, func=update_func, frames=len_df - SLICE_COUNT, interval=0, repeat=False)
+ani = FuncAnimation(fig=fig, func=update_func, frames=len_df - SLICE_COUNT + 10000, interval=0, repeat=False)
 
 # Show the plot
 # plt.show()

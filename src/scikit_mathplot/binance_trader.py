@@ -7,7 +7,9 @@ import matplotlib.pyplot as plt
 
 
 CRYPTO, VALUTA = range(2)
+BOUGHT, SOLD = range(2)
 HISTORY, FUTURE = range(2)
+ZERO, FIRST, LAST = range(3)
 
 
 class Trader:
@@ -27,11 +29,16 @@ class Trader:
     _history_trace = 2
     _future_trace = 2
 
+    _future_zero = 0
+    _future_first = 0
+    _future_last = 0
+
     _diff_0 = 0
-    _diff_1 = 0
+    _diff_first = 0
     _diff_last = 0
 
     _wallet = [0.0, 0.0]
+    _equival = [0.0, 0.0]
 
     _bought_rate = 0
     _sold_rate = 0
@@ -114,6 +121,18 @@ class Trader:
 
         return self._future_times, self._future_rates
 
+    def get_futures(self):
+
+        if self._rates is None or self._future_rates is None:
+            return 0
+
+        # print(len(self._future_rates), len(self._rates), self._future_rates[0], self._rates[self.get_sample_count-1])
+        self._future_zero = self._future_rates[0]
+        self._future_first = self._future_rates[1]
+        self._future_last = self._future_rates[self._future_trace - 1]
+
+        return self._future_zero, self._future_first, self._future_last
+
     def get_diffs(self):
 
         if self._rates is None or self._future_rates is None:
@@ -121,10 +140,11 @@ class Trader:
 
         # print(len(self._future_rates), len(self._rates), self._future_rates[0], self._rates[self.get_sample_count-1])
         self._diff_0 = self._future_rates[0] - self._rates[self.get_sample_count-1]
-        self._diff_1 = self._future_rates[1] - self._future_rates[0]
+        self._diff_first = self._future_rates[1] - self._future_rates[0]
         self._diff_last = self._future_rates[self._future_trace - 1] - self._future_rates[0]
 
-        return self._diff_0, self._diff_1, self._diff_last
+        return self._diff_0, self._diff_first, self._diff_last
+
 
     def top_up_wallet(self, crypto=0, valuta=0):
         self._wallet[CRYPTO] += crypto
@@ -132,7 +152,16 @@ class Trader:
 
         return self._wallet
 
-    def buy_crypto(self):
+    def equival_wallet(self):
+        cur_rate = self._rates[self.get_sample_count - 1]
+        if self._wallet[CRYPTO] > 0:
+            self._equival[VALUTA] = self._wallet[CRYPTO] * cur_rate
+        if self._wallet[VALUTA] > 0:
+            self._equival[CRYPTO] = self._wallet[VALUTA] / cur_rate
+
+        return self._equival
+
+    def sell_crypto(self):
         self._bought_rate = self._rates[self.get_sample_count - 1]
         crypto = self._wallet[CRYPTO]
         valuta = self._wallet[VALUTA]
@@ -141,7 +170,7 @@ class Trader:
         self._wallet[CRYPTO] = 0
         self._wallet[1] += res_valuta
 
-    def sell_crypto(self):
+    def buy_crypto(self):
         self._sold_rate = self._rates[self.get_sample_count - 1]
         crypto = self._wallet[CRYPTO]
         valuta = self._wallet[VALUTA]
@@ -159,7 +188,7 @@ class Trader:
         return block
 
     def _historical_inc(self):
-        if self._traces[HISTORY] < 20:
+        if self._traces[HISTORY] < self.get_sample_count:
             self._traces[HISTORY] += 1
             print("HISTORICAL=", self._traces[HISTORY])
 

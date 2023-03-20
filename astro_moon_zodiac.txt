@@ -62,25 +62,3 @@
  #MAIN
 
 
-
-anonchelovek
-restartround
-
-C:\Program Files\JetBrains\PyCharm 2022.2
-c:\Users\Plinfa-DEV\Documents\Surmylo\plinfa\1111\
-
-
-
-
-
-Serhii Surmylo - Serhii_Surmylo		KREMENCHUK		5.01 	0830
-
-Flint work - Flint_work				MRAGOWO			5.02 	0832
-
-Anton Kuchin - None 				COVENTRY		5.03 	0834
-
-Janusz Mazur - None 				ASTANA			5.04 	0836
-
-
-
-
