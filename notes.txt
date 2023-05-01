@@ -52,7 +52,7 @@ c:\Users\Administrator\Documents\DecisionTree64\venv310\Scripts\deactivate.bat
 pwd   ls   ls -la .   ls -l   chmod drwxrwxrwx
 
 git clone https://github.com/20flint12/DecisionTree64.git
-python3 -m venv /DecisionTree64/env310
+---python3 -m venv /DecisionTree64/env310
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 sudo apt-get install virtualenv
