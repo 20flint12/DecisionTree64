@@ -85,3 +85,6 @@ tmux a -t recorder
 
 
 git rm --cached /.idea/misc.xml
+
+
+aws configure
