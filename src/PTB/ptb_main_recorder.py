@@ -6,13 +6,11 @@
 # https://docs.python-telegram-bot.org/en/v20.0a6/telegram.ext.jobqueue.html
 # https://github.com//python-telegram-bot/python-telegram-bot/wiki/Storing-bot%2C-user-and-chat-related-data
 
-from datetime import datetime, time
-from pprint import pprint
+from datetime import datetime
 
 import src.ephem_routines.ephem_package.geo_place as geo
-import src.boto3_package.mainDB_weather as mr
 import src.boto3_package.mainDB_spaceweather as msw
-import src.scikit_mathplot.main_binance_plot as smb
+# import src.scikit_mathplot.main_binance_plot as smb
 
 import socket
 hostname = socket.gethostname()     # DELL-DEV
@@ -53,12 +51,11 @@ if __version_info__ < (20, 0, 0, "alpha", 1):
         f"{TG_VER} version of this example, "
         f"visit https://docs.python-telegram-bot.org/en/v{TG_VER}/examples.html"
     )
-from telegram import ForceReply, Update
+from telegram import  Update
 from telegram.ext import (
     Application,
     CommandHandler,
     ContextTypes,
-    ConversationHandler,
     MessageHandler,
     PicklePersistence,
     filters,
@@ -262,7 +259,7 @@ async def reply_photo(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
     # data_list = mr.main_query_filter(list_of_items, attr="weather", field="P")
     # print(data_list)
 
-    smb.plot_binance(file_name=photo_name, force_plot=True)
+    # smb.plot_binance(file_name=photo_name, force_plot=True)
 
     text = "reply_photo"
     logger.info("%s", text)
