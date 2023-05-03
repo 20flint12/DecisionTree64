@@ -531,6 +531,24 @@ async def restart_service(context: ContextTypes.DEFAULT_TYPE):
             print('>>>', itm)
             if not isinstance(itm, str):
                 # The variable is a string
+
+                # user_db_data.setdefault('activity', "{}")
+                # user_db_data['activity'] = json.loads(user_db_data['activity'])
+                #
+                # user_db_data.setdefault('payment', "{}")
+                # user_db_data['payment'] = json.loads(user_db_data['payment'])
+
+                pers_data[itm].setdefault('context_user_data', json.loads("{}"))
+                # pers_data[itm]['context_user_data'] = json.loads(user_db_data['context_user_data'])
+                # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ defaults
+                pers_data[itm]['context_user_data'].setdefault(opc.key_Geolocation, "OLSZTYN")
+                pers_data[itm]['context_user_data'].setdefault(opc.key_Interval, "5.555")
+                pers_data[itm]['context_user_data'].setdefault(opc.key_Reminder, "0000")
+
+                # user_db_data.setdefault('add_data', "{}")  # for non-existent fields in the database !!!
+                # user_db_data['add_data'] = json.loads(user_db_data['add_data'])
+
+
                 print('>>>', itm, pers_data[itm]['context_user_data'])
                 pass
                 # del context.appication.chat_data['itm']

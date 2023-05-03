@@ -91,16 +91,17 @@ async def custom_choice(update: Update, context: ContextTypes.DEFAULT_TYPE) -> i
 
 async def received_information(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """Store info provided by user and ask for the next category."""
+    user = update.effective_user
+    logger.info("custom_choice> %s: context.user_data=%s", user.first_name, context.user_data)
+    logger.info("custom_choice> %s: context.chat_data=%s", user.first_name, context.chat_data)
     # user_id = str(update.effective_user.id)
     # user = update.effective_user
     # bot = context.bot
     # user_bot_id = str(user.id) + "#" + str(bot.id)
 
-    # chat_id = update.effective_message.chat_id
-    # bot = context.bot
-    # user_bot_id = str(chat_id) + "#" + str(bot.id)
-    user_bot_id = context.chat_data[bdbu.botUsers_table.get_partition_key]
-    user_name = context.chat_data[bdbu.botUsers_table.get_sort_key]
+    chat_id = update.effective_message.chat_id
+    bot = context.bot
+    user_bot_id = str(chat_id) + "#" + str(bot.id)
 
     text = update.message.text
 
@@ -109,12 +110,21 @@ async def received_information(update: Update, context: ContextTypes.DEFAULT_TYP
         context.user_data[category] = text.upper()
         del context.user_data["choice"]
 
+    # context.chat_data = context.user_data
+    context.chat_data.update(context.user_data)
+    # user_bot_id = context.chat_data[bdbu.botUsers_table.get_partition_key]
+    user_name = str(user.first_name) + " " + str(user.last_name)  # + " - " + str(user.username)
+    bot_name = str(bot.name) + " (" + str(bot.first_name) + ")"
+    user_bot_name = bot_name + " & " + user_name
+
+    # user_name = context.chat_data[bdbu.botUsers_table.get_sort_key]
+
     user_db_data = context.chat_data
     user_db_data['context_user_data'] = context.user_data   # update field
 
     print('@@@', user_bot_id, "::", user_db_data.keys(), user_db_data['context_user_data'])
 
-    bdbu.update_user_context_db(pk_sk_id={'pk': user_bot_id, 'sk': user_name}, user_db_data=user_db_data)
+    bdbu.update_user_context_db(pk_sk_id={'pk': user_bot_id, 'sk': user_bot_name}, user_db_data=user_db_data)
 
     await update.message.reply_text(
         f"Задані параметри збережені: {dict_fields_to_str(context.user_data)} \nМожна змінювати ці параметри.",
