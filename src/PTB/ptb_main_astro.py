@@ -197,6 +197,7 @@ async def moon_phase(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None
     text += str(observer_obj)
     # ++++++++++++++++++++++
     mph_dict, mph_text = md.main_moon_phase(observer=observer_obj)
+    del observer_obj
     text += mph_text
 
     logger.info("moon_day of %s: %s", user.first_name, text)
@@ -218,6 +219,7 @@ async def moon_day(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     text += str(observer_obj)
     # ++++++++++++++++++++++
     md_dict, md_text = md.main_moon_day(observer=observer_obj)
+    del observer_obj
     text += md_text[0]
     text += md_text[2]
 
@@ -248,6 +250,7 @@ async def sun_rise(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     text += str(observer_obj)
     # ++++++++++++++++++++++
     sun_dict, sun_text = sr.main_sun_rise_sett(observer=observer_obj)     # at noon
+    del observer_obj
     text += sun_text
 
     logger.info("sun rise of %s: %s", user.first_name, text)
@@ -269,6 +272,7 @@ async def zodiac(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     text += str(observer_obj)
     # ++++++++++++++++++++++
     zodiac_dict, zodiac_text = zd.main_zodiac_sun_moon(observer=observer_obj)
+    del observer_obj
     text += zodiac_text
 
     zod_id = int((zodiac_dict['moon_lon'] % 360) / 30) + 1
@@ -295,6 +299,7 @@ async def weather(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     text += str(observer_obj)
     # ++++++++++++++++++++++
     wt_dict, wt_text = wt.main_weather_now(observer=observer_obj)
+    del observer_obj
     text += wt_text
 
     logger.info("weather of %s: %s", user.first_name, text)
@@ -336,6 +341,7 @@ async def summary(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     # text += item_dict[0]["description"]
     # ++++++++++++++++++++++
     wt_dict, wt_text = wt.main_weather_now(observer=observer_obj)
+    del observer_obj
     text += wt_text
 
     logger.info("moon_zodiac of %s: %s", user.first_name, text)
@@ -387,6 +393,7 @@ async def callback_timer_DAILY(context: ContextTypes.DEFAULT_TYPE) -> None:
 
     # ++++++++++++++++++++++
     mp.plot_color_of_the_days(observer=observer_obj, file_name=photo_name, job_name=chat_job_name)
+    del observer_obj
 
     logger.info("send_photo %s", photo_name)
 
@@ -423,6 +430,7 @@ async def setup_timer_DAILY(update: Update, context: ContextTypes.DEFAULT_TYPE) 
 
     text = ""
     valid_reminder, dt_hhmm_unaware, dt_hhmm_utc = bdbu.parse_Reminder(context=context, observer=observer_obj)
+    del observer_obj
 
     if valid_reminder in (bdbu.PrmOrig.DEF, bdbu.PrmOrig.SET, bdbu.PrmOrig.ARG):
         text += "Заданий час: " + str(dt_hhmm_unaware.time()) + " | " + str(dt_hhmm_utc.time()) + " UTC"
@@ -497,6 +505,7 @@ async def color_of_the_days(update: Update, context: ContextTypes.DEFAULT_TYPE) 
     text += str(observer_obj)
     # ++++++++++++++++++++++
     mp.plot_color_of_the_days(observer=observer_obj, file_name=photo_name, job_name=chat_job_name)
+    del observer_obj
 
     logger.info("color_of_the_days - %s", photo_name)
     await update.message.reply_photo(photo=open(photo_name, 'rb'))
