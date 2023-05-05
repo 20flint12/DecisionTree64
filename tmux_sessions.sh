@@ -1,10 +1,5 @@
 #!/bin/bash
 
-echo "--- make scripts executable ---"
-chmod +x ./DecisionTree64/ptb_main_astro.sh
-chmod +x ./DecisionTree64/ptb_main_recorder.sh
-chmod +x ./BinanceTrader/ptb_binance_monitor.sh
-
 echo "--- create sessions ---"
 tmux new -d -s ptb_main_astro
 #tmux detach
@@ -37,3 +32,8 @@ git fetch
 git switch develop
 git pull origin develop
 
+
+echo "--- make scripts executable ---"
+chmod +x ./DecisionTree64/ptb_main_astro.sh
+chmod +x ./DecisionTree64/ptb_main_recorder.sh
+chmod +x ./BinanceTrader/ptb_binance_monitor.sh
