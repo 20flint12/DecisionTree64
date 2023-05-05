@@ -3,8 +3,12 @@
 cd /home/ubuntu/DecisionTree64
 read
 
-echo "--- attach session ---"
-tmux attach-session -t ptb_main_recorder
+if [[ -n "$TMUX" ]]; then
+  echo "You are currently in a tmux session."
+else
+  echo "--- attach session ---"
+  tmux attach-session -t ptb_main_recorder
+fi
 read
 
 # You are in the root ...
