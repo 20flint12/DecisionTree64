@@ -33,6 +33,8 @@ git switch develop
 git pull origin develop
 
 
+cd /home/ubuntu
+
 echo "--- make scripts executable ---"
 chmod +x ./DecisionTree64/ptb_main_astro.sh
 chmod +x ./DecisionTree64/ptb_main_recorder.sh
