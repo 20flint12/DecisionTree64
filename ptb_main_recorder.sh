@@ -20,5 +20,5 @@ source venv310/bin/activate
 read
 
 echo "--- run ptb_main_recorder ---"
-python -m src.PTB_bot.ptb_main_recorder
+python -m src.PTB.ptb_main_recorder
 
