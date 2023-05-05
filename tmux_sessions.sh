@@ -5,7 +5,7 @@ chmod +x ./DecisionTree64/ptb_main_astro.sh
 chmod +x ./DecisionTree64/ptb_main_recorder.sh
 chmod +x ./BinanceTrader/ptb_binance_monitor.sh
 
-echo "--- open session ---"
+echo "--- create sessions ---"
 tmux new -d -s ptb_main_astro
 #tmux detach
 tmux new -d -s ptb_main_recorder
