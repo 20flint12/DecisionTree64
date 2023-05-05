@@ -69,8 +69,11 @@ git pull origin develop
 
 chmod +x ./DecisionTree64/tmux_sessions.sh
 
+
 tmux list-sessions
-tmux kill-session
+tmux kill-session -s recorder
+tmux kill-server
+
 
 tmux new -s ptb_main_astro
 tmux a -t ptb_main_astro
