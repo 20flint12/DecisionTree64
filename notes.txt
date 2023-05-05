@@ -67,6 +67,7 @@ git fetch
 git switch develop
 git pull origin develop
 
+chmod +x ./DecisionTree64/tmux_sessions.sh
 
 tmux list-sessions
 tmux kill-session
