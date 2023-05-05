@@ -18,5 +18,22 @@ echo "--- check sessions ---"
 tmux list-sessions
 
 
+# You are in the root ...
+cd /home/ubuntu/DecisionTree64
 
+echo "--- update DecisionTree64 repo ---"
+git reset --hard origin/develop
+git fetch
+git switch develop
+git pull origin develop
+
+
+# You are in the root ...
+cd /home/ubuntu/BinanceTrader
+
+echo "--- update BinanceTrader repo ---"
+git reset --hard origin/develop
+git fetch
+git switch develop
+git pull origin develop
 
