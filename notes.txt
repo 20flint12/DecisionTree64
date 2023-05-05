@@ -69,11 +69,15 @@ git pull origin develop
 
 
 tmux list-sessions
+tmux kill-session
 
 tmux new -s ptb_main_astro
 tmux a -t ptb_main_astro
 tmux new -s recorder
 tmux a -t recorder
+
+tmux attach-session -t ptb_binance_monitor
+
 
 
  BOT_TOKEN "1796700435:AAG_RgjpPYOedk8iFzgN7DXZ0tYcwU39LvQ"  // InspectorBiblyka_bot            prod remote record
