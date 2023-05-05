@@ -4,7 +4,7 @@ echo "--- attach session ---"
 tmux attach-session -t ptb_main_recorder
 
 # You are in the root ...
-cd /home/ubuntu/DecisionTree/
+cd /home/ubuntu/DecisionTree64
 
 echo "--- run env ---"
 source venv310/bin/activate

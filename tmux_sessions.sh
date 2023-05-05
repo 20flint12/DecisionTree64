@@ -4,10 +4,7 @@ echo "--- create sessions ---"
 tmux new -d -s ptb_main_astro
 #tmux detach
 tmux new -d -s ptb_main_recorder
-#tmux detach
 tmux new -d -s ptb_binance_monitor
-#tmux detach
-#tmux a -t ptb_binance_monitor
 
 echo "--- check sessions ---"
 tmux list-sessions
